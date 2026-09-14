@@ -158,15 +158,15 @@ test_that("optional = FALSE narrows to the required packages", {
 })
 
 test_that("the example script ships, parses, and calls only real functions", {
-  path <- system.file("examples", "run_analysis.R", package = "analysiskitlocal")
+  path <- system.file("examples", "run_analysis.R", package = "analysiskit")
   skip_if(!nzchar(path) || !file.exists(path), "not testing an installed package")
 
   code <- parse(path)
   expect_gt(length(code), 0L)
 
-  # Every analysiskitlocal function the guide tells someone to call must exist,
+  # Every analysiskit function the guide tells someone to call must exist,
   # or the guide sends them to an error.
-  exports <- getNamespaceExports("analysiskitlocal")
+  exports <- getNamespaceExports("analysiskit")
   used <- unique(unlist(lapply(code, all.names)))
   named <- intersect(used, exports)
 
@@ -188,7 +188,7 @@ test_that("the example script ships, parses, and calls only real functions", {
 })
 
 test_that("the example script keeps its six steps, in order", {
-  path <- system.file("examples", "run_analysis.R", package = "analysiskitlocal")
+  path <- system.file("examples", "run_analysis.R", package = "analysiskit")
   skip_if(!nzchar(path) || !file.exists(path), "not testing an installed package")
 
   text <- paste(readLines(path, warn = FALSE), collapse = "\n")
@@ -212,7 +212,7 @@ test_that("the example script keeps its six steps, in order", {
 })
 
 test_that("the example script stays short enough to read at a glance", {
-  path <- system.file("examples", "run_analysis.R", package = "analysiskitlocal")
+  path <- system.file("examples", "run_analysis.R", package = "analysiskit")
   skip_if(!nzchar(path) || !file.exists(path), "not testing an installed package")
 
   # A requirement, not an accident. An earlier version spelled out every stage

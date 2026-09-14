@@ -353,7 +353,7 @@ test_that("the template ships with the package and refuses to clobber", {
 })
 
 test_that("the schema document ships with the package", {
-  schema <- system.file("extdata", "loa-schema.md", package = "analysiskitlocal")
+  schema <- system.file("extdata", "loa-schema.md", package = "analysiskit")
   expect_true(nzchar(schema) && file.exists(schema))
   expect_match(paste(readLines(schema, warn = FALSE), collapse = "\n"), "count_exclusive_combinations")
 })
@@ -374,7 +374,7 @@ test_that("the pipeline and the formatter are both reachable from the namespace"
   # ak_export_results() and run_analysis_spec() find them with exists(), which
   # in a package searches the namespace. If that ever stopped working, every
   # run would fail with "not available" instead of running.
-  ns <- asNamespace("analysiskitlocal")
+  ns <- asNamespace("analysiskit")
   expect_true(exists("run_group_analysis_pipeline", envir = ns, mode = "function"))
   expect_true(exists("format_my_xlsx_variable_x_group", envir = ns, mode = "function"))
 })

@@ -1,5 +1,5 @@
 # =============================================================================
-# analysiskitlocal - generate an analysis
+# analysiskit - generate an analysis
 # =============================================================================
 #
 #   dataset (.xlsx)  +  List of Analysis (.xlsx)  ->  results workbook
@@ -8,10 +8,10 @@
 #
 # Open your own copy:
 #   file.edit(system.file("examples", "run_analysis.R",
-#                         package = "analysiskitlocal"))
+#                         package = "analysiskit"))
 # =============================================================================
 
-library(analysiskitlocal)
+library(analysiskit)
 
 
 # --- 1. packages -------------------------------------------------------- once
@@ -107,5 +107,5 @@ results$combined_results[1:5, 1:6]       # a corner of the wide table
 #
 # The full workbook specification - every sheet, every setting, every rule:
 #   file.show(system.file("extdata", "loa-schema.md",
-#                         package = "analysiskitlocal"))
+#                         package = "analysiskit"))
 # =============================================================================

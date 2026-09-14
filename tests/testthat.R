@@ -1,4 +1,4 @@
 library(testthat)
-library(analysiskitlocal)
+library(analysiskit)
 
-test_check("analysiskitlocal")
+test_check("analysiskit")
