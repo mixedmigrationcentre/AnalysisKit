@@ -13,7 +13,7 @@ dataset_overview(dataset)
 - dataset:
 
   The list returned by
-  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_analysis_dataset.md).
+  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md).
 
 ## Value
 

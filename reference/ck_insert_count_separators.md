@@ -24,14 +24,14 @@ ck_insert_count_separators(
 - wide_table:
 
   The wide results table, already ordered by
-  [`ck_order_count_blocks`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_order_count_blocks.md).
+  [`ck_order_count_blocks`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_order_count_blocks.md).
 
 - count_map:
 
   The derived map from
-  [`ck_derived_map`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_derived_map.md)
+  [`ck_derived_map`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_derived_map.md)
   (or the `map` from
-  [`ck_add_selection_counts`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_add_selection_counts.md),
+  [`ck_add_selection_counts`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_selection_counts.md),
   for compatibility).
 
 - heading:

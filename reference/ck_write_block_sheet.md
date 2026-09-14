@@ -91,7 +91,7 @@ ck_write_block_sheet(
 - pct_fmt:
 
   Excel number format for proportion rows, from
-  [`ck_percent_format()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_percent_format.md).
+  [`ck_percent_format()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_percent_format.md).
 
 ## Value
 

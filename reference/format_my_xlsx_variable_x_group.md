@@ -53,7 +53,7 @@ format_my_xlsx_variable_x_group(
 
   A data frame, a named list containing `table_name`, or the list
   returned by
-  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md)
+  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md)
   (which supplies both `combined_results` and `column_map`).
 
 - file_path:
@@ -135,7 +135,7 @@ format_my_xlsx_variable_x_group(
 - column_map:
 
   Optional data frame with `group_variable` and `column`, as returned by
-  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md).
+  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md).
 
 - repeat_overall:
 
@@ -242,7 +242,7 @@ format_my_xlsx_variable_x_group(
 - palette:
 
   Optional named vector of colour overrides. See
-  [`mmc_colours()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/mmc_colours.md).
+  [`mmc_colours()`](https://mixedmigrationcentre.github.io/analysiskit/reference/mmc_colours.md).
 
 - font_name:
 
@@ -264,7 +264,7 @@ written and the path returned invisibly.
 ## Details
 
 Built for the wide outputs of
-[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md),
+[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md),
 which can run to thousands of columns when many countries or towns are
 used as grouping variables. With `column_map` from the pipeline, each
 grouping variable is written to its own sheet, repeating the index panel

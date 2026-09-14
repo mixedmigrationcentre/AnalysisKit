@@ -19,13 +19,13 @@ print(x, ...)
 - dataset:
 
   A dataset path (`.csv` / `.xlsx`), the list from
-  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_analysis_dataset.md),
+  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md),
   or a data frame with the ONA label row still on top.
 
 - loa:
 
   A List of Analysis path, or the list from
-  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md).
+  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
   A `.csv` carries no sheets and is read as the `analysis` table alone,
   so a configured run needs `.xlsx`.
 
@@ -61,7 +61,7 @@ The run **stops before doing any work** when the List of Analysis has a
 fatal problem, and the error names every one of them. That is
 deliberate: the alternative is a workbook full of plausible numbers
 attributed to the wrong disaggregation. Call
-[`check_analysis_inputs()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/check_analysis_inputs.md)
+[`check_analysis_inputs()`](https://mixedmigrationcentre.github.io/analysiskit/reference/check_analysis_inputs.md)
 first to see the problems without triggering the run.
 
 Warnings do not stop a run - they mean less output, not wrong output -
@@ -84,11 +84,11 @@ are returned either way.
 
 ## See also
 
-[`check_analysis_inputs()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/check_analysis_inputs.md)
+[`check_analysis_inputs()`](https://mixedmigrationcentre.github.io/analysiskit/reference/check_analysis_inputs.md)
 to look before you leap,
-[`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_spec.md)
+[`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.md)
 to run an already-built specification,
-[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md)
+[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md)
 to bypass the workbook entirely.
 
 ## Examples

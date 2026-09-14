@@ -13,7 +13,7 @@ as_loa_workbook(loa)
 - loa:
 
   A path, or the list from
-  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md).
+  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
 
 ## Value
 

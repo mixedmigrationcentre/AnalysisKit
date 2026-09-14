@@ -17,7 +17,7 @@ loa_rename_values(x, map)
 - map:
 
   A named character vector as in
-  [`apply_rename_map`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/apply_rename_map.md).
+  [`apply_rename_map`](https://mixedmigrationcentre.github.io/analysiskit/reference/apply_rename_map.md).
 
 ## Value
 

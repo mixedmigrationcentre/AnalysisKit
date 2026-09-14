@@ -13,7 +13,7 @@ ak_sheet_summary(workbook)
 - workbook:
 
   The list from
-  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md).
+  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
 
 ## Value
 

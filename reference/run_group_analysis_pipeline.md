@@ -114,7 +114,7 @@ run_group_analysis_pipeline(
 
   Optional choice labels to exclude from the denominator, e.g.
   `c("Don't know", "Refused")`. See
-  [`ck_exclude_choices`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_exclude_choices.md) -
+  [`ck_exclude_choices`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_exclude_choices.md) -
   this changes the denominator, it does not merely hide rows. Grouping
   variables are not affected.
 
@@ -172,7 +172,7 @@ run_group_analysis_pipeline(
   the listed ones are ignored, so the rows are mutually exclusive and
   add to 100\\ Only respondents who answered the question are in the
   denominator. See
-  [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_add_choice_combinations.md).
+  [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_choice_combinations.md).
 
 - count_combinations_ignore_case:
 
@@ -265,7 +265,7 @@ run_group_analysis_pipeline(
 
   `"auto"` (default) sends rows that asked for an interval to
   `analysistools`/survey and everything else to
-  [`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_fast_analysis.md).
+  [`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_fast_analysis.md).
   `"fast"` forces the fast engine (no intervals; neither analysistools
   nor srvyr needed). `"survey"` forces the old behaviour.
 

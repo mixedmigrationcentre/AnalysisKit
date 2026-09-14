@@ -15,7 +15,7 @@ ak_can_run(states)
 - states:
 
   A vector from
-  [`ak_step_states()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_step_states.md).
+  [`ak_step_states()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_step_states.md).
 
 ## Value
 

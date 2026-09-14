@@ -31,7 +31,7 @@ ck_fast_analysis(
 - loa:
 
   A stacked LOA from
-  [`ck_stack_loa`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_stack_loa.md).
+  [`ck_stack_loa`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_stack_loa.md).
 
 - weight_column:
 

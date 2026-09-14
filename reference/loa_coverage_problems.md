@@ -13,7 +13,7 @@ loa_coverage_problems(coverage)
 - coverage:
 
   The output of
-  [`loa_variable_coverage`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_variable_coverage.md).
+  [`loa_variable_coverage`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md).
 
 ## Value
 

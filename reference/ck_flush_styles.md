@@ -14,7 +14,7 @@ ck_flush_styles(sg, wb, sheet)
 - sg:
 
   A style grid from
-  [`ck_new_style_grid()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_new_style_grid.md).
+  [`ck_new_style_grid()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_new_style_grid.md).
 
 - wb:
 

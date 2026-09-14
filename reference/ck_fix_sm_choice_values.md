@@ -45,5 +45,5 @@ ck_fix_sm_choice_values(
 ## Details
 
 Only reachable via the survey engine -
-[`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_fast_analysis.md)
+[`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_fast_analysis.md)
 takes the suffix by prefix removal and never truncates.

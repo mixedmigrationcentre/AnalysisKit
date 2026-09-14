@@ -23,7 +23,7 @@ ak_export_results(
 - results:
 
   The list returned by
-  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md).
+  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md).
 
 - spec:
 

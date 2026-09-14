@@ -23,19 +23,19 @@ and `purpose`.
 
 Nothing is installed here. The two optional GitHub packages are not on
 CRAN, so the `install` column gives the command to run.
-[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/load_packages.md)
+[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/load_packages.md)
 does the installing.
 
 The roster itself lives in
-[`ak_package_roster()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_package_roster.md),
+[`ak_package_roster()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_package_roster.md),
 so this function and
-[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/load_packages.md)
+[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/load_packages.md)
 cannot disagree about what is optional or where the GitHub packages come
 from.
 
 ## See also
 
-[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/load_packages.md)
+[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/load_packages.md)
 to install what is missing.
 
 ## Examples

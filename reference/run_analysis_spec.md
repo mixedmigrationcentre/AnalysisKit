@@ -17,7 +17,7 @@ run_analysis_spec(dataset, spec, pipeline = NULL, ...)
 - spec:
 
   An `analysis_spec` from
-  [`build_analysis_spec`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/build_analysis_spec.md).
+  [`build_analysis_spec`](https://mixedmigrationcentre.github.io/analysiskit/reference/build_analysis_spec.md).
 
 - pipeline:
 

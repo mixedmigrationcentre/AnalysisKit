@@ -18,7 +18,7 @@ ck_parent_label_from_children(parent, label_lookup, sm_separator = "/")
 - label_lookup:
 
   A named vector from
-  [`ck_build_label_lookup`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_build_label_lookup.md).
+  [`ck_build_label_lookup`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_build_label_lookup.md).
 
 - sm_separator:
 

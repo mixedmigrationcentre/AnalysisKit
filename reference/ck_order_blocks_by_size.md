@@ -24,7 +24,7 @@ ck_order_blocks_by_size(blocks, block_group, size)
 - size:
 
   Sample size of each block, from
-  [`ck_block_sample_sizes()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_block_sample_sizes.md).
+  [`ck_block_sample_sizes()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_block_sample_sizes.md).
 
 ## Value
 

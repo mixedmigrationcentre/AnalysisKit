@@ -1,7 +1,7 @@
 # Group-Wise Sums of Several Numeric Vectors at Once
 
 The same arithmetic as calling
-[`ck_gsum`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_gsum.md)
+[`ck_gsum`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_gsum.md)
 once per vector, but a single
 [`rowsum()`](https://rdrr.io/r/base/rowsum.html) pass over a matrix
 instead of one per statistic. Each analysis needs two to four group-wise

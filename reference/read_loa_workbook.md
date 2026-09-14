@@ -2,7 +2,7 @@
 
 Reads every recognised sheet and interprets nothing. Unrecognised sheet
 names are recorded rather than rejected here, so that
-[`validate_loa`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/validate_loa.md)
+[`validate_loa`](https://mixedmigrationcentre.github.io/analysiskit/reference/validate_loa.md)
 remains the single place that decides what is a problem.
 
 ## Usage

@@ -1,7 +1,7 @@
 # Check a Dataset and a List of Analysis Against Each Other
 
 Everything
-[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_locally.md)
+[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md)
 checks before it commits to a run, with nothing run. Use it to see what
 a workbook would do to a dataset - and what it would refuse to do -
 without waiting for an analysis.
@@ -20,13 +20,13 @@ print(x, ...)
 - dataset:
 
   A dataset path, the list from
-  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_analysis_dataset.md),
+  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md),
   or a plain data frame with the ONA label row still on top.
 
 - loa:
 
   A List of Analysis path, or the list from
-  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md).
+  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
 
 - output_folder:
 
@@ -56,7 +56,7 @@ instead of one per attempt. `$ready` is the answer to "would a run go
 ahead".
 
 The severity rule, inherited from
-[`validate_loa()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/validate_loa.md):
+[`validate_loa()`](https://mixedmigrationcentre.github.io/analysiskit/reference/validate_loa.md):
 **fatal** when the run would produce wrong or misleading output,
 **warning** when it would only produce less output. So a grouping
 variable that is missing from the dataset warns - one fewer column
@@ -66,9 +66,9 @@ disaggregation.
 
 ## See also
 
-[`validate_loa()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/validate_loa.md)
+[`validate_loa()`](https://mixedmigrationcentre.github.io/analysiskit/reference/validate_loa.md)
 for the checks themselves,
-[`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_variable_coverage.md)
+[`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md)
 for the per-reference variable table.
 
 ## Examples

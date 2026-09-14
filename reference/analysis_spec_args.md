@@ -1,7 +1,7 @@
 # Assemble the Pipeline Call for a Specification
 
 Split out from
-[`run_analysis_spec`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_spec.md)
+[`run_analysis_spec`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.md)
 so the argument list can be inspected and tested without running an
 analysis.
 
@@ -24,4 +24,4 @@ analysis_spec_args(dataset, spec)
 ## Value
 
 A named list of arguments for
-[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md).
+[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md).

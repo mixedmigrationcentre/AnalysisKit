@@ -17,7 +17,7 @@ ak_export_settings(results, spec)
 - results:
 
   The list returned by
-  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md).
+  [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md).
 
 - spec:
 
@@ -26,7 +26,7 @@ ak_export_settings(results, spec)
 ## Value
 
 A named list of arguments for
-[`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/format_my_xlsx_variable_x_group.md).
+[`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/format_my_xlsx_variable_x_group.md).
 
 ## Details
 

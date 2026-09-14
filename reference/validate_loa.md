@@ -15,7 +15,7 @@ validate_loa(workbook, dataset = NULL)
 - workbook:
 
   The list returned by
-  [`read_loa_workbook`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md),
+  [`read_loa_workbook`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md),
   or a bare named list of sheets.
 
 - dataset:

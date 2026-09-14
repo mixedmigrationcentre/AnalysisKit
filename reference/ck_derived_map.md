@@ -18,18 +18,18 @@ ck_derived_map(count_map = NULL, combination_map = NULL, exclusive_map = NULL)
 - count_map:
 
   The `map` from
-  [`ck_add_selection_counts`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_add_selection_counts.md).
+  [`ck_add_selection_counts`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_selection_counts.md).
 
 - combination_map:
 
   The `map` from
-  [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_add_choice_combinations.md)
+  [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_choice_combinations.md)
   run with `mode = "any"`.
 
 - exclusive_map:
 
   The `map` from
-  [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_add_choice_combinations.md)
+  [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_choice_combinations.md)
   run with `mode = "only"`.
 
 ## Value

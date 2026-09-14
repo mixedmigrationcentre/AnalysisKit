@@ -83,7 +83,7 @@ A list with `dataset` and `map` (`analysis_var`, `count_column`,
 ## Details
 
 Run this *before*
-[`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_sm_children_to_binary.md):
+[`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_children_to_binary.md):
 the counts are taken from the raw selection pattern, so that "no choice
 selected" is a real category rather than a group the not-asked mask has
 already removed.

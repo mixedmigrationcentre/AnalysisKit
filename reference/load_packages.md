@@ -31,7 +31,7 @@ load_packages(optional = TRUE, attach = FALSE, upgrade = FALSE)
 ## Value
 
 The status table from
-[`check_analysis_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/check_analysis_packages.md),
+[`check_analysis_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/check_analysis_packages.md),
 invisibly, taken *after* the install so it reflects what actually
 happened.
 
@@ -71,7 +71,7 @@ interactive work.
 
 ## See also
 
-[`check_analysis_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/check_analysis_packages.md)
+[`check_analysis_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/check_analysis_packages.md)
 to look without installing anything.
 
 ## Examples

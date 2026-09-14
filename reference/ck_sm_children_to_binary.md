@@ -3,7 +3,7 @@
 `analysistools` estimates a select_multiple proportion as the weighted
 mean of each child dummy, so the children must be numeric 0/1 with `NA`
 for respondents never asked the question. Selection detection is
-[`ck_sm_selection_matrix`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_sm_selection_matrix.md).
+[`ck_sm_selection_matrix`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_selection_matrix.md).
 
 ## Usage
 

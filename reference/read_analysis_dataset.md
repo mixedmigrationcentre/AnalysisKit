@@ -3,9 +3,9 @@
 Reads a `.csv` or `.xlsx` research dataset and reports what it found.
 The file is read as it is: **row 1 of an ONA export is the label row and
 is left in place**, because that is what
-[`build_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/build_analysis_spec.md)
+[`build_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskit/reference/build_analysis_spec.md)
 and
-[`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_spec.md)
+[`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.md)
 expect. The label row is set aside by the pipeline itself, under the
 `skip_label_row` setting.
 
@@ -35,11 +35,11 @@ mangle.
 
 ## See also
 
-[`dataset_overview()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/dataset_overview.md)
+[`dataset_overview()`](https://mixedmigrationcentre.github.io/analysiskit/reference/dataset_overview.md)
 and
-[`dataset_columns()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/dataset_columns.md)
+[`dataset_columns()`](https://mixedmigrationcentre.github.io/analysiskit/reference/dataset_columns.md)
 to inspect the result,
-[`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md)
+[`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md)
 for the other half of a run.
 
 ## Examples
@@ -55,7 +55,7 @@ utils::write.csv(
 dataset <- read_analysis_dataset(path)
 dataset_overview(dataset)
 #>          Measure                Value
-#> 1      File name file18da4dcc4c5f.csv
+#> 1      File name file199c7f3375f3.csv
 #> 2      File type                  CSV
 #> 3      File size             45 bytes
 #> 4           Rows                    3

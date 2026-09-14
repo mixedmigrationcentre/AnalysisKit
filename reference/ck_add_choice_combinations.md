@@ -131,6 +131,6 @@ keeps this base identical to the one behind the question's own choice
 percentages.
 
 Run this *before*
-[`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_sm_children_to_binary.md):
+[`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_children_to_binary.md):
 the pattern is taken from the raw selections, before the not-asked mask
 is applied.

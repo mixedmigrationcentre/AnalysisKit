@@ -1,7 +1,7 @@
 # Which Grouping Variable the Pipeline Will Attribute a Column To
 
 Reproduces the ownership rule in
-[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md):
+[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md):
 `Overall` first, then each grouping variable in turn, matching the fixed
 substring `_<group>_`, first match wins. Reproduced rather than
 approximated, so this check cannot drift from the behaviour it is

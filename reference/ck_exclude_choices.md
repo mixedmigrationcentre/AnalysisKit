@@ -25,7 +25,7 @@ ck_exclude_choices(
 - dataset:
 
   The analysis dataset. For select_multiple, run this *after*
-  [`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_sm_children_to_binary.md).
+  [`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_children_to_binary.md).
 
 - loa:
 

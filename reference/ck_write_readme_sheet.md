@@ -44,7 +44,7 @@ ck_write_readme_sheet(
 - composition:
 
   Output of
-  [`ck_sample_composition()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_sample_composition.md),
+  [`ck_sample_composition()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sample_composition.md),
   or `NULL`.
 
 - sheet_table:
@@ -74,7 +74,7 @@ ck_write_readme_sheet(
 - pct_fmt:
 
   Excel number format for proportions, from
-  [`ck_percent_format()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_percent_format.md).
+  [`ck_percent_format()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_percent_format.md).
   Used both for the sample-composition percentages and for the
   number-format note, so the note cannot drift from the sheets.
 

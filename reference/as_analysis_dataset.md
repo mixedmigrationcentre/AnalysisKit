@@ -1,7 +1,7 @@
 # Accept a Dataset in Any of the Three Useful Shapes
 
 A path, the list
-[`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_analysis_dataset.md)
+[`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md)
 returns, or a bare data frame. The last is what makes an in-memory
 dataset - one already cleaned in the session - usable without writing it
 out to a file first.

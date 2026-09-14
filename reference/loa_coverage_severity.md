@@ -17,7 +17,7 @@ loa_coverage_severity(role)
 - role:
 
   The `role` column of
-  [`loa_variable_coverage`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_variable_coverage.md).
+  [`loa_variable_coverage`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md).
 
 ## Value
 

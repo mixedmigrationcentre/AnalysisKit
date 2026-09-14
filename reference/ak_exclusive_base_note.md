@@ -29,5 +29,5 @@ was dropped.
 
 So the number is reported per question, as a share of everyone who
 answered.
-[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_locally.md)
+[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md)
 prints it after a run for the same reason.

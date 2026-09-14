@@ -1,7 +1,7 @@
 # Install a Set of Packages, Best Effort
 
 Split out from
-[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/load_packages.md)
+[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/load_packages.md)
 for two reasons: it is the only part that touches the network, which
 keeps it out of the unit tests; and it is the only part that can fail in
 ways worth reporting individually.
@@ -17,7 +17,7 @@ ak_install_missing(specs, upgrade = FALSE)
 - specs:
 
   Install specs from
-  [`ak_install_specs()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_install_specs.md)
+  [`ak_install_specs()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_install_specs.md)
   — a CRAN name, or an `org/repo` for the GitHub-only packages.
 
 - upgrade:
@@ -31,6 +31,6 @@ ak_install_missing(specs, upgrade = FALSE)
 ## Details
 
 Never stops. Whether a failure matters is
-[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/load_packages.md)'s
+[`load_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/load_packages.md)'s
 judgement to make, from what is missing afterwards and whether any of it
 was required.

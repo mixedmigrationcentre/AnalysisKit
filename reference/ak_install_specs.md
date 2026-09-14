@@ -14,7 +14,7 @@ ak_install_specs(roster)
 - roster:
 
   Rows of
-  [`ak_package_roster()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_package_roster.md).
+  [`ak_package_roster()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_package_roster.md).
 
 ## Value
 

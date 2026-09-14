@@ -1,4 +1,4 @@
-# analysiskitlocal
+# analysiskit
 
 The [Analysis Kit](https://github.com/mixedmigrationcentre/analysiskit)
 workflow as an R package. It turns a 4Mi dataset and a **List of
@@ -52,7 +52,7 @@ that on a schedule.
 A package also fixes something the application could not. Analysis Kit
 sources its analysis and export code from a `functions/` folder, and
 every `.R` file in there gets sourced — so two files defining
-[`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/format_my_xlsx_variable_x_group.md)
+[`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/format_my_xlsx_variable_x_group.md)
 do not error. [`source()`](https://rdrr.io/r/base/source.html) order
 silently decides which survives, and the older definition can win,
 producing a workbook that builds correctly and formats wrongly. In a
@@ -67,7 +67,7 @@ R 4.1 or later.
 ``` r
 
 # install.packages("remotes")
-remotes::install_github("mixedmigrationcentre/run-analysis-locally")
+remotes::install_github("mixedmigrationcentre/analysiskit")
 ```
 
 Installing brings in what every run needs: `dplyr`, `tidyr`, `stringr`,
@@ -100,7 +100,7 @@ check_analysis_packages()
 
 ``` r
 
-library(analysiskitlocal)
+library(analysiskit)
 
 # 1. A folder structure to work in, if you want one
 setup_project_folders()          # creates data/, resources/, output/
@@ -177,7 +177,7 @@ head(run$results$combined_results)
 **Row 1 is expected to be the label row.** ONA puts the question text
 there, and the pipeline sets it aside so it never counts as a
 respondent. Leave it in place:
-[`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_analysis_dataset.md)
+[`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md)
 reads the file as it is, and the pipeline handles the row under the
 `skip_label_row` setting. If your dataset has no label row, say so by
 setting `skip_label_row` to `FALSE` in the workbook’s `settings` sheet —
@@ -210,7 +210,7 @@ disaggregations, no selection counts, no settings.
 copy_loa_template("resources")     # a filled-in workbook to start from
 
 # The full specification: every sheet, every setting, every validation rule
-file.show(system.file("extdata", "loa-schema.md", package = "analysiskitlocal"))
+file.show(system.file("extdata", "loa-schema.md", package = "analysiskit"))
 ```
 
 Up to seven sheets. Only `analysis` is required; a missing or empty
@@ -295,7 +295,7 @@ only*. A question can carry both blocks.
 > is what “only” means, and it is invisible in the finished workbook —
 > the percentages look like every other percentage.
 >
-> [`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_locally.md)
+> [`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md)
 > prints how many that is, per question, when you print the run.
 > **Footnote it wherever these percentages are published**: two tables
 > in the same workbook, both labelled as percentages of respondents,
@@ -326,7 +326,7 @@ argument of the pipeline:
     weight_column       weight
     min_group_n         30
 
-[`loa_settings_schema()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_settings_schema.md)
+[`loa_settings_schema()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_settings_schema.md)
 lists every accepted key with its type.
 
 A **misspelled key is a fatal error**, not a silent skip — a typo that
@@ -342,7 +342,7 @@ label renders `Economiconly`.
 
 ## Doing it a step at a time
 
-[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_locally.md)
+[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md)
 is these five steps in order. Each is available on its own, so a run can
 be inspected or altered at any point.
 
@@ -384,7 +384,7 @@ path <- ak_export_results(
 
 ### Bypassing the workbook entirely
 
-[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md)
+[`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md)
 is the engine, and it takes plain R arguments. Use it for a one-off that
 does not deserve a workbook, or when the arguments are being generated
 by something else:
@@ -407,7 +407,7 @@ results <- run_group_analysis_pipeline(
 ```
 
 Its fifty arguments are documented in
-[`?run_group_analysis_pipeline`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md).
+[`?run_group_analysis_pipeline`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md).
 Anything the workbook can set, this can set.
 
 ------------------------------------------------------------------------
@@ -428,9 +428,9 @@ would not. With both `Region` and `Region_of_origin` in play,
 `stat_Region_of_origin_East Africa` matches `_Region_` first, and every
 `Region_of_origin` column is attributed to `Region`.
 
-[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_locally.md)
+[`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md)
 and
-[`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_spec.md)
+[`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.md)
 **refuse to start** when anything is fatal, and the error names every
 problem at once. That is the point: the alternative is a workbook full
 of plausible numbers attributed to the wrong disaggregation.
@@ -441,7 +441,7 @@ dropped, a `Don't know` label that matched nothing, a town set aside for
 having four interviews: all warnings, all consequential.
 
 **Variable coverage**
-([`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_variable_coverage.md))
+([`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md))
 lists every dataset variable the workbook names, where it is named, and
 whether your dataset has it. It is the quickest way to spot a List of
 Analysis from the wrong round. Presence uses the pipeline’s own rule, so
@@ -453,7 +453,7 @@ there, even though ONA did not export the concatenated parent.
 ## The output workbook
 
 One MMC-branded `.xlsx`, styled by
-[`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/format_my_xlsx_variable_x_group.md):
+[`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/format_my_xlsx_variable_x_group.md):
 
 - one small table per question, percentages on the left, matching counts
   on the right
@@ -480,7 +480,7 @@ Means and medians keep two decimals; counts are whole numbers.
 
 To publish decimals instead, pass `percent_digits` to the formatter
 directly, or change it in
-[`ak_export_settings()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_export_settings.md).
+[`ak_export_settings()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_export_settings.md).
 `1` gives `66.8%`.
 
 ### Nothing is written until the analysis succeeds
@@ -509,62 +509,62 @@ reads, validates, reshapes or writes.
 
 | Function | Does |
 |----|----|
-| [`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_locally.md) | the whole workflow: read, check, run, export |
-| [`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_spec.md) | run an `analysis_spec` |
-| [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_group_analysis_pipeline.md) | the engine, with plain R arguments |
+| [`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md) | the whole workflow: read, check, run, export |
+| [`run_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.md) | run an `analysis_spec` |
+| [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md) | the engine, with plain R arguments |
 
 ### Reading
 
 | Function | Does |
 |----|----|
-| [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_analysis_dataset.md) | read and profile a `.csv` / `.xlsx` dataset |
-| [`read_uploaded_dataset()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_uploaded_dataset.md) | the same reader, from an upload record |
-| [`dataset_overview()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/dataset_overview.md), [`dataset_columns()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/dataset_columns.md) | profile a dataset |
-| [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md) | read every recognised sheet, interpreting nothing |
-| [`copy_loa_template()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/copy_loa_template.md) | write the template workbook somewhere |
+| [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md) | read and profile a `.csv` / `.xlsx` dataset |
+| [`read_uploaded_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_uploaded_dataset.md) | the same reader, from an upload record |
+| [`dataset_overview()`](https://mixedmigrationcentre.github.io/analysiskit/reference/dataset_overview.md), [`dataset_columns()`](https://mixedmigrationcentre.github.io/analysiskit/reference/dataset_columns.md) | profile a dataset |
+| [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md) | read every recognised sheet, interpreting nothing |
+| [`copy_loa_template()`](https://mixedmigrationcentre.github.io/analysiskit/reference/copy_loa_template.md) | write the template workbook somewhere |
 
 ### Checking
 
 | Function | Does |
 |----|----|
-| [`check_analysis_inputs()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/check_analysis_inputs.md) | everything a run checks, with nothing run |
-| [`validate_loa()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/validate_loa.md) | every schema check; returns problems, never stops |
-| [`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_variable_coverage.md), [`loa_coverage_summary()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_coverage_summary.md) | which variables the workbook names, and whether the dataset has them |
-| [`loa_has_errors()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_has_errors.md) | is the run blocked |
-| [`ak_problem_counts()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_problem_counts.md), [`ak_problems_display()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_problems_display.md) | count and format problems |
-| [`ak_sheet_summary()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_sheet_summary.md) | which sheets were supplied |
-| [`ak_step_states()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_step_states.md), [`ak_can_run()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_can_run.md) | the readiness gate |
-| [`check_analysis_packages()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/check_analysis_packages.md) | required and optional packages, and what is installed |
-| [`loa_settings_schema()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_settings_schema.md), [`loa_known_sheets()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_known_sheets.md), [`loa_known_analysis_types()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_known_analysis_types.md) | the schema itself |
+| [`check_analysis_inputs()`](https://mixedmigrationcentre.github.io/analysiskit/reference/check_analysis_inputs.md) | everything a run checks, with nothing run |
+| [`validate_loa()`](https://mixedmigrationcentre.github.io/analysiskit/reference/validate_loa.md) | every schema check; returns problems, never stops |
+| [`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md), [`loa_coverage_summary()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_summary.md) | which variables the workbook names, and whether the dataset has them |
+| [`loa_has_errors()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_has_errors.md) | is the run blocked |
+| [`ak_problem_counts()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_problem_counts.md), [`ak_problems_display()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_problems_display.md) | count and format problems |
+| [`ak_sheet_summary()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_sheet_summary.md) | which sheets were supplied |
+| [`ak_step_states()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_step_states.md), [`ak_can_run()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_can_run.md) | the readiness gate |
+| [`check_analysis_packages()`](https://mixedmigrationcentre.github.io/analysiskit/reference/check_analysis_packages.md) | required and optional packages, and what is installed |
+| [`loa_settings_schema()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_settings_schema.md), [`loa_known_sheets()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_known_sheets.md), [`loa_known_analysis_types()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_known_analysis_types.md) | the schema itself |
 
 ### Specifying
 
 | Function | Does |
 |----|----|
-| [`build_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/build_analysis_spec.md) | workbook → the one internal description of a run |
-| [`analysis_spec_args()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/analysis_spec_args.md) | the pipeline call, without running it |
-| [`apply_rename_map()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/apply_rename_map.md) | rename a dataset, parents *and* select_multiple children |
+| [`build_analysis_spec()`](https://mixedmigrationcentre.github.io/analysiskit/reference/build_analysis_spec.md) | workbook → the one internal description of a run |
+| [`analysis_spec_args()`](https://mixedmigrationcentre.github.io/analysiskit/reference/analysis_spec_args.md) | the pipeline call, without running it |
+| [`apply_rename_map()`](https://mixedmigrationcentre.github.io/analysiskit/reference/apply_rename_map.md) | rename a dataset, parents *and* select_multiple children |
 
 ### Exporting
 
 | Function | Does |
 |----|----|
-| [`ak_export_results()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_export_results.md) | write a completed run to a folder |
-| [`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/format_my_xlsx_variable_x_group.md) | the MMC-branded formatter |
-| [`ak_export_settings()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_export_settings.md) | the formatter arguments a run implies |
-| [`ak_prepare_for_export()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_prepare_for_export.md) | handle the separator rows before formatting |
-| [`ak_output_filename()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_output_filename.md), [`ak_check_folder()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_check_folder.md), [`ak_provenance()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_provenance.md) | filenames, destination, the readme record |
-| [`ak_exclusive_base_note()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ak_exclusive_base_note.md) | the exclusive-denominator caveat, in sentences |
+| [`ak_export_results()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_export_results.md) | write a completed run to a folder |
+| [`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/format_my_xlsx_variable_x_group.md) | the MMC-branded formatter |
+| [`ak_export_settings()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_export_settings.md) | the formatter arguments a run implies |
+| [`ak_prepare_for_export()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_prepare_for_export.md) | handle the separator rows before formatting |
+| [`ak_output_filename()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_output_filename.md), [`ak_check_folder()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_check_folder.md), [`ak_provenance()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_provenance.md) | filenames, destination, the readme record |
+| [`ak_exclusive_base_note()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_exclusive_base_note.md) | the exclusive-denominator caveat, in sentences |
 
 ### The pipeline’s own parts
 
 Every stage of the engine is exported as a `ck_*` function —
-[`ck_fast_analysis()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_fast_analysis.md),
-[`ck_exclude_choices()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_exclude_choices.md),
-[`ck_add_choice_combinations()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_add_choice_combinations.md),
-[`ck_pivot_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_pivot_variable_x_group.md)
+[`ck_fast_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_fast_analysis.md),
+[`ck_exclude_choices()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_exclude_choices.md),
+[`ck_add_choice_combinations()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_choice_combinations.md),
+[`ck_pivot_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_pivot_variable_x_group.md)
 and the rest — so an unusual analysis can be assembled from the pieces.
-`ls("package:analysiskitlocal")` lists them.
+`ls("package:analysiskit")` lists them.
 
 ### `setup_project_folders()`
 
@@ -635,7 +635,7 @@ reportable and are also what makes the run slow.
 ## Package layout
 
     R/
-      analysiskitlocal-package.R  package documentation
+      analysiskit-package.R         package documentation
       run_local.R                   the run_* entry points and input coercion
       checks.R                      the readiness rules and check_analysis_inputs()
       read_dataset.R                dataset ingestion and profiling

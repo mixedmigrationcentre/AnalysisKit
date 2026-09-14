@@ -25,7 +25,7 @@ ak_prepare_for_export(wide, layout = c("blocks", "matrix"))
 
 ## Details
 
-[`ck_insert_count_separators()`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_insert_count_separators.md)
+[`ck_insert_count_separators()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_insert_count_separators.md)
 adds a blank spacer and a heading above each derived block, marked in a
 `row_type` column that it appends at the *end* of the table. Left alone:
 

@@ -14,7 +14,7 @@ build_analysis_spec(workbook, dataset = NULL)
 - workbook:
 
   The list returned by
-  [`read_loa_workbook`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/read_loa_workbook.md),
+  [`read_loa_workbook`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md),
   or a bare named list of sheets.
 
 - dataset:
@@ -32,9 +32,9 @@ An object of class `analysis_spec`: a list with `loa`,
 Variable names are resolved here: the workbook is written in raw dataset
 codes throughout, and the spec comes back in post-rename names, matching
 the dataset
-[`run_analysis_spec`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/run_analysis_spec.md)
+[`run_analysis_spec`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.md)
 will hand to the pipeline.
 
 This never stops. Inspect `problems` (or call
-[`loa_has_errors`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/loa_has_errors.md))
+[`loa_has_errors`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_has_errors.md))
 before running.

@@ -45,7 +45,7 @@ ck_stack_loa(
 
   Placeholder level for rows with an empty `level` cell. Default `0.95`.
   See
-  [`ck_level_info`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_level_info.md).
+  [`ck_level_info`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_level_info.md).
 
 - verbose:
 

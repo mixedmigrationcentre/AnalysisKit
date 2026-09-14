@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Run MMC 4Mi Analyses Locally from a Dataset and a List of Analysis • analysiskitlocal</title>
+<title>Run MMC 4Mi Analyses Locally from a Dataset and a List of Analysis • analysiskit</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">analysiskitlocal</a>
+    <a class="navbar-brand me-2" href="index.html">analysiskit</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2026.09.1</small>
 
@@ -37,7 +37,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mixedmigrationcentre/run-analysis-locally/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mixedmigrationcentre/analysiskit/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -46,7 +46,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="analysiskitlocal">analysiskitlocal<a class="anchor" aria-label="anchor" href="#analysiskitlocal"></a>
+<div class="page-header"><h1 id="analysiskit">analysiskit<a class="anchor" aria-label="anchor" href="#analysiskit"></a>
 </h1></div>
 <p>The <a href="https://github.com/mixedmigrationcentre/analysiskit" class="external-link">Analysis Kit</a> workflow as an R package. It turns a 4Mi dataset and a <strong>List of Analysis</strong> workbook into a branded, MMC-styled results workbook — from the console, with no interface and no script to edit each round.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -91,7 +91,7 @@
 <p>R 4.1 or later.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mixedmigrationcentre/run-analysis-locally"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mixedmigrationcentre/analysiskit"</span><span class="op">)</span></span></code></pre></div>
 <p>Installing brings in what every run needs: <code>dplyr</code>, <code>tidyr</code>, <code>stringr</code>, <code>readxl</code>, <code>openxlsx</code>.</p>
 <p>Three packages are <strong>optional</strong>, and only one feature reaches them:</p>
 <table class="table">
@@ -124,7 +124,7 @@
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mixedmigrationcentre/run-analysis-locally" class="external-link">analysiskitlocal</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mixedmigrationcentre/analysiskit" class="external-link">analysiskit</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. A folder structure to work in, if you want one</span></span>
 <span><span class="fu"><a href="reference/setup_project_folders.html">setup_project_folders</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># creates data/, resources/, output/</span></span>
@@ -207,7 +207,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="reference/copy_loa_template.html">copy_loa_template</a></span><span class="op">(</span><span class="st">"resources"</span><span class="op">)</span>     <span class="co"># a filled-in workbook to start from</span></span>
 <span></span>
 <span><span class="co"># The full specification: every sheet, every setting, every validation rule</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/file.show.html" class="external-link">file.show</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"loa-schema.md"</span>, package <span class="op">=</span> <span class="st">"analysiskitlocal"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/file.show.html" class="external-link">file.show</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"loa-schema.md"</span>, package <span class="op">=</span> <span class="st">"analysiskit"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Up to seven sheets. Only <code>analysis</code> is required; a missing or empty sheet means “not requested”, and the pipeline’s own default applies — never a guessed value.</p>
 <p>Sheet names are matched case-insensitively, and after collapsing spaces and hyphens to underscores, so <code>Group Analysis</code> and <code>group_analysis</code> both resolve. An <strong>unrecognised</strong> sheet name is a fatal error, not a silent skip: a typo would otherwise look exactly like a deliberate decision not to configure that sheet. Sheets named <code>readme</code> or <code>notes</code>, or beginning with <code>_</code>, are ignored, so the workbook can carry its own instructions.</p>
 <div class="section level3">
@@ -658,7 +658,7 @@ min_group_n         30</code></pre>
 <div class="section level3">
 <h3 id="the-pipelines-own-parts">The pipeline’s own parts<a class="anchor" aria-label="anchor" href="#the-pipelines-own-parts"></a>
 </h3>
-<p>Every stage of the engine is exported as a <code>ck_*</code> function — <code><a href="reference/ck_fast_analysis.html">ck_fast_analysis()</a></code>, <code><a href="reference/ck_exclude_choices.html">ck_exclude_choices()</a></code>, <code><a href="reference/ck_add_choice_combinations.html">ck_add_choice_combinations()</a></code>, <code><a href="reference/ck_pivot_variable_x_group.html">ck_pivot_variable_x_group()</a></code> and the rest — so an unusual analysis can be assembled from the pieces. <code>ls("package:analysiskitlocal")</code> lists them.</p>
+<p>Every stage of the engine is exported as a <code>ck_*</code> function — <code><a href="reference/ck_fast_analysis.html">ck_fast_analysis()</a></code>, <code><a href="reference/ck_exclude_choices.html">ck_exclude_choices()</a></code>, <code><a href="reference/ck_add_choice_combinations.html">ck_add_choice_combinations()</a></code>, <code><a href="reference/ck_pivot_variable_x_group.html">ck_pivot_variable_x_group()</a></code> and the rest — so an unusual analysis can be assembled from the pieces. <code>ls("package:analysiskit")</code> lists them.</p>
 </div>
 <div class="section level3">
 <h3 id="setup_project_folders">
@@ -711,7 +711,7 @@ min_group_n         30</code></pre>
 <h2 id="package-layout">Package layout<a class="anchor" aria-label="anchor" href="#package-layout"></a>
 </h2>
 <pre><code>R/
-  analysiskitlocal-package.R  package documentation
+  analysiskit-package.R         package documentation
   run_local.R                   the run_* entry points and input coercion
   checks.R                      the readiness rules and check_analysis_inputs()
   read_dataset.R                dataset ingestion and profiling
@@ -757,8 +757,8 @@ tests/testthat/                 the test suite</code></pre>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/mixedmigrationcentre/run-analysis-locally/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/mixedmigrationcentre/run-analysis-locally/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/mixedmigrationcentre/analysiskit/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/mixedmigrationcentre/analysiskit/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -774,7 +774,7 @@ tests/testthat/                 the test suite</code></pre>
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing analysiskitlocal</a></li>
+<li><a href="authors.html#citation">Citing analysiskit</a></li>
 </ul>
 </div>
 

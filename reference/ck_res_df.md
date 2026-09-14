@@ -1,7 +1,7 @@
 # One Block of Long Results
 
 The single shape every branch of
-[`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskitlocal/reference/ck_fast_analysis.md)
+[`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_fast_analysis.md)
 returns. Scalars recycle, so a branch passes whichever of its arguments
 vary.
 
