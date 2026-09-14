@@ -1,4 +1,4 @@
-# analysiskit
+# Analysis Kit
 
 The [Analysis Kit](https://github.com/mixedmigrationcentre/analysiskit)
 workflow as an R package. It turns a 4Mi dataset and a **List of
