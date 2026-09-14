@@ -389,7 +389,7 @@ copy_loa_template <- function(dir = ".",
                               filename = "loa_template.xlsx",
                               overwrite = FALSE) {
   template <- system.file("extdata", "loa_template.xlsx",
-                          package = "analysiskitlocal")
+                          package = "analysiskit")
   if (!nzchar(template) || !file.exists(template)) {
     stop("The List of Analysis template is missing from the installation.", call. = FALSE)
   }
