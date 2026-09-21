@@ -9,7 +9,7 @@
   : Check That a Folder Can Be Written To
 
 - [`ak_exclusive_base_note()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_exclusive_base_note.md)
-  : The Exclusive-Combination Base, Spelled Out
+  : The Combination Base, Spelled Out
 
 - [`ak_export_results()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_export_results.md)
   : Write a Completed Run to a Folder

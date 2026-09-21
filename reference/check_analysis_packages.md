@@ -46,7 +46,7 @@ check_analysis_packages()
 #> 1         dplyr required      TRUE   1.2.1
 #> 2         tidyr required      TRUE   1.3.2
 #> 3       stringr required      TRUE   1.6.0
-#> 4        readxl required      TRUE   1.5.0
+#> 4        readxl required      TRUE 1.5.0.1
 #> 5      openxlsx required      TRUE   4.2.9
 #> 6         srvyr optional     FALSE    <NA>
 #> 7 analysistools optional     FALSE    <NA>

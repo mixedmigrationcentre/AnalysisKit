@@ -24,13 +24,13 @@ ck_derived_map(count_map = NULL, combination_map = NULL, exclusive_map = NULL)
 
   The `map` from
   [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_choice_combinations.md)
-  run with `mode = "any"`.
+  run with `mode = "multiple"`.
 
 - exclusive_map:
 
   The `map` from
   [`ck_add_choice_combinations`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_add_choice_combinations.md)
-  run with `mode = "only"`.
+  run with `mode = "single"`.
 
 ## Value
 

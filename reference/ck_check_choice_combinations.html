@@ -61,6 +61,7 @@ asks to report on a choice, the other to drop everyone who picked it).</p>
 <span>  ignore_case <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  exclude_choices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max_choices <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"multiple"</span>, <span class="st">"single"</span><span class="op">)</span>,</span>
 <span>  arg_name <span class="op">=</span> <span class="st">"count_combinations"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -96,7 +97,15 @@ asks to report on a choice, the other to drop everyone who picked it).</p>
 <dt id="arg-max-choices">max_choices<a class="anchor" aria-label="anchor" href="#arg-max-choices"></a></dt>
 <dd><p>Refuse more than this many focus choices per question, so
 a long list cannot silently produce hundreds of rows. Default <code>6</code>
-(64 combinations).</p></dd>
+(121 combination rows).</p></dd>
+
+
+<dt id="arg-mode">mode<a class="anchor" aria-label="anchor" href="#arg-mode"></a></dt>
+<dd><p><code>"multiple"</code> (the <code>count_combinations</code> block, whose row
+count grows as 2^(k+1) - k - 1) or <code>"single"</code> (the
+<code>count_exclusive_combinations</code> block, which is k + 1 rows). Only
+decides how many rows the <code>max_choices</code> message says the request would
+produce.</p></dd>
 
 
 <dt id="arg-arg-name">arg_name<a class="anchor" aria-label="anchor" href="#arg-arg-name"></a></dt>

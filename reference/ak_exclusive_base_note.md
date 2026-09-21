@@ -1,29 +1,30 @@
-# The Exclusive-Combination Base, Spelled Out
+# The Combination Base, Spelled Out
 
-`count_exclusive_combinations` rows sit on a smaller denominator than
-every other table in the output: a respondent who selected a listed
-choice *together with* an unlisted one belongs to none of the categories
-and leaves the base. That is the intended meaning of "only", but it is
-invisible in the finished workbook - the percentages simply look like
-every other percentage.
+`count_combinations` and `count_exclusive_combinations` share one
+denominator: everyone who answered the question and has at least one
+choice recorded. A respondent who answered but has nothing recorded at
+all - never asked, or asked and left blank - is outside that base, so
+the two blocks describe slightly fewer people than the question's own
+choice percentages do. That is invisible in the finished workbook, where
+the percentages simply look like every other percentage.
 
 ## Usage
 
 ``` r
-ak_exclusive_base_note(exclusive_map)
+ak_exclusive_base_note(map)
 ```
 
 ## Arguments
 
-- exclusive_map:
+- map:
 
-  The `exclusive_combinations` element of a pipeline result:
-  `analysis_var`, `n_in_base` and `n_mixed_dropped`.
+  The `choice_combinations` or `exclusive_combinations` element of a
+  pipeline result: `analysis_var`, `n_in_base` and `n_no_selection`.
 
 ## Value
 
-A character vector of sentences, or `character(0)` when no respondent
-was dropped.
+A character vector of sentences, or `character(0)` when every respondent
+who answered is in the base.
 
 ## Details
 
