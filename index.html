@@ -288,8 +288,8 @@
 <p>Read the “no choice selected” figure carefully: it counts respondents with nothing recorded, which lumps together those never asked the question and those asked who left it blank. If the question was asked of everyone the two are the same thing; if it was conditional, this is “not answered”, not “declined”.</p>
 </div>
 <div class="section level3">
-<h3 id="count_combinations--which-combination-of-choices-they-picked">
-<code>count_combinations</code> — which combination of choices they picked<a class="anchor" aria-label="anchor" href="#count_combinations--which-combination-of-choices-they-picked"></a>
+<h3 id="count_combinations--what-the-multiple-selectors-picked">
+<code>count_combinations</code> — what the multiple-selectors picked<a class="anchor" aria-label="anchor" href="#count_combinations--what-the-multiple-selectors-picked"></a>
 </h3>
 <table class="table">
 <colgroup>
@@ -315,16 +315,16 @@
 </tr>
 </tbody>
 </table>
-<p>Gives four mutually exclusive rows — <em>Economic + Conflict</em>, <em>Economic</em>, <em>Conflict</em>, <em>None of these</em> — that add to 100%. <code>choice_label</code> must match the export exactly, punctuation and all; a mistyped label is a fatal error with a “did you mean” suggestion rather than a table that looks fine and is wrong.</p>
+<p>Reports the respondents who selected <strong>more than one</strong> choice, and says whether anything outside the listed choices was selected — five rows for the two above: <em>Economic + Conflict only</em>, <em>Economic + Conflict + Other</em>, <em>Economic + Other</em>, <em>Conflict + Other</em>, <em>Other multiple selection</em>. <code>choice_label</code> must match the export exactly, punctuation and all; a mistyped label is a fatal error with a “did you mean” suggestion rather than a table that looks fine and is wrong.</p>
 </div>
 <div class="section level3">
-<h3 id="count_exclusive_combinations--the-strict-version">
-<code>count_exclusive_combinations</code> — the strict version<a class="anchor" aria-label="anchor" href="#count_exclusive_combinations--the-strict-version"></a>
+<h3 id="count_exclusive_combinations--what-the-single-selectors-picked">
+<code>count_exclusive_combinations</code> — what the single-selectors picked<a class="anchor" aria-label="anchor" href="#count_exclusive_combinations--what-the-single-selectors-picked"></a>
 </h3>
-<p>Same three columns. <code>count_combinations</code> asks <em>“selected Economic, whatever else”</em>; this asks <em>“selected Economic and nothing else at all”</em>. Rows read <em>Economic only</em>, and the catch-all is <em>Other choices only</em>. A question can carry both blocks.</p>
+<p>Same three columns, the other half of the same question: the respondents who selected <strong>exactly one</strong> choice. Rows read <em>Economic only</em>, <em>Conflict only</em> and <em>Other single selection</em>. A question can carry both blocks, and they are meant to be used together.</p>
 <blockquote>
-<p>⚠ <strong>These rows sit on a smaller denominator than every other table in the output.</strong> Anyone who picked a listed choice <em>together with</em> an unlisted one belongs to no category and leaves the base entirely. That is what “only” means, and it is invisible in the finished workbook — the percentages look like every other percentage.</p>
-<p><code><a href="reference/run_analysis_locally.html">run_analysis_locally()</a></code> prints how many that is, per question, when you print the run. <strong>Footnote it wherever these percentages are published</strong>: two tables in the same workbook, both labelled as percentages of respondents, will not share a denominator.</p>
+<p><strong>The two blocks share one denominator</strong> — everyone who answered the question and has at least one choice recorded, minus anyone removed by <code>exclude_choices</code>. So the two blocks <em>taken together</em> add to 100%, and each on its own adds to the share of the sample it covers. Fill in only one sheet and its rows will add to less than 100%; the pipeline warns when that happens.</p>
+<p>⚠ <strong>One group is outside both.</strong> A respondent who answered but has no choice recorded at all — never asked, or asked and left blank — is outside that base. <code><a href="reference/run_analysis_locally.html">run_analysis_locally()</a></code> prints how many that is, per question, when you print the run. <strong>Footnote it wherever these percentages are published</strong> when the number is material.</p>
 </blockquote>
 </div>
 <div class="section level3">
@@ -650,7 +650,7 @@ min_group_n         30</code></pre>
 </tr>
 <tr>
 <td><code><a href="reference/ak_exclusive_base_note.html">ak_exclusive_base_note()</a></code></td>
-<td>the exclusive-denominator caveat, in sentences</td>
+<td>the combination-denominator caveat, in sentences</td>
 </tr>
 </tbody>
 </table>
@@ -673,7 +673,7 @@ min_group_n         30</code></pre>
 </h2>
 <p><strong>The label row.</strong> Row 1 of an ONA export is question text. Left in place it is counted as a respondent: it adds a bogus category to every proportion and becomes <code>NA</code> for every mean. The pipeline removes it by default. If your dataset has no label row and you do not set <code>skip_label_row</code> to <code>FALSE</code>, your first respondent is silently dropped.</p>
 <p><strong><code>exclude_choices</code> changes the denominator.</strong> It is not a filter on the output rows. Someone who picked <code>Don't know</code> leaves the base for that question altogether — which is what “of those who answered” means, and is why dropping the rows afterwards would be the opposite of correct.</p>
-<p><strong>Exclusive combinations do not share a denominator with anything else.</strong> See the warning above. Print the run and read what it tells you.</p>
+<p><strong>The two combination blocks share a denominator with each other, not with the rest of the workbook.</strong> Their rows add to 100% together, and anyone who answered with no choice recorded is outside both. See the warning above; print the run and read what it tells you.</p>
 <p><strong>Names that contain other names.</strong> Two <code>new_name</code> values where one contains the other is fatal, and rightly so. Containment anywhere counts, not just a prefix: <code>of</code> and <code>Region_of_origin</code> collide too.</p>
 <p><strong>A group level literally called <code>Overall</code>.</strong> It produces <code>stat_&lt;group&gt;_Overall</code>, which the column matcher attributes to the Overall block. Checked against the real levels in your dataset, and fatal.</p>
 <p><strong><code>recreate_sm_parents</code> needs a column literally named <code>uuid</code>.</strong> The pipeline hardcodes that name.</p>

@@ -269,37 +269,42 @@ question and those asked who left it blank. If the question was asked of
 everyone the two are the same thing; if it was conditional, this is “not
 answered”, not “declined”.
 
-### `count_combinations` — which combination of choices they picked
+### `count_combinations` — what the multiple-selectors picked
 
 | analysis_var | choice_label | display_name |
 |----|----|----|
 | Q78 | Economic reasons | Economic |
 | Q78 | Armed conflict, generalised violence, and insecurity | Conflict |
 
-Gives four mutually exclusive rows — *Economic + Conflict*, *Economic*,
-*Conflict*, *None of these* — that add to 100%. `choice_label` must
-match the export exactly, punctuation and all; a mistyped label is a
-fatal error with a “did you mean” suggestion rather than a table that
-looks fine and is wrong.
+Reports the respondents who selected **more than one** choice, and says
+whether anything outside the listed choices was selected — five rows for
+the two above: *Economic + Conflict only*, *Economic + Conflict +
+Other*, *Economic + Other*, *Conflict + Other*, *Other multiple
+selection*. `choice_label` must match the export exactly, punctuation
+and all; a mistyped label is a fatal error with a “did you mean”
+suggestion rather than a table that looks fine and is wrong.
 
-### `count_exclusive_combinations` — the strict version
+### `count_exclusive_combinations` — what the single-selectors picked
 
-Same three columns. `count_combinations` asks *“selected Economic,
-whatever else”*; this asks *“selected Economic and nothing else at
-all”*. Rows read *Economic only*, and the catch-all is *Other choices
-only*. A question can carry both blocks.
+Same three columns, the other half of the same question: the respondents
+who selected **exactly one** choice. Rows read *Economic only*,
+*Conflict only* and *Other single selection*. A question can carry both
+blocks, and they are meant to be used together.
 
-> ⚠ **These rows sit on a smaller denominator than every other table in
-> the output.** Anyone who picked a listed choice *together with* an
-> unlisted one belongs to no category and leaves the base entirely. That
-> is what “only” means, and it is invisible in the finished workbook —
-> the percentages look like every other percentage.
+> **The two blocks share one denominator** — everyone who answered the
+> question and has at least one choice recorded, minus anyone removed by
+> `exclude_choices`. So the two blocks *taken together* add to 100%, and
+> each on its own adds to the share of the sample it covers. Fill in
+> only one sheet and its rows will add to less than 100%; the pipeline
+> warns when that happens.
 >
+> ⚠ **One group is outside both.** A respondent who answered but has no
+> choice recorded at all — never asked, or asked and left blank — is
+> outside that base.
 > [`run_analysis_locally()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.md)
 > prints how many that is, per question, when you print the run.
-> **Footnote it wherever these percentages are published**: two tables
-> in the same workbook, both labelled as percentages of respondents,
-> will not share a denominator.
+> **Footnote it wherever these percentages are published** when the
+> number is material.
 
 ### `exclude_choices` — labels that leave the denominator
 
@@ -554,7 +559,7 @@ reads, validates, reshapes or writes.
 | [`ak_export_settings()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_export_settings.md) | the formatter arguments a run implies |
 | [`ak_prepare_for_export()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_prepare_for_export.md) | handle the separator rows before formatting |
 | [`ak_output_filename()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_output_filename.md), [`ak_check_folder()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_check_folder.md), [`ak_provenance()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_provenance.md) | filenames, destination, the readme record |
-| [`ak_exclusive_base_note()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_exclusive_base_note.md) | the exclusive-denominator caveat, in sentences |
+| [`ak_exclusive_base_note()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_exclusive_base_note.md) | the combination-denominator caveat, in sentences |
 
 ### The pipeline’s own parts
 
@@ -586,8 +591,10 @@ output rows. Someone who picked `Don't know` leaves the base for that
 question altogether — which is what “of those who answered” means, and
 is why dropping the rows afterwards would be the opposite of correct.
 
-**Exclusive combinations do not share a denominator with anything
-else.** See the warning above. Print the run and read what it tells you.
+**The two combination blocks share a denominator with each other, not
+with the rest of the workbook.** Their rows add to 100% together, and
+anyone who answered with no choice recorded is outside both. See the
+warning above; print the run and read what it tells you.
 
 **Names that contain other names.** Two `new_name` values where one
 contains the other is fatal, and rightly so. Containment anywhere
