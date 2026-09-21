@@ -358,11 +358,14 @@ print.analysis_run <- function(x, ...) {
 
   # Printed rather than logged: these percentages get published, and the caveat
   # has to reach whoever is about to send the file on.
-  notes <- ak_exclusive_base_note(x$results$exclusive_combinations)
+  notes <- unique(c(
+    ak_exclusive_base_note(x$results$choice_combinations),
+    ak_exclusive_base_note(x$results$exclusive_combinations)
+  ))
   if (length(notes) > 0) {
-    cat("\n  These rows use a smaller denominator than the rest of the workbook:\n")
+    cat("\n  The choice-combination rows use a smaller denominator than the rest of the workbook:\n")
     for (note in notes) cat("    -", note, "\n")
-    cat("  Footnote this wherever the exclusive percentages are published.\n")
+    cat("  Footnote this wherever the combination percentages are published.\n")
   }
 
   invisible(x)

@@ -7,16 +7,19 @@
 ck_add_choice_combinations(
   dataset,
   combinations,
+  mode = c("multiple", "single"),
   sm_separator = "/",
   sm_child_style = c("auto", "label", "dummy"),
   exclude_choices = NULL,
   ignore_case = TRUE,
-  none_label = "None of these",
   joiner = " + ",
-  mode = c("any", "only"),
   only_suffix = " only",
+  other_label = "Other",
+  other_multiple_label = "Other multiple selection",
+  other_single_label = "Other single selection",
+  residual_label = "",
   order = c("descending", "ascending"),
-  suffix = "_choice_combination",
+  suffix = NULL,
   verbose = TRUE
 )
 }
@@ -28,6 +31,8 @@ are the choice labels of interest. Name the choices to get short display
 labels (\code{c(Economic = "Economic reasons")}); leave them unnamed and the
 full ONA label is used.}
 
+\item{mode}{\code{"multiple"} (default) or \code{"single"}. See above.}
+
 \item{sm_separator}{Separator between parent and choice. Default \code{"/"}.}
 
 \item{sm_child_style}{\code{"auto"} (default), \code{"label"}, \code{"dummy"}.}
@@ -37,70 +42,80 @@ full ONA label is used.}
 \item{ignore_case}{Logical. Match labels case-insensitively. Default
 \code{TRUE}.}
 
-\item{none_label}{Row label for respondents who selected none of the listed
-choices. Default \code{"None of these"}.}
-
 \item{joiner}{Placed between the display labels of a multi-choice
-combination. Default \code{" + "}.}
+combination, and before \code{other_label}. Default \code{" + "}.}
 
-\item{mode}{\code{"any"} (default) ignores the choices outside the listed
-ones. \code{"only"} requires that nothing outside them was selected, and
-drops respondents who mixed a listed choice with an unlisted one.}
+\item{only_suffix}{Appended to a row meaning "and nothing else". Default
+\code{" only"}.}
 
-\item{only_suffix}{Appended to each row label under \code{mode = "only"}, so
-the strict reading is visible in the table itself. Default \code{" only"};
-the \code{none_label} row is left alone.}
+\item{other_label}{Stands for the unlisted choices. Default \code{"Other"}.}
+
+\item{other_multiple_label}{Row label for respondents who selected more than
+one choice, none of them listed.}
+
+\item{other_single_label}{Row label for respondents whose single selection
+was not one of the listed choices.}
+
+\item{residual_label}{Row label for the respondents this block does not
+report - those who selected exactly one choice when \code{mode =
+"multiple"}, or more than one when \code{mode = "single"}. \code{""}
+(default) keeps them in the denominator without giving them a row, which is
+what makes the two blocks add to 100\\% together rather than twice over.}
 
 \item{order}{Row order. \code{"descending"} (default) puts the largest
-combinations first, so the "both" row leads and \code{none_label} closes.
-\code{"ascending"} reverses it.}
+combinations first; \code{"ascending"} reverses the block.}
 
-\item{suffix}{Appended to the variable name to make the derived column name.}
+\item{suffix}{Appended to the variable name to make the derived column name.
+\code{NULL} (default) uses \code{"_choice_combination"} or
+\code{"_exclusive_combination"} depending on \code{mode}.}
 
 \item{verbose}{Logical. Default \code{TRUE}.}
 }
 \value{
 A list with \code{dataset} (the derived columns added) and \code{map}
-(a dataframe of \code{analysis_var}, \code{combination_column},
-\code{n_choices}, \code{n_combinations}, \code{n_in_base} and
-\code{n_mixed_dropped}).
+(\code{analysis_var}, \code{combination_column}, \code{mode},
+\code{n_choices}, \code{n_combinations}, \code{n_in_base},
+\code{n_in_block}, \code{n_other_block}, \code{n_no_selection},
+\code{n_excluded_out} and \code{hidden_row}).
 }
 \description{
 For each question in \code{combinations}, adds a derived categorical column
-recording which of the \emph{chosen} choices that respondent selected, ignoring
-everything else they selected. With k choices of interest every respondent
-falls into exactly one of 2^k groups, so the categories are mutually
-exclusive and exhaustive and the percentages add to 100\\%.
+saying which of the \emph{chosen} choices that respondent selected and
+whether they selected anything else besides. Because the result is an
+ordinary categorical column it then flows through the normal analysis -
+overall and across every grouping variable - with no special casing
+downstream.
 }
 \details{
-For \code{c(Economic = "Economic reasons", Conflict = "Armed conflict, ...")}
-that is four rows: \emph{Economic + Conflict}, \emph{Economic} (selected
-Economic and not Conflict, whatever else they selected), \emph{Conflict}, and
-\emph{None of these}.
+The feature comes in two halves, and a question can use either or both:
 
-Because the result is an ordinary categorical column it then flows through
-the normal analysis - overall and across every grouping variable - with no
-special casing downstream.
+\describe{
+\item{\code{mode = "multiple"}}{Reports the respondents who selected
+\strong{more than one} choice. With
+\code{c(Economic = "Economic reasons", Conflict = "Armed conflict, ...")}
+that is five rows: \emph{Economic + Conflict only} (those two and nothing
+else), \emph{Economic + Conflict + Other} (those two plus at least one
+unlisted choice), \emph{Economic + Other}, \emph{Conflict + Other}, and
+\emph{Other multiple selection} (more than one choice, none of them
+listed).}
+\item{\code{mode = "single"}}{Reports the respondents who selected
+\strong{exactly one} choice: \emph{Economic only}, \emph{Conflict only}
+and \emph{Other single selection}.}
+}
 
-\strong{Two readings of "combination".} \code{mode = "any"} (the default)
-ignores every choice outside the listed ones, so \emph{Economic} means
-"selected Economic, did not select Conflict, and whatever else they selected
-does not matter". \code{mode = "only"} is strict: \emph{Economic only} means
-"selected Economic and nothing else at all". The strict reading is not
-exhaustive - a respondent who selected Economic alongside some choice outside
-the list belongs to none of the categories - and those respondents are
-dropped from the base. \strong{The result is that \code{mode = "only"} reports
-on a smaller and differently defined base than every other table in the run},
-so the number dropped is returned in the map as \code{n_mixed_dropped} and
-should be footnoted wherever these percentages are published.
+\strong{Denominator.} Both halves sit on the same base: respondents who
+answered the question - the parent column is non-blank, or at least one child
+is selected - \emph{and} have at least one choice recorded. Anyone never
+asked, anyone asked who left it blank, and anyone who picked a choice named
+in \code{exclude_choices} is \code{NA} and drops out. Because the base is
+shared, the rows of the two halves \emph{taken together} add to 100\\%; each
+half on its own adds to the share of respondents it covers. The respondents
+the other half reports are held in the base as \code{residual_label} rather
+than dropped, which is what keeps \code{n_total} the same in both.
 
-\strong{Denominator.} Only respondents who answered the question are counted:
-the parent column is non-blank, or at least one child is selected. Anyone who
-was never asked, or asked and left it blank, is \code{NA} and drops out - so
-\emph{None of these} means "answered, but picked none of the listed choices",
-not "did not answer". When \code{exclude_choices} is in play, respondents who
-picked an excluded choice also drop out, which keeps this base identical to
-the one behind the question's own choice percentages.
+A respondent who answered but has nothing recorded at all is outside the base
+entirely. That number is reported per question and returned as
+\code{n_no_selection}, because it is otherwise invisible in the output.
 
 Run this \emph{before} \code{\link{ck_sm_children_to_binary}}: the pattern is
 taken from the raw selections, before the not-asked mask is applied.

@@ -100,9 +100,13 @@ results$combined_results[1:5, 1:6]       # a corner of the wide table
 # exclude_choices CHANGES THE DENOMINATOR. Someone who picked "Don't know"
 #   leaves the base for that question entirely.
 #
-# count_exclusive_combinations ROWS SIT ON A SMALLER DENOMINATOR than every
-#   other table in the output:
-#     ak_exclusive_base_note(results$exclusive_combinations)
+# THE TWO COMBINATION BLOCKS SPLIT ONE BASE. count_combinations reports the
+#   respondents who selected more than one choice, count_exclusive_combinations
+#   those who selected exactly one, both over everyone who answered and selected
+#   at least one choice - so the two blocks together add to 100%, and each on its
+#   own adds to the share of the sample it covers. Anyone who answered with no
+#   choice recorded is outside both:
+#     ak_exclusive_base_note(results$choice_combinations)
 #   Footnote it wherever those percentages are published.
 #
 # The full workbook specification - every sheet, every setting, every rule:

@@ -10,10 +10,10 @@ ck_derived_map(count_map = NULL, combination_map = NULL, exclusive_map = NULL)
 \item{count_map}{The \code{map} from \code{\link{ck_add_selection_counts}}.}
 
 \item{combination_map}{The \code{map} from
-\code{\link{ck_add_choice_combinations}} run with \code{mode = "any"}.}
+\code{\link{ck_add_choice_combinations}} run with \code{mode = "multiple"}.}
 
 \item{exclusive_map}{The \code{map} from
-\code{\link{ck_add_choice_combinations}} run with \code{mode = "only"}.}
+\code{\link{ck_add_choice_combinations}} run with \code{mode = "single"}.}
 }
 \value{
 A dataframe of \code{analysis_var}, \code{derived_column} and
