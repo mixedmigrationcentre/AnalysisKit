@@ -12,6 +12,7 @@ ck_check_choice_combinations(
   ignore_case = TRUE,
   exclude_choices = NULL,
   max_choices = 6,
+  mode = c("multiple", "single"),
   arg_name = "count_combinations"
 )
 }
@@ -30,7 +31,13 @@ ck_check_choice_combinations(
 
 \item{max_choices}{Refuse more than this many focus choices per question, so
 a long list cannot silently produce hundreds of rows. Default \code{6}
-(64 combinations).}
+(121 combination rows).}
+
+\item{mode}{\code{"multiple"} (the \code{count_combinations} block, whose row
+count grows as 2^(k+1) - k - 1) or \code{"single"} (the
+\code{count_exclusive_combinations} block, which is k + 1 rows). Only
+decides how many rows the \code{max_choices} message says the request would
+produce.}
 
 \item{arg_name}{The pipeline argument being checked, used in the error text.}
 }

@@ -26,17 +26,26 @@ run_group_analysis_pipeline(
   count_selections_title_suffix = "",
   count_combinations = NULL,
   count_combinations_ignore_case = TRUE,
-  count_combinations_none_label = "None of these",
   count_combinations_joiner = " + ",
+  count_combinations_only_suffix = " only",
+  count_combinations_other_label = "Other",
+  count_combinations_other_multiple_label = "Other multiple selection",
+  count_combinations_single_label = "",
   count_combinations_order = c("descending", "ascending"),
-  count_combinations_heading = "Choice combination",
+  count_combinations_heading =
+    "Choice combinations (of those who selected more than one choice)",
   count_combinations_spacer = TRUE,
   count_combinations_title_suffix = "",
   count_exclusive_combinations = NULL,
-  count_exclusive_combinations_heading = "Exclusive choice combination",
-  count_exclusive_combinations_suffix = " only",
-  count_exclusive_combinations_none_label = "Other choices only",
+  count_exclusive_combinations_only_suffix = " only",
+  count_exclusive_combinations_other_label = "Other single selection",
+  count_exclusive_combinations_multiple_label = "",
+  count_exclusive_combinations_heading =
+    "Single choices (of those who selected only one choice)",
+  count_exclusive_combinations_spacer = TRUE,
+  count_exclusive_combinations_title_suffix = "",
   max_combination_choices = 6,
+  max_exclusive_choices = 20,
   fallback_level = 0.95,
   engine = c("auto", "fast", "survey"),
   min_group_n = NULL,
@@ -120,29 +129,47 @@ label on count rows. Default \code{""}.}
 
 \item{count_combinations}{Optional named list asking, for one or more
 \strong{select_multiple} questions, which \emph{combination} of a chosen set
-of choices each respondent selected. Names are the parent variables, values
-are the choice labels of interest; name the choices to get short row labels.
-For example
+of choices was selected by the respondents who selected \strong{more than
+one} choice. Names are the parent variables, values are the choice labels of
+interest; name the choices to get short row labels. For example
 \code{list(Q78 = c(Economic = "Economic reasons", Conflict = "Armed conflict, generalised violence, and insecurity"))}
-gives four rows - \emph{Economic + Conflict}, \emph{Economic} (and not
-Conflict, whatever else was selected), \emph{Conflict}, \emph{None of these} -
+gives five rows - \emph{Economic + Conflict only} (those two and nothing
+else), \emph{Economic + Conflict + Other} (those two plus at least one
+unlisted choice), \emph{Economic + Other}, \emph{Conflict + Other} and
+\emph{Other multiple selection} (more than one choice, none of them listed) -
 reported overall and across every grouping variable with
-\code{analysis_type = "combination_select_multiple"}. Choices other than the
-listed ones are ignored, so the rows are mutually exclusive and add to 100\\%.
-Only respondents who answered the question are in the denominator. See
-\code{\link{ck_add_choice_combinations}}.}
+\code{analysis_type = "combination_select_multiple"}. Pair it with
+\code{count_exclusive_combinations} for the respondents who selected exactly
+one choice; the two blocks share a denominator and together add to 100\\%.
+See \code{\link{ck_add_choice_combinations}}.}
 
 \item{count_combinations_ignore_case}{Logical. Match the choice labels
-case-insensitively. Default \code{TRUE}.}
-
-\item{count_combinations_none_label}{Row label for respondents who selected
-none of the listed choices. Default \code{"None of these"}.}
+case-insensitively, in both combination blocks. Default \code{TRUE}.}
 
 \item{count_combinations_joiner}{Placed between the display labels of a
-multi-choice combination. Default \code{" + "}.}
+multi-choice combination, and before \code{count_combinations_other_label}.
+Default \code{" + "}.}
+
+\item{count_combinations_only_suffix}{Appended to a row meaning "and nothing
+else". Default \code{" only"}.}
+
+\item{count_combinations_other_label}{Stands for the choices that were not
+listed. Default \code{"Other"}.}
+
+\item{count_combinations_other_multiple_label}{Row label for respondents who
+selected more than one choice, none of them listed. Default
+\code{"Other multiple selection"}.}
+
+\item{count_combinations_single_label}{Optional row for the respondents this
+block does not report - those who selected exactly one choice. \code{""}
+(default) keeps them in the denominator with no row of their own, which is
+what makes this block and \code{count_exclusive_combinations} add to 100\\%
+together rather than twice over. Set it when you use this block on its own
+and want the missing share named.}
 
 \item{count_combinations_order}{\code{"descending"} (default) puts the
-largest combinations first; \code{"ascending"} reverses it.}
+largest combinations first; \code{"ascending"} reverses it. Applies to both
+combination blocks.}
 
 \item{count_combinations_heading}{Heading row above each combination block.
 \code{""} inserts none.}
@@ -153,48 +180,51 @@ Default \code{TRUE}.}
 \item{count_combinations_title_suffix}{Optionally appended to the question
 label on combination rows. Default \code{""}.}
 
-\item{count_exclusive_combinations}{Optional named list, same shape as
-\code{count_combinations}, asking the \emph{strict} version of the same
-question: \emph{Economic only} means "selected Economic and nothing else at
-all", not "selected Economic, whatever else". For the same two choices that
-is \emph{Economic + Conflict only}, \emph{Economic only}, \emph{Conflict
-only}, \emph{None of these}. Reported with
-\code{analysis_type = "exclusive_combination_select_multiple"}, so a
-question can carry both this block and the \code{count_combinations} one.
+\item{count_exclusive_combinations}{Optional named list, the same shape as
+\code{count_combinations}, reporting the respondents who selected
+\strong{exactly one} choice. For the same two choices that is
+\emph{Economic only}, \emph{Conflict only} and \emph{Other single
+selection}, with
+\code{analysis_type = "exclusive_combination_select_multiple"}. A question
+can carry both blocks.
 
-\strong{These rows sit on a different base.} A respondent who selected
-Economic alongside a choice outside the list belongs to none of the four
-categories and is dropped, so the denominator here is smaller than on every
-other table in the workbook. The number dropped per question is returned in
-\code{exclusive_combinations$n_mixed_dropped} - footnote it wherever these
-percentages are published. The settings shared with
-\code{count_combinations} (\code{_ignore_case}, \code{_none_label},
-\code{_joiner}, \code{_order}, \code{_spacer}, \code{_title_suffix}) apply
-to both blocks.}
+\strong{The two blocks share one denominator}: everyone who answered the
+question and has at least one choice recorded, minus anyone removed by
+\code{exclude_choices}. So the rows of the two blocks \emph{taken together}
+add to 100\\%, and each block on its own adds to the share of the sample it
+covers. A respondent who answered but has nothing recorded at all is outside
+both blocks and outside that base; the count is returned per question as
+\code{n_no_selection}. The settings shared with \code{count_combinations}
+(\code{_ignore_case}, \code{_joiner}, \code{_order}) apply to both blocks.}
 
-\item{count_exclusive_combinations_heading}{Heading row above each exclusive
-combination block. \code{""} inserts none.}
+\item{count_exclusive_combinations_only_suffix}{Appended to each chosen
+choice's row. Default \code{" only"}.}
 
-\item{count_exclusive_combinations_suffix}{Appended to each row label of the
-exclusive block, so the strict reading is visible in the table itself.
-Default \code{" only"}; the \code{none_label} row is left alone.}
+\item{count_exclusive_combinations_other_label}{Row label for a single
+selection that is not one of the listed choices. Default
+\code{"Other single selection"}.}
 
-\item{count_exclusive_combinations_none_label}{Row label for respondents who
-selected none of the listed choices in the \emph{exclusive} block. Kept
-separate from \code{count_combinations_none_label} so the two blocks do not
-both show a row called "None of these", which would be easy to confuse when
-they sit under the same question. Default \code{"Other choices only"} -
-accurate, because a respondent in this row selected nothing from the list,
-so everything they did select is outside it.
+\item{count_exclusive_combinations_multiple_label}{Optional row for the
+respondents this block does not report - those who selected more than one
+choice. \code{""} (default) keeps them in the denominator with no row. See
+\code{count_combinations_single_label}.}
 
-Note the two rows hold the \emph{same people}: not selecting a listed
-choice means never being dropped as a mixed response. Their \code{n} will
-match across the two blocks while their percentages differ, because the
-exclusive block divides by a smaller base. That is expected, not an error.}
+\item{count_exclusive_combinations_heading}{Heading row above each
+single-choice block. \code{""} inserts none.}
+
+\item{count_exclusive_combinations_spacer}{Logical. Blank row above the
+heading. Default \code{TRUE}.}
+
+\item{count_exclusive_combinations_title_suffix}{Optionally appended to the
+question label on single-choice rows. Default \code{""}.}
 
 \item{max_combination_choices}{Refuse more than this many choices per
-question, so a long list cannot silently produce hundreds of rows. Default
-\code{6}.}
+question in \code{count_combinations}, so a long list cannot silently
+produce hundreds of rows. Default \code{6} (121 rows).}
+
+\item{max_exclusive_choices}{The same ceiling for
+\code{count_exclusive_combinations}, which produces only k + 1 rows and can
+therefore afford a longer list. Default \code{20}.}
 
 \item{fallback_level}{Placeholder level for LOA rows with an empty
 \code{level} cell. Default \code{0.95}; the resulting interval is blanked

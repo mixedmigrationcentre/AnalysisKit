@@ -2,24 +2,26 @@
 % Please edit documentation in R/checks.R
 \name{ak_exclusive_base_note}
 \alias{ak_exclusive_base_note}
-\title{The Exclusive-Combination Base, Spelled Out}
+\title{The Combination Base, Spelled Out}
 \usage{
-ak_exclusive_base_note(exclusive_map)
+ak_exclusive_base_note(map)
 }
 \arguments{
-\item{exclusive_map}{The \code{exclusive_combinations} element of a pipeline
-result: \code{analysis_var}, \code{n_in_base} and \code{n_mixed_dropped}.}
+\item{map}{The \code{choice_combinations} or \code{exclusive_combinations} element of a
+pipeline result: \code{analysis_var}, \code{n_in_base} and \code{n_no_selection}.}
 }
 \value{
-A character vector of sentences, or \code{character(0)} when no
-respondent was dropped.
+A character vector of sentences, or \code{character(0)} when every
+respondent who answered is in the base.
 }
 \description{
-\code{count_exclusive_combinations} rows sit on a smaller denominator than every
-other table in the output: a respondent who selected a listed choice
-\emph{together with} an unlisted one belongs to none of the categories and leaves
-the base. That is the intended meaning of "only", but it is invisible in the
-finished workbook - the percentages simply look like every other percentage.
+\code{count_combinations} and \code{count_exclusive_combinations} share one
+denominator: everyone who answered the question and has at least one choice
+recorded. A respondent who answered but has nothing recorded at all - never
+asked, or asked and left blank - is outside that base, so the two blocks
+describe slightly fewer people than the question's own choice percentages do.
+That is invisible in the finished workbook, where the percentages simply look
+like every other percentage.
 }
 \details{
 So the number is reported per question, as a share of everyone who answered.
