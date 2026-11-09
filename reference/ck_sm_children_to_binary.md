@@ -13,6 +13,7 @@ ck_sm_children_to_binary(
   parents,
   sm_separator = "/",
   sm_child_style = c("auto", "label", "dummy"),
+  sm_cache = NULL,
   verbose = TRUE
 )
 ```
@@ -34,6 +35,13 @@ ck_sm_children_to_binary(
 - sm_child_style:
 
   `"auto"` (default), `"label"` or `"dummy"`.
+
+- sm_cache:
+
+  Optional environment passed to
+  [`ck_sm_selection_matrix`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_selection_matrix.md).
+  This is the last reader of the raw child columns and the function that
+  rewrites them, so nothing may reuse that cache afterwards.
 
 - verbose:
 

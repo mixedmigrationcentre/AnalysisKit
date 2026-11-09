@@ -64,8 +64,10 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_harmonise_results.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_hidden_level.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_insert_count_separators.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_is_decimal_type.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_level_info.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_columns.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_flag.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_is_available.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_var_key.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_make_analysis_key.html</loc></url>
@@ -78,6 +80,8 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_parent_label_from_children.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_percent_format.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_pivot_variable_x_group.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_ratio_key_separator.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_ratio_label.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_relabel_questions.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_require_pkg.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_res_df.html</loc></url>
@@ -92,6 +96,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sort_within_groups.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_split_label_row.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_stack_loa.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_stage_timer.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_style.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_value_runs.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_var_is_available.html</loc></url>
@@ -99,6 +104,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_weighted_median.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_block_sheet.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_group_sheet.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_question_cells.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_readme_sheet.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_wtab.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/copy_loa_template.html</loc></url>
@@ -119,6 +125,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_default_selection_labels.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_delegate_check.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_derived_analysis_types.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_engine_split.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_exclude_choices.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_group_tag_clashes.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_has_errors.html</loc></url>

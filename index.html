@@ -232,7 +232,7 @@
 </tr>
 <tr>
 <td><code>analysis_var</code></td>
-<td>the dataset variable, or the select_multiple parent</td>
+<td>the dataset variable, or the select_multiple parent. Leave it empty on a <code>ratio</code> row</td>
 </tr>
 <tr>
 <td><code>level</code></td>
@@ -242,8 +242,7 @@
 <td>
 <code>analysis_var_numerator</code> / <code>_denominator</code>
 </td>
-<td>required when <code>analysis_type</code> is <code>ratio</code>
-</td>
+<td>required when <code>analysis_type</code> is <code>ratio</code>, and read on no other row</td>
 </tr>
 <tr>
 <td><em>anything else</em></td>
@@ -252,6 +251,7 @@
 </tbody>
 </table>
 <p><code>sector</code> is the metadata column the exporter looks for: each of its values becomes one sheet in the results workbook.</p>
+<p>A <code>ratio</code> is <code>sum(numerator) / sum(denominator)</code> within each group - one aggregate figure, not the mean of each respondent’s own ratio. It is labelled <code>"&lt;numerator label&gt; per &lt;denominator label&gt;"</code> and written as a plain number, not a percentage. A value left in the two ratio columns on any other row, or in <code>analysis_var</code> on a ratio row, is flagged as a warning. Blank <code>numerator_NA_to_0</code> / <code>filter_denominator_0</code> cells mean <code>FALSE</code> on both engines.</p>
 <p><code>count_select_multiple</code>, <code>combination_select_multiple</code> and <code>exclusive_combination_select_multiple</code> are <strong>not</strong> valid here. They are produced from the sheets below and appear only in the output; writing one into <code>analysis</code> aborts the run.</p>
 </div>
 <div class="section level3">
@@ -543,6 +543,10 @@ min_group_n         30</code></pre>
 <td>everything a run checks, with nothing run</td>
 </tr>
 <tr>
+<td><code><a href="reference/loa_engine_split.html">loa_engine_split()</a></code></td>
+<td>how many analyses will take the survey engine</td>
+</tr>
+<tr>
 <td><code><a href="reference/validate_loa.html">validate_loa()</a></code></td>
 <td>every schema check; returns problems, never stops</td>
 </tr>
@@ -703,7 +707,7 @@ min_group_n         30</code></pre>
 </tr>
 </tbody>
 </table>
-<p><code>engine = "auto"</code> (the default) routes each row by whether it asked for an interval. <code>"fast"</code> forces tabulation everywhere and does not need <code>srvyr</code>. <code>"survey"</code> forces the old behaviour.</p>
+<p><code>engine = "auto"</code> (the default) routes each row by whether it asked for an interval. <code>"fast"</code> forces tabulation everywhere and does not need <code>srvyr</code>. <code>"survey"</code> forces the old behaviour. <code><a href="reference/check_analysis_inputs.html">check_analysis_inputs()</a></code> prints how many rows will take the survey engine before you run, and a verbose run logs how long each stage took.</p>
 <p><code>min_group_n</code> is the other lever: a 200-town disaggregation usually contains towns with a handful of interviews, whose estimates are not reportable and are also what makes the run slow.</p>
 <hr>
 </div>

@@ -13,7 +13,8 @@ ck_sm_selection_matrix(
   sm_separator = "/",
   sm_child_style = c("auto", "label", "dummy"),
   exclude_choices = NULL,
-  ignore_case = TRUE
+  ignore_case = TRUE,
+  cache = NULL
 )
 ```
 
@@ -42,6 +43,18 @@ ck_sm_selection_matrix(
 - ignore_case:
 
   Logical. Match `exclude_choices` case-insensitively.
+
+- cache:
+
+  Optional environment memoising the result per parent. One run of the
+  pipeline asks for the same matrix up to four times - the selection
+  counts, the two combination blocks and the conversion to 0/1 - and
+  each pass re-reads and re-trims every child column of the export. The
+  cache is only valid while those child columns are unchanged, which the
+  pipeline guarantees by building all four before
+  [`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_children_to_binary.md)
+  rewrites them. Pass `NULL` (the default) anywhere that guarantee does
+  not hold.
 
 ## Value
 

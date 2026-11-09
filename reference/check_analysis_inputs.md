@@ -45,8 +45,11 @@ print(x, ...)
 ## Value
 
 An object of class `analysis_readiness`: a list with `ready`,
-`problems`, `counts`, `coverage`, `sheets`, `spec`, `dataset` and
-`folder_problem`. Print it for a summary.
+`problems`, `counts`, `coverage`, `sheets`, `engine`, `spec`, `dataset`
+and `folder_problem`. `engine` is
+[`loa_engine_split()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_engine_split.md):
+how many analyses set a confidence `level` and so take the slower survey
+engine. Print it for a summary.
 
 ## Details
 

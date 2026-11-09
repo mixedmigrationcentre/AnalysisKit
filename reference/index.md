@@ -148,6 +148,9 @@
 - [`loa_coverage_summary()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_summary.md)
   : Summarise Variable Coverage, One Row per Variable
 
+- [`loa_engine_split()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_engine_split.md)
+  : Which Estimation Engine Each Analysis Will Use
+
 - [`loa_has_errors()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_has_errors.md)
   : Does a Problems Table Contain a Fatal Problem
 

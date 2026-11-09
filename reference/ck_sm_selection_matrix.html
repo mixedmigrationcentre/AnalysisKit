@@ -50,7 +50,8 @@ styles are detected per column:</p>
 <span>  sm_separator <span class="op">=</span> <span class="st">"/"</span>,</span>
 <span>  sm_child_style <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"label"</span>, <span class="st">"dummy"</span><span class="op">)</span>,</span>
 <span>  exclude_choices <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ignore_case <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  ignore_case <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cache <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -81,6 +82,17 @@ styles are detected per column:</p>
 
 <dt id="arg-ignore-case">ignore_case<a class="anchor" aria-label="anchor" href="#arg-ignore-case"></a></dt>
 <dd><p>Logical. Match <code>exclude_choices</code> case-insensitively.</p></dd>
+
+
+<dt id="arg-cache">cache<a class="anchor" aria-label="anchor" href="#arg-cache"></a></dt>
+<dd><p>Optional environment memoising the result per parent. One run of
+the pipeline asks for the same matrix up to four times - the selection
+counts, the two combination blocks and the conversion to 0/1 - and each
+pass re-reads and re-trims every child column of the export. The cache is
+only valid while those child columns are unchanged, which the pipeline
+guarantees by building all four before
+<code><a href="ck_sm_children_to_binary.html">ck_sm_children_to_binary</a></code> rewrites them. Pass <code>NULL</code>
+(the default) anywhere that guarantee does not hold.</p></dd>
 
 </dl></div>
     <div class="section level2">

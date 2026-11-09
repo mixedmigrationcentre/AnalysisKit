@@ -2,8 +2,9 @@
 
 For ratios, `create_analysis()` reports `analysis_var` as
 `"numerator %/% denominator"`. This reproduces that so LOA metadata can
-be joined back onto ratio rows too. Verify the separator against your
-installed analysistools version.
+be joined back onto ratio rows too. The separator itself is
+[`ck_ratio_key_separator`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_ratio_key_separator.md);
+verify it against your installed analysistools version.
 
 ## Usage
 

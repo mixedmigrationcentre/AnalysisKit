@@ -1,5 +1,12 @@
 # Report Which Combination of Choices Each Respondent Selected
 
+For each question in `combinations`, adds a derived categorical column
+saying which of the *chosen* choices that respondent selected and
+whether they selected anything else besides. Because the result is an
+ordinary categorical column it then flows through the normal analysis -
+overall and across every grouping variable - with no special casing
+downstream.
+
 ## Usage
 
 ``` r
@@ -19,6 +26,7 @@ ck_add_choice_combinations(
   residual_label = "",
   order = c("descending", "ascending"),
   suffix = NULL,
+  sm_cache = NULL,
   verbose = TRUE
 )
 ```
@@ -85,27 +93,40 @@ ck_add_choice_combinations(
   selected exactly one choice when `mode = "multiple"`, or more than one
   when `mode = "single"`. `""` (default) keeps them in the denominator
   without giving them a row, which is what makes the two blocks add to
-  100\\
+  100 percent together rather than twice over.
 
-  orderRow order. `"descending"` (default) puts the largest combinations
+- order:
+
+  Row order. `"descending"` (default) puts the largest combinations
   first; `"ascending"` reverses the block.
 
-  suffixAppended to the variable name to make the derived column name.
-  `NULL` (default) uses `"_choice_combination"` or
-  `"_exclusive_combination"` depending on `mode`.
+- suffix:
 
-  verboseLogical. Default `TRUE`.
+  Appended to the variable name to make the derived column name. `NULL`
+  (default) uses `"_choice_combination"` or `"_exclusive_combination"`
+  depending on `mode`.
+
+- sm_cache:
+
+  Optional environment passed to
+  [`ck_sm_selection_matrix`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_selection_matrix.md),
+  so the child columns of a parent are read once per run rather than
+  once per feature.
+
+- verbose:
+
+  Logical. Default `TRUE`.
+
+## Value
 
 A list with `dataset` (the derived columns added) and `map`
 (`analysis_var`, `combination_column`, `mode`, `n_choices`,
 `n_combinations`, `n_in_base`, `n_in_block`, `n_other_block`,
-`n_no_selection`, `n_excluded_out` and `hidden_row`). For each question
-in `combinations`, adds a derived categorical column saying which of the
-*chosen* choices that respondent selected and whether they selected
-anything else besides. Because the result is an ordinary categorical
-column it then flows through the normal analysis - overall and across
-every grouping variable - with no special casing downstream. The feature
-comes in two halves, and a question can use either or both:
+`n_no_selection`, `n_excluded_out` and `hidden_row`).
+
+## Details
+
+The feature comes in two halves, and a question can use either or both:
 
 - `mode = "multiple"`:
 
@@ -130,10 +151,13 @@ base is shared, the rows of the two halves *taken together* add to 100\\
 half on its own adds to the share of respondents it covers. The
 respondents the other half reports are held in the base as
 `residual_label` rather than dropped, which is what keeps `n_total` the
-same in both.A respondent who answered but has nothing recorded at all
-is outside the base entirely. That number is reported per question and
-returned as `n_no_selection`, because it is otherwise invisible in the
-output.Run this *before*
+same in both.
+
+A respondent who answered but has nothing recorded at all is outside the
+base entirely. That number is reported per question and returned as
+`n_no_selection`, because it is otherwise invisible in the output.
+
+Run this *before*
 [`ck_sm_children_to_binary`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_children_to_binary.md):
 the pattern is taken from the raw selections, before the not-asked mask
 is applied.

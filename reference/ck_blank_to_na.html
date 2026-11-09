@@ -41,7 +41,7 @@ legitimate response category and inflates every denominator.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ck_blank_to_na</span><span class="op">(</span><span class="va">dataset</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ck_blank_to_na</span><span class="op">(</span><span class="va">dataset</span>, columns <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -51,10 +51,20 @@ legitimate response category and inflates every denominator.</p>
 <dl><dt id="arg-dataset">dataset<a class="anchor" aria-label="anchor" href="#arg-dataset"></a></dt>
 <dd><p>A dataframe.</p></dd>
 
+
+<dt id="arg-columns">columns<a class="anchor" aria-label="anchor" href="#arg-columns"></a></dt>
+<dd><p>Optional character vector of columns to clean. <code>NULL</code>
+(the default) cleans every character column, which is what a caller
+outside the pipeline should want. The pipeline passes the columns the run
+actually reads: a 4Mi export is hundreds of columns wide, most of them
+never named by the List of Analysis, and walking all of them cost 1.76 s
+on a 10,000 x 745 export without changing a single output cell.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The dataframe with "" replaced by <code>NA</code> in character columns.</p>
+    <p>The dataframe with "" replaced by <code>NA</code> in the character columns
+it covered.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -21,6 +21,7 @@ ck_add_selection_counts(
     "Selected more than 1 choice"),
   order = c("descending", "ascending"),
   suffix = "_selection_count",
+  sm_cache = NULL,
   verbose = TRUE
 )
 ```
@@ -70,6 +71,13 @@ ck_add_selection_counts(
 - suffix:
 
   Appended to the variable name to make the derived column name.
+
+- sm_cache:
+
+  Optional environment passed to
+  [`ck_sm_selection_matrix`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sm_selection_matrix.md),
+  so the child columns of a parent are read once per run rather than
+  once per feature.
 
 - verbose:
 

@@ -52,6 +52,7 @@ for respondents never asked the question. Selection detection is
 <span>  <span class="va">parents</span>,</span>
 <span>  sm_separator <span class="op">=</span> <span class="st">"/"</span>,</span>
 <span>  sm_child_style <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"label"</span>, <span class="st">"dummy"</span><span class="op">)</span>,</span>
+<span>  sm_cache <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -75,6 +76,13 @@ for respondents never asked the question. Selection detection is
 <dt id="arg-sm-child-style">sm_child_style<a class="anchor" aria-label="anchor" href="#arg-sm-child-style"></a></dt>
 <dd><p><code>"auto"</code> (default), <code>"label"</code> or
 <code>"dummy"</code>.</p></dd>
+
+
+<dt id="arg-sm-cache">sm_cache<a class="anchor" aria-label="anchor" href="#arg-sm-cache"></a></dt>
+<dd><p>Optional environment passed to
+<code><a href="ck_sm_selection_matrix.html">ck_sm_selection_matrix</a></code>. This is the last reader of the raw
+child columns and the function that rewrites them, so nothing may reuse
+that cache afterwards.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
