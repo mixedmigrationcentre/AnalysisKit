@@ -20,6 +20,7 @@ ck_add_choice_combinations(
   residual_label = "",
   order = c("descending", "ascending"),
   suffix = NULL,
+  sm_cache = NULL,
   verbose = TRUE
 )
 }
@@ -60,7 +61,7 @@ was not one of the listed choices.}
 report - those who selected exactly one choice when \code{mode =
 "multiple"}, or more than one when \code{mode = "single"}. \code{""}
 (default) keeps them in the denominator without giving them a row, which is
-what makes the two blocks add to 100\\% together rather than twice over.}
+what makes the two blocks add to 100 percent together rather than twice over.}
 
 \item{order}{Row order. \code{"descending"} (default) puts the largest
 combinations first; \code{"ascending"} reverses the block.}
@@ -68,6 +69,10 @@ combinations first; \code{"ascending"} reverses the block.}
 \item{suffix}{Appended to the variable name to make the derived column name.
 \code{NULL} (default) uses \code{"_choice_combination"} or
 \code{"_exclusive_combination"} depending on \code{mode}.}
+
+\item{sm_cache}{Optional environment passed to
+\code{\link{ck_sm_selection_matrix}}, so the child columns of a parent are
+read once per run rather than once per feature.}
 
 \item{verbose}{Logical. Default \code{TRUE}.}
 }

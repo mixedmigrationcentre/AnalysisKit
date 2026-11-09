@@ -216,13 +216,20 @@ workbook can carry its own instructions.
 | Column | Notes |
 |---|---|
 | `analysis_type` | `prop_select_one`, `prop_select_multiple`, `mean`, `median` or `ratio` |
-| `analysis_var` | the dataset variable, or the select_multiple parent |
+| `analysis_var` | the dataset variable, or the select_multiple parent. Leave it empty on a `ratio` row |
 | `level` | leave empty for no confidence interval. `0.95` (or `95`) asks for one |
-| `analysis_var_numerator` / `_denominator` | required when `analysis_type` is `ratio` |
+| `analysis_var_numerator` / `_denominator` | required when `analysis_type` is `ratio`, and read on no other row |
 | *anything else* | free metadata — name it in `settings/extra_columns` to carry it into the output |
 
 `sector` is the metadata column the exporter looks for: each of its values
 becomes one sheet in the results workbook.
+
+A `ratio` is `sum(numerator) / sum(denominator)` within each group - one
+aggregate figure, not the mean of each respondent's own ratio. It is labelled
+`"<numerator label> per <denominator label>"` and written as a plain number,
+not a percentage. A value left in the two ratio columns on any other row, or in
+`analysis_var` on a ratio row, is flagged as a warning. Blank
+`numerator_NA_to_0` / `filter_denominator_0` cells mean `FALSE` on both engines.
 
 `count_select_multiple`, `combination_select_multiple` and
 `exclusive_combination_select_multiple` are **not** valid here. They are
@@ -496,6 +503,7 @@ validates, reshapes or writes.
 | Function | Does |
 |---|---|
 | `check_analysis_inputs()` | everything a run checks, with nothing run |
+| `loa_engine_split()` | how many analyses will take the survey engine |
 | `validate_loa()` | every schema check; returns problems, never stops |
 | `loa_variable_coverage()`, `loa_coverage_summary()` | which variables the workbook names, and whether the dataset has them |
 | `loa_has_errors()` | is the run blocked |
@@ -589,6 +597,8 @@ Measured on a 6,000 × 210 export, 200-level disaggregation, 10 questions:
 
 `engine = "auto"` (the default) routes each row by whether it asked for an
 interval. `"fast"` forces tabulation everywhere and does not need `srvyr`. `"survey"` forces the old behaviour.
+`check_analysis_inputs()` prints how many rows will take the survey engine
+before you run, and a verbose run logs how long each stage took.
 
 `min_group_n` is the other lever: a 200-town disaggregation usually contains
 towns with a handful of interviews, whose estimates are not reportable and are

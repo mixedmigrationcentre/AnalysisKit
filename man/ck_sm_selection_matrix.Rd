@@ -10,7 +10,8 @@ ck_sm_selection_matrix(
   sm_separator = "/",
   sm_child_style = c("auto", "label", "dummy"),
   exclude_choices = NULL,
-  ignore_case = TRUE
+  ignore_case = TRUE,
+  cache = NULL
 )
 }
 \arguments{
@@ -26,6 +27,15 @@ ck_sm_selection_matrix(
 \item{exclude_choices}{Optional choice labels to leave out entirely.}
 
 \item{ignore_case}{Logical. Match \code{exclude_choices} case-insensitively.}
+
+\item{cache}{Optional environment memoising the result per parent. One run of
+the pipeline asks for the same matrix up to four times - the selection
+counts, the two combination blocks and the conversion to 0/1 - and each
+pass re-reads and re-trims every child column of the export. The cache is
+only valid while those child columns are unchanged, which the pipeline
+guarantees by building all four before
+\code{\link{ck_sm_children_to_binary}} rewrites them. Pass \code{NULL}
+(the default) anywhere that guarantee does not hold.}
 }
 \value{
 \code{NULL} if the parent has no children, otherwise a list with

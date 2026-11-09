@@ -9,6 +9,7 @@ ck_sm_children_to_binary(
   parents,
   sm_separator = "/",
   sm_child_style = c("auto", "label", "dummy"),
+  sm_cache = NULL,
   verbose = TRUE
 )
 }
@@ -21,6 +22,11 @@ ck_sm_children_to_binary(
 
 \item{sm_child_style}{\code{"auto"} (default), \code{"label"} or
 \code{"dummy"}.}
+
+\item{sm_cache}{Optional environment passed to
+\code{\link{ck_sm_selection_matrix}}. This is the last reader of the raw
+child columns and the function that rewrites them, so nothing may reuse
+that cache afterwards.}
 
 \item{verbose}{Logical. Default \code{TRUE}.}
 }

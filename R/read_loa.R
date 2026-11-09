@@ -1217,20 +1217,52 @@ validate_loa <- function(workbook, dataset = NULL) {
         next
       }
 
+      # The two ratio columns and analysis_var are mutually exclusive: a ratio
+      # names its variables in the former and ignores the latter, every other
+      # analysis_type does the reverse. Filling both is always a mistake, and
+      # the quiet kind - the row still runs, it just does not run what the
+      # author meant.
+      ratio_cols <- c("analysis_var_numerator", "analysis_var_denominator")
+      filled <- vapply(
+        ratio_cols,
+        function(cc) cc %in% names(analysis) && !is.na(loa_trim(analysis[[cc]][i])),
+        logical(1)
+      )
+
       if (a_type[i] == "ratio") {
-        cols <- c("analysis_var_numerator", "analysis_var_denominator")
-        have <- vapply(
-          cols,
-          function(cc) cc %in% names(analysis) && !is.na(loa_trim(analysis[[cc]][i])),
-          logical(1)
-        )
-        if (!all(have)) {
+        if (!all(filled)) {
           problem("analysis", excel_row, "error", paste0(
-            "A ratio needs both ", paste(cols[!have], collapse = " and "), "."
+            "A ratio needs both ", paste(ratio_cols[!filled], collapse = " and "), "."
           ))
         }
-      } else if (is.na(a_var[i])) {
-        problem("analysis", excel_row, "error", "analysis_var is empty.")
+
+        # Not merely redundant: ck_stack_loa() drops any row whose analysis_var
+        # is the grouping variable, so a leftover code here can make the ratio
+        # vanish from one disaggregation block and no other.
+        if (!is.na(a_var[i])) {
+          problem("analysis", excel_row, "warning", paste0(
+            "A ratio does not use analysis_var, but this row has '", a_var[i],
+            "' in it. Clear the cell: if that variable is also a ",
+            "disaggregation, the ratio will be missing from its column block."
+          ))
+        }
+      } else {
+        if (is.na(a_var[i])) {
+          problem("analysis", excel_row, "error", "analysis_var is empty.")
+        }
+
+        # Only a ratio reads these. A value here on any other row is ignored,
+        # which is usually a half-finished edit: the author meant a ratio and
+        # left analysis_type behind.
+        if (any(filled)) {
+          problem("analysis", excel_row, "warning", paste0(
+            "Only a ratio uses ", paste(ratio_cols[filled], collapse = " and "),
+            ", so the value", if (sum(filled) > 1) "s" else "", " here ",
+            if (sum(filled) > 1) "are" else "is", " ignored on this ",
+            a_type[i], " row. Set analysis_type to ratio if that was the ",
+            "intention, or clear the cell", if (sum(filled) > 1) "s" else "", "."
+          ))
+        }
       }
     }
 
@@ -1679,6 +1711,56 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
 
   class(spec) <- c("analysis_spec", "list")
   spec
+}
+
+#' Which Estimation Engine Each Analysis Will Use
+#'
+#' The `level` cell of the `analysis` sheet is the largest performance decision
+#' in the application, and it is made in the workbook rather than in the code.
+#' A row with a level goes to `analysistools::create_analysis()`, which builds a
+#' survey design and re-subsets it once per level of the grouping variable; a
+#' row without one goes to the fast tabulation engine, whose cost does not grow
+#' with the disaggregation at all. The gap is a factor of 136 at a 200-level
+#' grouping variable.
+#'
+#' This reports the split before the run, so nobody discovers it from a
+#' progress bar that has stopped moving.
+#'
+#' @param spec An `analysis_spec` from \code{\link{build_analysis_spec}}.
+#' @return A list with `engine`, `analyses`, `survey`, `fast`,
+#'   `group_variables` and `survey_estimations` - the last being the number of
+#'   analysis-by-grouping-variable estimations the survey engine will perform.
+#' @export
+loa_engine_split <- function(spec) {
+  loa <- spec$loa
+  n <- if (is.null(loa)) 0L else nrow(loa)
+  engine <- spec$settings$engine %||% "auto"
+  groups <- max(1L, length(spec$group_variables))
+
+  supplied <- if (n == 0L || !"level" %in% names(loa)) {
+    rep(FALSE, n)
+  } else {
+    raw <- trimws(as.character(loa$level))
+    !is.na(raw) & raw != "" & raw != "NA"
+  }
+
+  # Mirrors the routing in run_group_analysis_pipeline(): "auto" asks the level
+  # cell, the other two settings decide for every row.
+  on_survey <- switch(
+    engine,
+    fast = rep(FALSE, n),
+    survey = rep(TRUE, n),
+    supplied
+  )
+
+  list(
+    engine = engine,
+    analyses = n,
+    survey = sum(on_survey),
+    fast = n - sum(on_survey),
+    group_variables = groups,
+    survey_estimations = sum(on_survey) * groups
+  )
 }
 
 
