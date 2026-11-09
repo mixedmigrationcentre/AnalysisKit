@@ -16,7 +16,7 @@
 #'
 #' @param destination_label Label for the fourth step.
 #' @return A named character vector: step id to label.
-#' @keywords internal
+#' @export
 ak_steps <- function(destination_label = "Output folder") {
   c(
     dataset = "Dataset",

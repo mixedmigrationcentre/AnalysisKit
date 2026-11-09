@@ -19,4 +19,3 @@ validators \emph{stop} when a \code{count_selections} or \code{count_combination
 question is not a usable select_multiple, so a warning followed by a hard
 abort would be worse than saying so up front.
 }
-\keyword{internal}
