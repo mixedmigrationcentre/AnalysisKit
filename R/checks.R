@@ -296,8 +296,10 @@ ak_exclusive_base_note <- function(map) {
 #'   given it is checked for existence and write access now, so a long run is
 #'   never lost to a read-only destination.
 #' @return An object of class `analysis_readiness`: a list with `ready`,
-#'   `problems`, `counts`, `coverage`, `sheets`, `spec`, `dataset` and
-#'   `folder_problem`. Print it for a summary.
+#'   `problems`, `counts`, `coverage`, `sheets`, `engine`, `spec`, `dataset`
+#'   and `folder_problem`. `engine` is [loa_engine_split()]: how many analyses
+#'   set a confidence `level` and so take the slower survey engine. Print it
+#'   for a summary.
 #' @seealso [validate_loa()] for the checks themselves,
 #'   [loa_variable_coverage()] for the per-reference variable table.
 #' @export
@@ -326,6 +328,7 @@ check_analysis_inputs <- function(dataset, loa, output_folder = NULL) {
     counts = ak_problem_counts(spec$problems),
     coverage = coverage,
     sheets = ak_sheet_summary(workbook),
+    engine = loa_engine_split(spec),
     spec = spec,
     dataset = dataset,
     output_folder = output_folder,
@@ -361,6 +364,19 @@ print.analysis_readiness <- function(x, ...) {
           if (length(absent) > 6) "..." else "")
     }
     cat("\n")
+  }
+
+  # The same note the app shows before a run: rows with a level go to the
+  # survey engine, whose cost grows with every grouping level, while the point
+  # estimates are identical on the fast engine.
+  engine <- x$engine
+  if (!is.null(engine) && engine$analyses > 0 && engine$survey > 0) {
+    cat("  survey engine    :", engine$survey, "of", engine$analyses,
+        "analyses set a level -",
+        format(engine$survey_estimations, big.mark = ","),
+        "estimation(s) across", engine$group_variables, "grouping variable(s).\n",
+        "                    Clear `level` on rows that publish no confidence",
+        "interval: the estimates do not change and the run is much faster.\n")
   }
 
   if (!is.null(x$folder_problem)) {

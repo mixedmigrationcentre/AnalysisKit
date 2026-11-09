@@ -16,6 +16,7 @@ ck_add_selection_counts(
     "Selected more than 1 choice"),
   order = c("descending", "ascending"),
   suffix = "_selection_count",
+  sm_cache = NULL,
   verbose = TRUE
 )
 }
@@ -44,6 +45,10 @@ order.}
 selection count first.}
 
 \item{suffix}{Appended to the variable name to make the derived column name.}
+
+\item{sm_cache}{Optional environment passed to
+\code{\link{ck_sm_selection_matrix}}, so the child columns of a parent are
+read once per run rather than once per feature.}
 
 \item{verbose}{Logical. Default \code{TRUE}.}
 }

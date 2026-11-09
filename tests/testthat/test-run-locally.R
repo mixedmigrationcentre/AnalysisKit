@@ -138,6 +138,24 @@ test_that("a clean pair of inputs reports ready, and never stops", {
   expect_output(print(checks), "ready to run     : yes")
 })
 
+test_that("the readiness report says when rows will take the survey engine", {
+  # engine = fast in the default fixture, so nothing is routed to the survey
+  # package and there is nothing to say.
+  quiet <- check_analysis_inputs(run_dataset(), run_loa_sheets())
+  expect_equal(quiet$engine$survey, 0L)
+  expect_false(any(grepl("survey engine", capture.output(print(quiet)))))
+
+  # Under "auto" the level cell decides, as it does in the pipeline.
+  sheets <- run_loa_sheets()
+  sheets$analysis$level <- c(0.95, NA, NA)
+  sheets$settings$value[sheets$settings$setting == "engine"] <- "auto"
+
+  loud <- check_analysis_inputs(run_dataset(), sheets)
+  expect_equal(loud$engine$survey, 1L)
+  expect_equal(loud$engine$survey_estimations, 2L)
+  expect_output(print(loud), "survey engine    : 1 of 3 analyses set a level")
+})
+
 test_that("a fatal workbook is described rather than thrown", {
   skip_if_no_xlsx()
   # Interview and Interview_Location: one name contained in the other, so the

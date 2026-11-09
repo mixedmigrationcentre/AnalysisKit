@@ -26,8 +26,10 @@ never lost to a read-only destination.}
 }
 \value{
 An object of class \code{analysis_readiness}: a list with \code{ready},
-\code{problems}, \code{counts}, \code{coverage}, \code{sheets}, \code{spec}, \code{dataset} and
-\code{folder_problem}. Print it for a summary.
+\code{problems}, \code{counts}, \code{coverage}, \code{sheets}, \code{engine}, \code{spec}, \code{dataset}
+and \code{folder_problem}. \code{engine} is \code{\link[=loa_engine_split]{loa_engine_split()}}: how many analyses
+set a confidence \code{level} and so take the slower survey engine. Print it
+for a summary.
 }
 \description{
 Everything \code{\link[=run_analysis_locally]{run_analysis_locally()}} checks before it commits to a run, with

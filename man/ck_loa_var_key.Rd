@@ -15,7 +15,8 @@ A character vector, one element per LOA row.
 \description{
 For ratios, \code{create_analysis()} reports \code{analysis_var} as
 \code{"numerator \%/\% denominator"}. This reproduces that so LOA metadata
-can be joined back onto ratio rows too. Verify the separator against your
-installed analysistools version.
+can be joined back onto ratio rows too. The separator itself is
+\code{\link{ck_ratio_key_separator}}; verify it against your installed
+analysistools version.
 }
 \keyword{internal}
