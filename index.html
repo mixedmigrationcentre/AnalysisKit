@@ -46,716 +46,81 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="analysis-kit">Analysis Kit<a class="anchor" aria-label="anchor" href="#analysis-kit"></a>
+<div class="page-header"><h1 id="analysiskit">analysiskit<a class="anchor" aria-label="anchor" href="#analysiskit"></a>
 </h1></div>
-<p>The <a href="https://github.com/mixedmigrationcentre/analysiskit" class="external-link">Analysis Kit</a> workflow as an R package. It turns a 4Mi dataset and a <strong>List of Analysis</strong> workbook into a branded, MMC-styled results workbook — from the console, with no interface and no script to edit each round.</p>
+<p>Turns a 4Mi dataset and a <strong>List of Analysis</strong> workbook into an MMC-styled results workbook. This package is the analysis itself; the <a href="https://abu-analysiskit.share.connect.posit.cloud/" class="external-link">Analysis Kit App</a> is a point-and-click interface on top of it.</p>
+<div class="section level2">
+<h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
+</h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_analysis_locally.html">run_analysis_locally</a></span><span class="op">(</span></span>
-<span>  dataset       <span class="op">=</span> <span class="st">"data/mmr_analysis_data_25_26.xlsx"</span>,</span>
-<span>  loa           <span class="op">=</span> <span class="st">"resources/loa_template.xlsx"</span>,</span>
-<span>  output_folder <span class="op">=</span> <span class="st">"output"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The analysis engine, the workbook reader, the validator and the exporter are the same code the Shiny application uses. What this package adds is a way to call them: so a run can be scripted, scheduled, repeated over a folder of exports, or dropped into a larger pipeline.</p>
-<hr>
-<div class="section level2">
-<h2 id="contents">Contents<a class="anchor" aria-label="anchor" href="#contents"></a>
-</h2>
-<ul>
-<li><a href="#why-a-package">Why a package</a></li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#quick-start">Quick start</a></li>
-<li><a href="#the-two-inputs">The two inputs</a></li>
-<li><a href="#the-list-of-analysis-workbook">The List of Analysis workbook</a></li>
-<li><a href="#doing-it-a-step-at-a-time">Doing it a step at a time</a></li>
-<li><a href="#the-checks">The checks</a></li>
-<li><a href="#the-output-workbook">The output workbook</a></li>
-<li><a href="#function-reference">Function reference</a></li>
-<li><a href="#things-that-will-bite-you">Things that will bite you</a></li>
-<li><a href="#speed-and-which-engine-runs">Speed, and which engine runs</a></li>
-<li><a href="#package-layout">Package layout</a></li>
-<li><a href="#running-the-tests">Running the tests</a></li>
-<li><a href="#known-limits">Known limits</a></li>
-</ul>
-<hr>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"mixedmigrationcentre/analysiskit"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="why-a-package">Why a package<a class="anchor" aria-label="anchor" href="#why-a-package"></a>
+<h2 id="use">Use<a class="anchor" aria-label="anchor" href="#use"></a>
 </h2>
-<p>The application is the right tool when someone is analysing one round of data once, and wants to see the checks before committing. It is the wrong tool for everything else: running the same List of Analysis over twelve country exports, re-running last month’s analysis after a cleaning fix, calling the pipeline from a larger script, or doing any of that on a schedule.</p>
-<p>A package also fixes something the application could not. Analysis Kit sources its analysis and export code from a <code>functions/</code> folder, and every <code>.R</code> file in there gets sourced — so two files defining <code><a href="reference/format_my_xlsx_variable_x_group.html">format_my_xlsx_variable_x_group()</a></code> do not error. <code><a href="https://rdrr.io/r/base/source.html" class="external-link">source()</a></code> order silently decides which survives, and the older definition can win, producing a workbook that builds correctly and formats wrongly. In a package there is one definition, resolved at build time. A test pins it.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
-<p>R 4.1 or later.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mixedmigrationcentre/analysiskit"</span><span class="op">)</span></span></code></pre></div>
-<p>Installing brings in what every run needs: <code>dplyr</code>, <code>tidyr</code>, <code>stringr</code>, <code>readxl</code>, <code>openxlsx</code>.</p>
-<p>Three packages are <strong>optional</strong>, and only one feature reaches them:</p>
-<table class="table">
-<colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
-</colgroup>
-<thead><tr>
-<th>Package</th>
-<th>Needed for</th>
-<th>Install</th>
-</tr></thead>
-<tbody><tr>
-<td><code>srvyr</code></td>
-<td>confidence intervals (an <code>analysis</code> row with a <code>level</code>)</td>
-<td><code>install.packages("srvyr")</code></td>
-</tr></tbody>
-</table>
-<p><strong>If you never set a <code>level</code>, you never need them.</strong> The fast tabulation engine produces the same point estimates without a survey design, and does it in a fraction of the time — see <a href="#speed-and-which-engine-runs">Speed</a>.</p>
-<p>To see what you have:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/check_analysis_packages.html">check_analysis_packages</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;         package     need installed version                            install</span></span>
-<span><span class="co">#&gt; 1         dplyr required      TRUE   1.1.4</span></span>
-<span><span class="co">#&gt; 6         srvyr optional     FALSE    &lt;NA&gt;        install.packages('srvyr')</span></span></code></pre></div>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
-</h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mixedmigrationcentre/analysiskit" class="external-link">analysiskit</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 1. A folder structure to work in, if you want one</span></span>
-<span><span class="fu"><a href="reference/setup_project_folders.html">setup_project_folders</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># creates data/, resources/, output/</span></span>
-<span></span>
-<span><span class="co"># 2. A List of Analysis to fill in</span></span>
+<span><span class="co"># 1. Get the List of Analysis template and fill it in</span></span>
 <span><span class="fu"><a href="reference/copy_loa_template.html">copy_loa_template</a></span><span class="op">(</span><span class="st">"resources"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 3. Check before you commit to a run</span></span>
-<span><span class="va">checks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/check_analysis_inputs.html">check_analysis_inputs</a></span><span class="op">(</span></span>
-<span>  dataset <span class="op">=</span> <span class="st">"data/mmr_analysis_data_25_26.xlsx"</span>,</span>
+<span><span class="co"># 2. Check the dataset and the workbook against each other</span></span>
+<span><span class="fu"><a href="reference/check_analysis_inputs.html">check_analysis_inputs</a></span><span class="op">(</span></span>
+<span>  dataset <span class="op">=</span> <span class="st">"data/my_4mi_export.xlsx"</span>,</span>
 <span>  loa     <span class="op">=</span> <span class="st">"resources/loa_template.xlsx"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">checks</span></span>
-<span><span class="co">#&gt; &lt;analysis_readiness&gt;</span></span>
-<span><span class="co">#&gt;   dataset          : mmr_analysis_data_25_26.xlsx (6,001 rows x 214 columns)</span></span>
-<span><span class="co">#&gt;   List of Analysis : loa_template.xlsx (38 analyses)</span></span>
-<span><span class="co">#&gt;   disaggregations  : Overall, Respondent_Gender, Region_of_interview</span></span>
-<span><span class="co">#&gt;   problems         : 0 must fix, 2 warning(s)</span></span>
-<span><span class="co">#&gt;   variables absent : 1 of 41 - Q91</span></span>
-<span><span class="co">#&gt;   ready to run     : yes</span></span>
 <span></span>
-<span><span class="fu"><a href="reference/ak_problems_display.html">ak_problems_display</a></span><span class="op">(</span><span class="va">checks</span><span class="op">$</span><span class="va">problems</span><span class="op">)</span>     <span class="co"># every problem, must-fix first</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">checks</span><span class="op">$</span><span class="va">coverage</span>, <span class="op">!</span><span class="va">present</span><span class="op">)</span>        <span class="co"># what the dataset does not have</span></span>
-<span></span>
-<span><span class="co"># 4. Run it</span></span>
-<span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_analysis_locally.html">run_analysis_locally</a></span><span class="op">(</span></span>
-<span>  dataset       <span class="op">=</span> <span class="st">"data/mmr_analysis_data_25_26.xlsx"</span>,</span>
+<span><span class="co"># 3. Run, and save the results workbook</span></span>
+<span><span class="fu"><a href="reference/run_analysis_locally.html">run_analysis_locally</a></span><span class="op">(</span></span>
+<span>  dataset       <span class="op">=</span> <span class="st">"data/my_4mi_export.xlsx"</span>,</span>
 <span>  loa           <span class="op">=</span> <span class="st">"resources/loa_template.xlsx"</span>,</span>
 <span>  output_folder <span class="op">=</span> <span class="st">"output"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">run</span></span>
-<span><span class="co">#&gt; &lt;analysis_run&gt;</span></span>
-<span><span class="co">#&gt;   dataset      : mmr_analysis_data_25_26.xlsx</span></span>
-<span><span class="co">#&gt;   analyses     : 38</span></span>
-<span><span class="co">#&gt;   disaggregated: Overall, Respondent_Gender, Region_of_interview</span></span>
-<span><span class="co">#&gt;   result table : 412 rows x 190 columns</span></span>
-<span><span class="co">#&gt;   elapsed      : 14.6 seconds</span></span>
-<span><span class="co">#&gt;   saved        : output/analysiskit_mmr_analysis_data_25_26_20260908-142233.xlsx</span></span></code></pre></div>
-<p>The results are in <code>run$results</code>, the pipeline’s diagnostics in <code>run$log</code>, and the file at <code>run$output_path</code>.</p>
-<div class="section level3">
-<h3 id="the-same-list-of-analysis-over-a-folder-of-exports">The same List of Analysis over a folder of exports<a class="anchor" aria-label="anchor" href="#the-same-list-of-analysis-over-a-folder-of-exports"></a>
-</h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">runs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="st">"data"</span>, pattern <span class="op">=</span> <span class="st">"[.]xlsx$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  <span class="va">run_analysis_locally</span>,</span>
-<span>  loa           <span class="op">=</span> <span class="st">"resources/loa.xlsx"</span>,</span>
-<span>  output_folder <span class="op">=</span> <span class="st">"output"</span>,</span>
-<span>  verbose       <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">runs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">basename</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">output_path</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="analyse-without-writing-anything">Analyse without writing anything<a class="anchor" aria-label="anchor" href="#analyse-without-writing-anything"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_analysis_locally.html">run_analysis_locally</a></span><span class="op">(</span><span class="st">"data/export.xlsx"</span>, <span class="st">"resources/loa.xlsx"</span><span class="op">)</span></span>
-<span><span class="va">run</span><span class="op">$</span><span class="va">output_path</span>   <span class="co"># NULL — nothing was written</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">run</span><span class="op">$</span><span class="va">results</span><span class="op">$</span><span class="va">combined_results</span><span class="op">)</span></span></code></pre></div>
-<hr>
-</div>
-</div>
-<div class="section level2">
-<h2 id="the-two-inputs">The two inputs<a class="anchor" aria-label="anchor" href="#the-two-inputs"></a>
-</h2>
-<p><strong>The dataset</strong> — a 4Mi ONA export, <code>.csv</code> or <code>.xlsx</code>.</p>
-<p><strong>Row 1 is expected to be the label row.</strong> ONA puts the question text there, and the pipeline sets it aside so it never counts as a respondent. Leave it in place: <code><a href="reference/read_analysis_dataset.html">read_analysis_dataset()</a></code> reads the file as it is, and the pipeline handles the row under the <code>skip_label_row</code> setting. If your dataset has no label row, say so by setting <code>skip_label_row</code> to <code>FALSE</code> in the workbook’s <code>settings</code> sheet — otherwise the first respondent is silently dropped.</p>
-<p>Choice labels live in the select_multiple child columns (<code>Q78/Economic reasons</code>), which is how ONA exports them. Column names are preserved exactly, because those labels contain characters R would otherwise mangle.</p>
-<p>You can also pass a <strong>data frame</strong> you already have in the session — a cleaned export, say — instead of a path. It reads identically:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/run_analysis_locally.html">run_analysis_locally</a></span><span class="op">(</span><span class="va">my_cleaned_export</span>, <span class="st">"resources/loa.xlsx"</span>, <span class="st">"output"</span><span class="op">)</span></span></code></pre></div>
-<p><strong>The List of Analysis</strong> — the workbook below. <code>.xlsx</code> is effectively required: a <code>.csv</code> carries only one table, so it is read as the <code>analysis</code> sheet alone and every other sheet falls back to defaults. No disaggregations, no selection counts, no settings.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="the-list-of-analysis-workbook">The List of Analysis workbook<a class="anchor" aria-label="anchor" href="#the-list-of-analysis-workbook"></a>
-</h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/copy_loa_template.html">copy_loa_template</a></span><span class="op">(</span><span class="st">"resources"</span><span class="op">)</span>     <span class="co"># a filled-in workbook to start from</span></span>
-<span></span>
-<span><span class="co"># The full specification: every sheet, every setting, every validation rule</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/file.show.html" class="external-link">file.show</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"loa-schema.md"</span>, package <span class="op">=</span> <span class="st">"analysiskit"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Up to seven sheets. Only <code>analysis</code> is required; a missing or empty sheet means “not requested”, and the pipeline’s own default applies — never a guessed value.</p>
-<p>Sheet names are matched case-insensitively, and after collapsing spaces and hyphens to underscores, so <code>Group Analysis</code> and <code>group_analysis</code> both resolve. An <strong>unrecognised</strong> sheet name is a fatal error, not a silent skip: a typo would otherwise look exactly like a deliberate decision not to configure that sheet. Sheets named <code>readme</code> or <code>notes</code>, or beginning with <code>_</code>, are ignored, so the workbook can carry its own instructions.</p>
-<div class="section level3">
-<h3 id="analysis--one-row-per-requested-analysis">
-<code>analysis</code> — one row per requested analysis<a class="anchor" aria-label="anchor" href="#analysis--one-row-per-requested-analysis"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Column</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>analysis_type</code></td>
-<td>
-<code>prop_select_one</code>, <code>prop_select_multiple</code>, <code>mean</code>, <code>median</code> or <code>ratio</code>
-</td>
-</tr>
-<tr>
-<td><code>analysis_var</code></td>
-<td>the dataset variable, or the select_multiple parent. Leave it empty on a <code>ratio</code> row</td>
-</tr>
-<tr>
-<td><code>level</code></td>
-<td>leave empty for no confidence interval. <code>0.95</code> (or <code>95</code>) asks for one</td>
-</tr>
-<tr>
-<td>
-<code>analysis_var_numerator</code> / <code>_denominator</code>
-</td>
-<td>required when <code>analysis_type</code> is <code>ratio</code>, and read on no other row</td>
-</tr>
-<tr>
-<td><em>anything else</em></td>
-<td>free metadata — name it in <code>settings/extra_columns</code> to carry it into the output</td>
-</tr>
-</tbody>
-</table>
-<p><code>sector</code> is the metadata column the exporter looks for: each of its values becomes one sheet in the results workbook.</p>
-<p>A <code>ratio</code> is <code>sum(numerator) / sum(denominator)</code> within each group - one aggregate figure, not the mean of each respondent’s own ratio. It is labelled <code>"&lt;numerator label&gt; per &lt;denominator label&gt;"</code> and written as a plain number, not a percentage. A value left in the two ratio columns on any other row, or in <code>analysis_var</code> on a ratio row, is flagged as a warning. Blank <code>numerator_NA_to_0</code> / <code>filter_denominator_0</code> cells mean <code>FALSE</code> on both engines.</p>
-<p><code>count_select_multiple</code>, <code>combination_select_multiple</code> and <code>exclusive_combination_select_multiple</code> are <strong>not</strong> valid here. They are produced from the sheets below and appear only in the output; writing one into <code>analysis</code> aborts the run.</p>
-</div>
-<div class="section level3">
-<h3 id="group_analysis--the-disaggregations-and-their-output-names">
-<code>group_analysis</code> — the disaggregations, and their output names<a class="anchor" aria-label="anchor" href="#group_analysis--the-disaggregations-and-their-output-names"></a>
-</h3>
-<table class="table">
-<thead><tr>
-<th>raw_data_name</th>
-<th>new_name</th>
-<th>include</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Q27</td>
-<td>Respondent_Gender</td>
-<td>TRUE</td>
-</tr>
-<tr>
-<td>Q42</td>
-<td>Region_of_interview</td>
-<td>TRUE</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Write raw question codes everywhere in the workbook.</strong> This mapping is applied to the dataset — parents <em>and</em> their select_multiple children — and to every other sheet, so <code>Q27</code> works in the <code>analysis</code> sheet too and the readable name appears only in the output.</p>
-<p><code>Overall</code> is prepended automatically and must not be listed. Row order sets the order of the column blocks after <code>Overall</code>.</p>
-</div>
-<div class="section level3">
-<h3 id="count_selections--how-many-choices-each-respondent-picked">
-<code>count_selections</code> — how many choices each respondent picked<a class="anchor" aria-label="anchor" href="#count_selections--how-many-choices-each-respondent-picked"></a>
-</h3>
-<p>One column, <code>analysis_var</code>, one row per select_multiple parent. Reports none / exactly one / more than one.</p>
-<p>Read the “no choice selected” figure carefully: it counts respondents with nothing recorded, which lumps together those never asked the question and those asked who left it blank. If the question was asked of everyone the two are the same thing; if it was conditional, this is “not answered”, not “declined”.</p>
-</div>
-<div class="section level3">
-<h3 id="count_combinations--what-the-multiple-selectors-picked">
-<code>count_combinations</code> — what the multiple-selectors picked<a class="anchor" aria-label="anchor" href="#count_combinations--what-the-multiple-selectors-picked"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
-</colgroup>
-<thead><tr>
-<th>analysis_var</th>
-<th>choice_label</th>
-<th>display_name</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Q78</td>
-<td>Economic reasons</td>
-<td>Economic</td>
-</tr>
-<tr>
-<td>Q78</td>
-<td>Armed conflict, generalised violence, and insecurity</td>
-<td>Conflict</td>
-</tr>
-</tbody>
-</table>
-<p>Reports the respondents who selected <strong>more than one</strong> choice, and says whether anything outside the listed choices was selected — five rows for the two above: <em>Economic + Conflict only</em>, <em>Economic + Conflict + Other</em>, <em>Economic + Other</em>, <em>Conflict + Other</em>, <em>Other multiple selection</em>. <code>choice_label</code> must match the export exactly, punctuation and all; a mistyped label is a fatal error with a “did you mean” suggestion rather than a table that looks fine and is wrong.</p>
-</div>
-<div class="section level3">
-<h3 id="count_exclusive_combinations--what-the-single-selectors-picked">
-<code>count_exclusive_combinations</code> — what the single-selectors picked<a class="anchor" aria-label="anchor" href="#count_exclusive_combinations--what-the-single-selectors-picked"></a>
-</h3>
-<p>Same three columns, the other half of the same question: the respondents who selected <strong>exactly one</strong> choice. Rows read <em>Economic only</em>, <em>Conflict only</em> and <em>Other single selection</em>. A question can carry both blocks, and they are meant to be used together.</p>
-<blockquote>
-<p><strong>The two blocks share one denominator</strong> — everyone who answered the question and has at least one choice recorded, minus anyone removed by <code>exclude_choices</code>. So the two blocks <em>taken together</em> add to 100%, and each on its own adds to the share of the sample it covers. Fill in only one sheet and its rows will add to less than 100%; the pipeline warns when that happens.</p>
-<p>⚠ <strong>One group is outside both.</strong> A respondent who answered but has no choice recorded at all — never asked, or asked and left blank — is outside that base. <code><a href="reference/run_analysis_locally.html">run_analysis_locally()</a></code> prints how many that is, per question, when you print the run. <strong>Footnote it wherever these percentages are published</strong> when the number is material.</p>
-</blockquote>
-</div>
-<div class="section level3">
-<h3 id="exclude_choices--labels-that-leave-the-denominator">
-<code>exclude_choices</code> — labels that leave the denominator<a class="anchor" aria-label="anchor" href="#exclude_choices--labels-that-leave-the-denominator"></a>
-</h3>
-<p>One <code>choice_label</code> per row (<code>Don't know</code>, <code>Refused</code>). Its own sheet rather than a setting because 4Mi labels contain commas, and a comma-separated list in one cell would split one label into three and match nothing.</p>
-<p>Note what this does: it changes the <strong>denominator</strong>. Someone who picked an excluded choice leaves the base for that question entirely — the rows are not merely hidden. Grouping variables are untouched.</p>
-</div>
-<div class="section level3">
-<h3 id="settings--everything-else">
-<code>settings</code> — everything else<a class="anchor" aria-label="anchor" href="#settings--everything-else"></a>
-</h3>
-<p>Two columns, <code>setting</code> and <code>value</code>, one row per setting, order irrelevant. Forty-two keys are accepted, covering every remaining argument of the pipeline:</p>
-<pre><code>sm_separator        /
-skip_label_row      TRUE
-value_columns       stat,n,n_total
-extra_columns       sector
-engine              auto
-weight_column       weight
-min_group_n         30</code></pre>
-<p><code><a href="reference/loa_settings_schema.html">loa_settings_schema()</a></code> lists every accepted key with its type.</p>
-<p>A <strong>misspelled key is a fatal error</strong>, not a silent skip — a typo that was ignored would look exactly like a setting that had been applied, which is the failure this sheet exists to prevent. A blank value means “not set”, and the pipeline’s default applies.</p>
-<p>Wrap a value in double quotes to keep a leading or trailing space. A spreadsheet drops them, so <code>" only"</code> and <code>" + "</code> need the quotes or the label renders <code>Economiconly</code>.</p>
-<hr>
-</div>
-</div>
-<div class="section level2">
-<h2 id="doing-it-a-step-at-a-time">Doing it a step at a time<a class="anchor" aria-label="anchor" href="#doing-it-a-step-at-a-time"></a>
-</h2>
-<p><code><a href="reference/run_analysis_locally.html">run_analysis_locally()</a></code> is these five steps in order. Each is available on its own, so a run can be inspected or altered at any point.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># 1. Read</span></span>
-<span><span class="va">dataset</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_analysis_dataset.html">read_analysis_dataset</a></span><span class="op">(</span><span class="st">"data/export.xlsx"</span><span class="op">)</span></span>
-<span><span class="va">workbook</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_loa_workbook.html">read_loa_workbook</a></span><span class="op">(</span><span class="st">"resources/loa.xlsx"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/dataset_overview.html">dataset_overview</a></span><span class="op">(</span><span class="va">dataset</span><span class="op">)</span>      <span class="co"># file, size, rows, columns, duplicate rows</span></span>
-<span><span class="fu"><a href="reference/dataset_columns.html">dataset_columns</a></span><span class="op">(</span><span class="va">dataset</span><span class="op">)</span>       <span class="co"># type, missing and unique per column</span></span>
-<span><span class="fu"><a href="reference/ak_sheet_summary.html">ak_sheet_summary</a></span><span class="op">(</span><span class="va">workbook</span><span class="op">)</span>     <span class="co"># which sheets were supplied, which defaulted</span></span>
-<span></span>
-<span><span class="co"># 2. Validate — never stops, returns the problems</span></span>
-<span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/validate_loa.html">validate_loa</a></span><span class="op">(</span><span class="va">workbook</span>, <span class="va">dataset</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="va">coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/loa_variable_coverage.html">loa_variable_coverage</a></span><span class="op">(</span><span class="va">workbook</span>, <span class="va">dataset</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 3. Build the specification — the one internal description of a run</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/build_analysis_spec.html">build_analysis_spec</a></span><span class="op">(</span><span class="va">workbook</span>, <span class="va">dataset</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="va">spec</span></span>
-<span><span class="co">#&gt; &lt;analysis_spec&gt;</span></span>
-<span><span class="co">#&gt;   analyses          : 38</span></span>
-<span><span class="co">#&gt;   group variables   : Overall, Respondent_Gender, Region_of_interview</span></span>
-<span><span class="co">#&gt;   ...</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/analysis_spec_args.html">analysis_spec_args</a></span><span class="op">(</span><span class="va">dataset</span><span class="op">$</span><span class="va">data</span>, <span class="va">spec</span><span class="op">)</span>   <span class="co"># the pipeline call, without running it</span></span>
-<span></span>
-<span><span class="co"># 4. Run</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_analysis_spec.html">run_analysis_spec</a></span><span class="op">(</span><span class="va">dataset</span><span class="op">$</span><span class="va">data</span>, <span class="va">spec</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 5. Export</span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ak_export_results.html">ak_export_results</a></span><span class="op">(</span></span>
-<span>  results      <span class="op">=</span> <span class="va">results</span>,</span>
-<span>  spec         <span class="op">=</span> <span class="va">spec</span>,</span>
-<span>  folder       <span class="op">=</span> <span class="st">"output"</span>,</span>
-<span>  dataset_name <span class="op">=</span> <span class="va">dataset</span><span class="op">$</span><span class="va">filename</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="bypassing-the-workbook-entirely">Bypassing the workbook entirely<a class="anchor" aria-label="anchor" href="#bypassing-the-workbook-entirely"></a>
-</h3>
-<p><code><a href="reference/run_group_analysis_pipeline.html">run_group_analysis_pipeline()</a></code> is the engine, and it takes plain R arguments. Use it for a one-off that does not deserve a workbook, or when the arguments are being generated by something else:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_group_analysis_pipeline.html">run_group_analysis_pipeline</a></span><span class="op">(</span></span>
-<span>  dataset         <span class="op">=</span> <span class="va">dataset</span><span class="op">$</span><span class="va">data</span>,</span>
-<span>  loa             <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    analysis_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"prop_select_one"</span>, <span class="st">"mean"</span><span class="op">)</span>,</span>
-<span>    analysis_var  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Q27"</span>, <span class="st">"Q29"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  group_variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Overall"</span>, <span class="st">"Q42"</span><span class="op">)</span>,</span>
-<span>  count_combinations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    Q78 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Economic <span class="op">=</span> <span class="st">"Economic reasons"</span>, Conflict <span class="op">=</span> <span class="st">"Armed conflict, generalised violence, and insecurity"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  exclude_choices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Don't know"</span>, <span class="st">"Refused"</span><span class="op">)</span>,</span>
-<span>  engine          <span class="op">=</span> <span class="st">"fast"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Its fifty arguments are documented in <code><a href="reference/run_group_analysis_pipeline.html">?run_group_analysis_pipeline</a></code>. Anything the workbook can set, this can set.</p>
-<hr>
-</div>
+<p>Step 2 lists anything that must be fixed before a run. Step 3 refuses to start until it is clean, and writes <code>analysiskit_&lt;dataset&gt;_&lt;date-time&gt;.xlsx</code> to the output folder.</p>
 </div>
 <div class="section level2">
-<h2 id="the-checks">The checks<a class="anchor" aria-label="anchor" href="#the-checks"></a>
+<h2 id="the-list-of-analysis">The List of Analysis<a class="anchor" aria-label="anchor" href="#the-list-of-analysis"></a>
 </h2>
-<p>Both files are compared against each other, and the severity rule throughout is:</p>
-<blockquote>
-<p><strong>Must fix</strong> when the run would produce <em>wrong or misleading</em> output. <strong>Warning</strong> when it would only produce <em>less</em> output.</p>
-</blockquote>
-<p>So a variable named in the workbook but absent from the dataset <strong>warns</strong> — that analysis is skipped, the rest still runs. But two grouping variables where one name contains the other is a <strong>must fix</strong>: the output table would be correct while the map that labels its columns would not. With both <code>Region</code> and <code>Region_of_origin</code> in play, <code>stat_Region_of_origin_East Africa</code> matches <code>_Region_</code> first, and every <code>Region_of_origin</code> column is attributed to <code>Region</code>.</p>
-<p><code><a href="reference/run_analysis_locally.html">run_analysis_locally()</a></code> and <code><a href="reference/run_analysis_spec.html">run_analysis_spec()</a></code> <strong>refuse to start</strong> when anything is fatal, and the error names every problem at once. That is the point: the alternative is a workbook full of plausible numbers attributed to the wrong disaggregation.</p>
-<p>Warnings do not stop a run — but they change what is in the file, so <code>run$log</code> is worth reading rather than skipping. A grouping variable dropped, a <code>Don't know</code> label that matched nothing, a town set aside for having four interviews: all warnings, all consequential.</p>
-<p><strong>Variable coverage</strong> (<code><a href="reference/loa_variable_coverage.html">loa_variable_coverage()</a></code>) lists every dataset variable the workbook names, where it is named, and whether your dataset has it. It is the quickest way to spot a List of Analysis from the wrong round. Presence uses the pipeline’s own rule, so a select_multiple parent counts as present when its child columns are there, even though ONA did not export the concatenated parent.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="the-output-workbook">The output workbook<a class="anchor" aria-label="anchor" href="#the-output-workbook"></a>
-</h2>
-<p>One MMC-branded <code>.xlsx</code>, styled by <code><a href="reference/format_my_xlsx_variable_x_group.html">format_my_xlsx_variable_x_group()</a></code>:</p>
-<ul>
-<li>one small table per question, percentages on the left, matching counts on the right</li>
-<li>disaggregation groups ordered by sample size, largest first</li>
-<li>one sheet per <code>sector</code>
-</li>
-<li>a <code>readme</code> sheet recording the dataset, the List of Analysis, the disaggregations and every setting that was applied — so a file found six months later can be traced back to what produced it</li>
-</ul>
-<p>Named <code>analysiskit_&lt;dataset stem&gt;_&lt;YYYYmmdd-HHMMSS&gt;.xlsx</code>. An existing file is <strong>never</strong> overwritten; a second run in the same second gets a <code>_1</code> suffix.</p>
-<div class="section level3">
-<h3 id="number-formats">Number formats<a class="anchor" aria-label="anchor" href="#number-formats"></a>
-</h3>
-<p><strong>Percentages are shown to the nearest whole number</strong>, so <code>66.8039538714992</code> prints as <code>67%</code>. That is a <em>display</em> format, not a rounded value — the cell still holds every digit. It matters: a column of whole-number percentages continues to sum and average correctly, and anyone who needs the precision can widen the format in Excel without re-running anything.</p>
-<p>Means and medians keep two decimals; counts are whole numbers.</p>
-<p>To publish decimals instead, pass <code>percent_digits</code> to the formatter directly, or change it in <code><a href="reference/ak_export_settings.html">ak_export_settings()</a></code>. <code>1</code> gives <code>66.8%</code>.</p>
-</div>
-<div class="section level3">
-<h3 id="nothing-is-written-until-the-analysis-succeeds">Nothing is written until the analysis succeeds<a class="anchor" aria-label="anchor" href="#nothing-is-written-until-the-analysis-succeeds"></a>
-</h3>
-<p>The output folder is checked for existence and write access <strong>before</strong> the analysis starts, so a long run is never lost to a read-only destination. And if the analysis succeeds while only the saving fails, the results are still returned and a warning says what went wrong:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run</span><span class="op">$</span><span class="va">results</span>      <span class="co"># the analysis, intact</span></span>
-<span><span class="va">run</span><span class="op">$</span><span class="va">save_error</span>   <span class="co"># why the file was not written</span></span></code></pre></div>
-<p>A long run is not thrown away over a bad folder.</p>
-<hr>
-</div>
-</div>
-<div class="section level2">
-<h2 id="function-reference">Function reference<a class="anchor" aria-label="anchor" href="#function-reference"></a>
-</h2>
-<p>Anything that <strong>runs an analysis</strong> is named <code>run_*</code>. Everything else reads, validates, reshapes or writes.</p>
-<div class="section level3">
-<h3 id="running">Running<a class="anchor" aria-label="anchor" href="#running"></a>
-</h3>
+<p>Write raw question codes (<code>Q27</code>, <code>Q78</code>) everywhere in the workbook. The template’s <code>readme</code> sheet explains each sheet, and the full reference is <a href="inst/extdata/loa-schema.html"><code>inst/extdata/loa-schema.md</code></a>.</p>
 <table class="table">
 <colgroup>
 <col width="50%">
 <col width="50%">
 </colgroup>
 <thead><tr>
-<th>Function</th>
-<th>Does</th>
+<th><code>analysis_type</code></th>
+<th>What you get</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code><a href="reference/run_analysis_locally.html">run_analysis_locally()</a></code></td>
-<td>the whole workflow: read, check, run, export</td>
+<td><code>prop_select_one</code></td>
+<td>% of respondents giving each answer</td>
 </tr>
 <tr>
-<td><code><a href="reference/run_analysis_spec.html">run_analysis_spec()</a></code></td>
-<td>run an <code>analysis_spec</code>
+<td><code>prop_select_multiple</code></td>
+<td>% of respondents selecting each option</td>
+</tr>
+<tr>
+<td>
+<code>mean</code> / <code>median</code>
 </td>
+<td>average / median of a numeric question</td>
 </tr>
 <tr>
-<td><code><a href="reference/run_group_analysis_pipeline.html">run_group_analysis_pipeline()</a></code></td>
-<td>the engine, with plain R arguments</td>
+<td><code>ratio</code></td>
+<td>sum of <code>analysis_var_numerator</code> / sum of <code>analysis_var_denominator</code>
+</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section level3">
-<h3 id="reading">Reading<a class="anchor" aria-label="anchor" href="#reading"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Function</th>
-<th>Does</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code><a href="reference/read_analysis_dataset.html">read_analysis_dataset()</a></code></td>
-<td>read and profile a <code>.csv</code> / <code>.xlsx</code> dataset</td>
-</tr>
-<tr>
-<td><code><a href="reference/read_uploaded_dataset.html">read_uploaded_dataset()</a></code></td>
-<td>the same reader, from an upload record</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/dataset_overview.html">dataset_overview()</a></code>, <code><a href="reference/dataset_columns.html">dataset_columns()</a></code>
-</td>
-<td>profile a dataset</td>
-</tr>
-<tr>
-<td><code><a href="reference/read_loa_workbook.html">read_loa_workbook()</a></code></td>
-<td>read every recognised sheet, interpreting nothing</td>
-</tr>
-<tr>
-<td><code><a href="reference/copy_loa_template.html">copy_loa_template()</a></code></td>
-<td>write the template workbook somewhere</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="checking">Checking<a class="anchor" aria-label="anchor" href="#checking"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Function</th>
-<th>Does</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code><a href="reference/check_analysis_inputs.html">check_analysis_inputs()</a></code></td>
-<td>everything a run checks, with nothing run</td>
-</tr>
-<tr>
-<td><code><a href="reference/loa_engine_split.html">loa_engine_split()</a></code></td>
-<td>how many analyses will take the survey engine</td>
-</tr>
-<tr>
-<td><code><a href="reference/validate_loa.html">validate_loa()</a></code></td>
-<td>every schema check; returns problems, never stops</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/loa_variable_coverage.html">loa_variable_coverage()</a></code>, <code><a href="reference/loa_coverage_summary.html">loa_coverage_summary()</a></code>
-</td>
-<td>which variables the workbook names, and whether the dataset has them</td>
-</tr>
-<tr>
-<td><code><a href="reference/loa_has_errors.html">loa_has_errors()</a></code></td>
-<td>is the run blocked</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/ak_problem_counts.html">ak_problem_counts()</a></code>, <code><a href="reference/ak_problems_display.html">ak_problems_display()</a></code>
-</td>
-<td>count and format problems</td>
-</tr>
-<tr>
-<td><code><a href="reference/ak_sheet_summary.html">ak_sheet_summary()</a></code></td>
-<td>which sheets were supplied</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/ak_step_states.html">ak_step_states()</a></code>, <code><a href="reference/ak_can_run.html">ak_can_run()</a></code>
-</td>
-<td>the readiness gate</td>
-</tr>
-<tr>
-<td><code><a href="reference/check_analysis_packages.html">check_analysis_packages()</a></code></td>
-<td>required and optional packages, and what is installed</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/loa_settings_schema.html">loa_settings_schema()</a></code>, <code><a href="reference/loa_known_sheets.html">loa_known_sheets()</a></code>, <code><a href="reference/loa_known_analysis_types.html">loa_known_analysis_types()</a></code>
-</td>
-<td>the schema itself</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="specifying">Specifying<a class="anchor" aria-label="anchor" href="#specifying"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Function</th>
-<th>Does</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code><a href="reference/build_analysis_spec.html">build_analysis_spec()</a></code></td>
-<td>workbook → the one internal description of a run</td>
-</tr>
-<tr>
-<td><code><a href="reference/analysis_spec_args.html">analysis_spec_args()</a></code></td>
-<td>the pipeline call, without running it</td>
-</tr>
-<tr>
-<td><code><a href="reference/apply_rename_map.html">apply_rename_map()</a></code></td>
-<td>rename a dataset, parents <em>and</em> select_multiple children</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="exporting">Exporting<a class="anchor" aria-label="anchor" href="#exporting"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Function</th>
-<th>Does</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code><a href="reference/ak_export_results.html">ak_export_results()</a></code></td>
-<td>write a completed run to a folder</td>
-</tr>
-<tr>
-<td><code><a href="reference/format_my_xlsx_variable_x_group.html">format_my_xlsx_variable_x_group()</a></code></td>
-<td>the MMC-branded formatter</td>
-</tr>
-<tr>
-<td><code><a href="reference/ak_export_settings.html">ak_export_settings()</a></code></td>
-<td>the formatter arguments a run implies</td>
-</tr>
-<tr>
-<td><code><a href="reference/ak_prepare_for_export.html">ak_prepare_for_export()</a></code></td>
-<td>handle the separator rows before formatting</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/ak_output_filename.html">ak_output_filename()</a></code>, <code><a href="reference/ak_check_folder.html">ak_check_folder()</a></code>, <code><a href="reference/ak_provenance.html">ak_provenance()</a></code>
-</td>
-<td>filenames, destination, the readme record</td>
-</tr>
-<tr>
-<td><code><a href="reference/ak_exclusive_base_note.html">ak_exclusive_base_note()</a></code></td>
-<td>the combination-denominator caveat, in sentences</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="the-pipelines-own-parts">The pipeline’s own parts<a class="anchor" aria-label="anchor" href="#the-pipelines-own-parts"></a>
-</h3>
-<p>Every stage of the engine is exported as a <code>ck_*</code> function — <code><a href="reference/ck_fast_analysis.html">ck_fast_analysis()</a></code>, <code><a href="reference/ck_exclude_choices.html">ck_exclude_choices()</a></code>, <code><a href="reference/ck_add_choice_combinations.html">ck_add_choice_combinations()</a></code>, <code><a href="reference/ck_pivot_variable_x_group.html">ck_pivot_variable_x_group()</a></code> and the rest — so an unusual analysis can be assembled from the pieces. <code>ls("package:analysiskit")</code> lists them.</p>
-</div>
-<div class="section level3">
-<h3 id="setup_project_folders">
-<code>setup_project_folders()</code><a class="anchor" aria-label="anchor" href="#setup_project_folders"></a>
-</h3>
-<p>Unchanged from the original package: creates <code>data/</code>, <code>resources/</code> and <code>output/</code>, skipping what already exists.</p>
-<hr>
-</div>
+<p>Leave <code>level</code> empty unless a row needs a confidence interval. Rows with a level use the much slower survey engine; the figures are the same either way.</p>
 </div>
 <div class="section level2">
-<h2 id="things-that-will-bite-you">Things that will bite you<a class="anchor" aria-label="anchor" href="#things-that-will-bite-you"></a>
+<h2 id="for-developers">For developers<a class="anchor" aria-label="anchor" href="#for-developers"></a>
 </h2>
-<p><strong>The label row.</strong> Row 1 of an ONA export is question text. Left in place it is counted as a respondent: it adds a bogus category to every proportion and becomes <code>NA</code> for every mean. The pipeline removes it by default. If your dataset has no label row and you do not set <code>skip_label_row</code> to <code>FALSE</code>, your first respondent is silently dropped.</p>
-<p><strong><code>exclude_choices</code> changes the denominator.</strong> It is not a filter on the output rows. Someone who picked <code>Don't know</code> leaves the base for that question altogether — which is what “of those who answered” means, and is why dropping the rows afterwards would be the opposite of correct.</p>
-<p><strong>The two combination blocks share a denominator with each other, not with the rest of the workbook.</strong> Their rows add to 100% together, and anyone who answered with no choice recorded is outside both. See the warning above; print the run and read what it tells you.</p>
-<p><strong>Names that contain other names.</strong> Two <code>new_name</code> values where one contains the other is fatal, and rightly so. Containment anywhere counts, not just a prefix: <code>of</code> and <code>Region_of_origin</code> collide too.</p>
-<p><strong>A group level literally called <code>Overall</code>.</strong> It produces <code>stat_&lt;group&gt;_Overall</code>, which the column matcher attributes to the Overall block. Checked against the real levels in your dataset, and fatal.</p>
-<p><strong><code>recreate_sm_parents</code> needs a column literally named <code>uuid</code>.</strong> The pipeline hardcodes that name.</p>
-<p><strong>Weights and strata are optional, and strata only affect the variance.</strong> Under <code>engine = "fast"</code> a <code>strata_column</code> changes nothing at all, and the pipeline says so rather than letting you believe otherwise.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="speed-and-which-engine-runs">Speed, and which engine runs<a class="anchor" aria-label="anchor" href="#speed-and-which-engine-runs"></a>
-</h2>
-<p>The point estimate of a weighted mean, proportion or ratio is <code>sum(w*x)/sum(w)</code> whatever the strata are. So when an <code>analysis</code> row has no <code>level</code>, no confidence interval was asked for, there is nothing for the survey package to do, and the row is tabulated in one pass instead.</p>
-<p>Measured on a 6,000 × 210 export, 200-level disaggregation, 10 questions:</p>
-<table class="table">
-<thead><tr>
-<th>Engine</th>
-<th>Time</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>
-<code>survey</code> (<code>svyby</code>)</td>
-<td>9.43 s</td>
-</tr>
-<tr>
-<td>
-<code>fast</code> (tabulation)</td>
-<td>0.05 s</td>
-</tr>
-</tbody>
-</table>
-<p><code>engine = "auto"</code> (the default) routes each row by whether it asked for an interval. <code>"fast"</code> forces tabulation everywhere and does not need <code>srvyr</code>. <code>"survey"</code> forces the old behaviour. <code><a href="reference/check_analysis_inputs.html">check_analysis_inputs()</a></code> prints how many rows will take the survey engine before you run, and a verbose run logs how long each stage took.</p>
-<p><code>min_group_n</code> is the other lever: a 200-town disaggregation usually contains towns with a handful of interviews, whose estimates are not reportable and are also what makes the run slow.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="package-layout">Package layout<a class="anchor" aria-label="anchor" href="#package-layout"></a>
-</h2>
-<pre><code>R/
-  analysiskit-package.R         package documentation
-  run_local.R                   the run_* entry points and input coercion
-  checks.R                      the readiness rules and check_analysis_inputs()
-  read_dataset.R                dataset ingestion and profiling
-  read_loa.R                    the List of Analysis reader, validator and spec
-  export_results.R              filenames, export settings, writing the workbook
-  analysis_pipeline.R           the analysis engine (ck_* and the pipeline)
-  format_xlsx.R                 the MMC export formatter
-  setup_project_folders.R       the project folder scaffold
-inst/extdata/
-  loa-schema.md                 the full workbook specification
-  loa_template.xlsx             a filled-in template to start from
-tests/testthat/                 the test suite</code></pre>
-<p><code>read_loa.R</code>, <code>export_results.R</code>, <code>analysis_pipeline.R</code> and <code>format_xlsx.R</code> are ported from Analysis Kit <strong>unchanged in behaviour</strong>, so a fix in either place can be carried across by diff. <code>run_local.R</code> and <code>checks.R</code> are what this package adds; <code>checks.R</code> is the Shiny-free half of the application’s <code>ui_components.R</code>.</p>
-<p>The application’s <code>app.R</code>, <code>deployment.R</code>, <code>manifest.R</code> and <code>setup_packages.R</code> have no counterpart here: they exist to serve and install an interface.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="running-the-tests">Running the tests<a class="anchor" aria-label="anchor" href="#running-the-tests"></a>
-</h2>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co"># or</span></span>
-<span><span class="fu">testthat</span><span class="fu">::</span><span class="fu">test_local</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Needs <code>testthat</code> and <code>writexl</code> in addition to the package’s own dependencies. The suite covers the workbook reader and validator, the variable checks, the readiness rules, the export, the exclusive combinations, the percentage formatting and the <code>run_*</code> entry points. Nothing is written outside a temporary folder, and nothing installs packages.</p>
-<p>A full check:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">check</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Two tests skip in environments where they cannot be meaningful — one needs a folder the current user genuinely cannot write to, which is not true when running as root.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="known-limits">Known limits<a class="anchor" aria-label="anchor" href="#known-limits"></a>
-</h2>
-<ul>
-<li>Export settings — the blocks layout, one sheet per <code>sector</code>, whole-number percentages — are fixed house style, derived from the run rather than configurable per workbook. If they need to vary, an <code>export</code> sheet is the natural place; see the open questions in <code>loa-schema.md</code>.</li>
-<li>
-<code>analysis_type_labels</code> is not settable from the workbook. The eight built-in labels are it.</li>
-<li>No <code>renv</code> lockfile. <code>DESCRIPTION</code> pins the dependencies but not their versions.</li>
-<li>The workbook is the single source of truth for a run, and <code>...</code> overrides it. There is deliberately no mechanism for a partial override that gets recorded in the output’s provenance — so a run reproduced from the readme sheet alone will not include anything passed through <code>...</code>.</li>
-</ul>
+<p>Every step is also available on its own: <code><a href="reference/read_analysis_dataset.html">read_analysis_dataset()</a></code>, <code><a href="reference/read_loa_workbook.html">read_loa_workbook()</a></code>, <code><a href="reference/build_analysis_spec.html">build_analysis_spec()</a></code>, <code><a href="reference/run_analysis_spec.html">run_analysis_spec()</a></code>, <code><a href="reference/ak_export_results.html">ak_export_results()</a></code>. See <code><a href="reference/run_analysis_locally.html">?run_analysis_locally</a></code> and the help pages it links to.</p>
+<p>Changes to the analysis are made here, in this package. The app picks them up when the package is reinstalled.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

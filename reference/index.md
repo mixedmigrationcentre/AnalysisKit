@@ -38,6 +38,9 @@
 - [`ak_step_states()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_step_states.md)
   : Work Out the State of Each Step
 
+- [`ak_steps()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_steps.md)
+  : The Steps of the Workflow
+
 - [`analysis_spec_args()`](https://mixedmigrationcentre.github.io/analysiskit/reference/analysis_spec_args.md)
   : Assemble the Pipeline Call for a Specification
 
@@ -144,6 +147,9 @@
 
 - [`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/format_my_xlsx_variable_x_group.md)
   : Format XLSX Variable by Group Using MMC Branding
+
+- [`loa_coverage_severity()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_severity.md)
+  : How Bad Is a Missing Variable, by Where It Was Named
 
 - [`loa_coverage_summary()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_summary.md)
   : Summarise Variable Coverage, One Row per Variable
