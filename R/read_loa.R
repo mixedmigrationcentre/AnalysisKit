@@ -950,7 +950,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
 #'
 #' @param role The `role` column of \code{\link{loa_variable_coverage}}.
 #' @return `"error"` or `"warning"`, one per element.
-#' @keywords internal
+#' @export
 loa_coverage_severity <- function(role) {
   ifelse(
     role %in% c(
