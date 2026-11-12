@@ -4,13 +4,18 @@
 \alias{read_uploaded_dataset}
 \title{Read an Uploaded Dataset}
 \usage{
-read_uploaded_dataset(file_info)
+read_uploaded_dataset(file_info, columns = NULL)
 }
 \arguments{
 \item{file_info}{A one-row data frame with \code{name}, \code{datapath} and \code{size}.}
+
+\item{columns}{Optional function taking the file's column names and
+returning a logical vector: which columns to read. \code{NULL} reads them all.
+If it selects nothing, every column is read.}
 }
 \value{
-A list with \code{data}, \code{extension}, \code{filename} and \code{size}.
+A list with \code{data}, \code{extension}, \code{filename}, \code{size},
+\code{duplicate_rows} and \code{columns_in_file}.
 }
 \description{
 The reader itself. Takes the one-row data frame a file upload produces, so

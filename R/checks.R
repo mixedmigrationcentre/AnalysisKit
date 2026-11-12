@@ -289,7 +289,8 @@ ak_exclusive_base_note <- function(map) {
 #' columns to the wrong disaggregation.
 #'
 #' @param dataset A dataset path, the list from [read_analysis_dataset()], or a
-#'   plain data frame with the ONA label row still on top.
+#'   plain data frame with the ONA label row still on top. From a path, only
+#'   the columns the List of Analysis refers to are read.
 #' @param loa A List of Analysis path, or the list from
 #'   [read_loa_workbook()].
 #' @param output_folder Optional folder the results would be written to. When
@@ -298,8 +299,9 @@ ak_exclusive_base_note <- function(map) {
 #' @return An object of class `analysis_readiness`: a list with `ready`,
 #'   `problems`, `counts`, `coverage`, `sheets`, `engine`, `spec`, `dataset`
 #'   and `folder_problem`. `engine` is [loa_engine_split()]: how many analyses
-#'   set a confidence `level` and so take the slower survey engine. Print it
-#'   for a summary.
+#'   will take the slower survey engine - those with a confidence `level`
+#'   whose interval is reported, and medians and ratios with a `level`. Print
+#'   it for a summary.
 #' @seealso [validate_loa()] for the checks themselves,
 #'   [loa_variable_coverage()] for the per-reference variable table.
 #' @export
@@ -315,8 +317,8 @@ ak_exclusive_base_note <- function(map) {
 #' subset(checks$coverage, !present)    # variables the dataset does not have
 #' }
 check_analysis_inputs <- function(dataset, loa, output_folder = NULL) {
-  dataset <- as_analysis_dataset(dataset)
   workbook <- as_loa_workbook(loa)
+  dataset <- as_analysis_dataset(dataset, loa = workbook)
 
   spec <- build_analysis_spec(workbook, dataset$data)
   coverage <- loa_variable_coverage(workbook, dataset$data)
@@ -348,7 +350,8 @@ print.analysis_readiness <- function(x, ...) {
   cat("<analysis_readiness>\n")
   cat("  dataset          :", x$dataset$filename,
       paste0("(", format(nrow(x$dataset$data), big.mark = ","), " rows x ",
-             ncol(x$dataset$data), " columns)"), "\n")
+             x$dataset$columns_in_file %||% ncol(x$dataset$data),
+             " columns)"), "\n")
   cat("  List of Analysis :", x$spec$source$filename %||% "not recorded",
       paste0("(", nrow(x$spec$loa), " analyses)"), "\n")
   cat("  disaggregations  :", paste(x$spec$group_variables, collapse = ", "), "\n")
@@ -366,17 +369,17 @@ print.analysis_readiness <- function(x, ...) {
     cat("\n")
   }
 
-  # The same note the app shows before a run: rows with a level go to the
-  # survey engine, whose cost grows with every grouping level, while the point
-  # estimates are identical on the fast engine.
+  # The same note the app shows before a run: rows whose level leads to a
+  # reported interval (and medians and ratios with a level) go to the survey
+  # engine, whose cost grows with every grouping level.
   engine <- x$engine
   if (!is.null(engine) && engine$analyses > 0 && engine$survey > 0) {
     cat("  survey engine    :", engine$survey, "of", engine$analyses,
-        "analyses set a level -",
+        "analyses use it -",
         format(engine$survey_estimations, big.mark = ","),
         "estimation(s) across", engine$group_variables, "grouping variable(s).\n",
         "                    Clear `level` on rows that publish no confidence",
-        "interval: the estimates do not change and the run is much faster.\n")
+        "interval and the run is much faster.\n")
   }
 
   if (!is.null(x$folder_problem)) {

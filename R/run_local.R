@@ -29,9 +29,12 @@
 #'
 #' @param dataset A path, a dataset list, or a data frame.
 #' @param name Name to record when a bare data frame is given.
+#' @param loa Optional List of Analysis workbook. When `dataset` is a path,
+#'   only the columns the workbook refers to are read; see
+#'   [read_analysis_dataset()]. Ignored for a dataset already in memory.
 #' @return A dataset list with `data`, `extension`, `filename` and `size`.
 #' @keywords internal
-as_analysis_dataset <- function(dataset, name = NULL) {
+as_analysis_dataset <- function(dataset, name = NULL, loa = NULL) {
   if (is.data.frame(dataset)) {
     return(list(
       data = dataset,
@@ -49,7 +52,7 @@ as_analysis_dataset <- function(dataset, name = NULL) {
   }
 
   if (is.character(dataset) && length(dataset) == 1L) {
-    return(read_analysis_dataset(dataset))
+    return(read_analysis_dataset(dataset, loa = loa))
   }
 
   stop(
@@ -182,7 +185,9 @@ with_run_log <- function(expr, echo = TRUE) {
 #'
 #' @param dataset A dataset path (`.csv` / `.xlsx`), the list from
 #'   [read_analysis_dataset()], or a data frame with the ONA label row still on
-#'   top.
+#'   top. From a path, only the columns the List of Analysis refers to are
+#'   read, which is what makes a wide export quick to load; the results do not
+#'   depend on it.
 #' @param loa A List of Analysis path, or the list from [read_loa_workbook()].
 #'   A `.csv` carries no sheets and is read as the `analysis` table alone, so a
 #'   configured run needs `.xlsx`.
@@ -240,8 +245,10 @@ run_analysis_locally <- function(dataset,
                                  ...) {
   started <- Sys.time()
 
-  dataset <- as_analysis_dataset(dataset)
+  # The workbook first: given a path, the dataset is then read for the columns
+  # the workbook refers to rather than for all of them.
   workbook <- as_loa_workbook(loa)
+  dataset <- as_analysis_dataset(dataset, loa = workbook)
 
   spec <- build_analysis_spec(workbook, dataset$data)
   coverage <- loa_variable_coverage(workbook, dataset$data)
@@ -420,7 +427,8 @@ copy_loa_template <- function(dir = ".",
 #' `need = "required"` means every run uses it and it is installed with the
 #' package. `need = "optional"` means one feature needs it, and that feature is
 #' the survey engine: an analysis row with a `level` set asks for a confidence
-#' interval, which routes that row through \pkg{srvyr} and
+#' interval, which - when `value_columns` reports `stat_low` or `stat_upp`, or
+#' the row is a median or a ratio - routes that row through \pkg{srvyr} and
 #' \pkg{analysistools}. Leave every `level` cell empty and the fast tabulation
 #' engine handles the whole run, needing neither - and, on a large
 #' disaggregation, taking seconds rather than minutes.

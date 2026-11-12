@@ -145,15 +145,24 @@ test_that("the readiness report says when rows will take the survey engine", {
   expect_equal(quiet$engine$survey, 0L)
   expect_false(any(grepl("survey engine", capture.output(print(quiet)))))
 
-  # Under "auto" the level cell decides, as it does in the pipeline.
+  # Under "auto" a level whose interval is not reported is tabulated, as it is
+  # in the pipeline, so there is still nothing to say.
   sheets <- run_loa_sheets()
   sheets$analysis$level <- c(0.95, NA, NA)
   sheets$settings$value[sheets$settings$setting == "engine"] <- "auto"
 
+  unseen <- check_analysis_inputs(run_dataset(), sheets)
+  expect_equal(unseen$engine$survey, 0L)
+  expect_false(any(grepl("survey engine", capture.output(print(unseen)))))
+
+  # Ask for the interval and the level cell decides.
+  sheets$settings$value[sheets$settings$setting == "value_columns"] <-
+    "stat,stat_low,stat_upp,n,n_total"
+
   loud <- check_analysis_inputs(run_dataset(), sheets)
   expect_equal(loud$engine$survey, 1L)
   expect_equal(loud$engine$survey_estimations, 2L)
-  expect_output(print(loud), "survey engine    : 1 of 3 analyses set a level")
+  expect_output(print(loud), "survey engine    : 1 of 3 analyses use it")
 })
 
 test_that("a fatal workbook is described rather than thrown", {

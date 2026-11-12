@@ -12,7 +12,9 @@ run_analysis_locally(dataset, loa, output_folder = NULL, verbose = TRUE, ...)
 \arguments{
 \item{dataset}{A dataset path (\code{.csv} / \code{.xlsx}), the list from
 \code{\link[=read_analysis_dataset]{read_analysis_dataset()}}, or a data frame with the ONA label row still on
-top.}
+top. From a path, only the columns the List of Analysis refers to are
+read, which is what makes a wide export quick to load; the results do not
+depend on it.}
 
 \item{loa}{A List of Analysis path, or the list from \code{\link[=read_loa_workbook]{read_loa_workbook()}}.
 A \code{.csv} carries no sheets and is read as the \code{analysis} table alone, so a

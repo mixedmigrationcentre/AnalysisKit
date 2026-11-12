@@ -232,7 +232,11 @@ in the output.}
 
 \item{engine}{\code{"auto"} (default) sends rows that asked for an interval
 to \code{analysistools}/\pkg{survey} and everything else to
-\code{\link{ck_fast_analysis}}. \code{"fast"} forces the fast engine (no
+\code{\link{ck_fast_analysis}}. A row only counts as asking for an
+interval when its \code{level} is set \emph{and} \code{value_columns}
+carries \code{stat_low} or \code{stat_upp}; a proportion or mean with a
+level nobody will see is tabulated, with the same results. Medians and
+ratios with a level always go to survey. \code{"fast"} forces the fast engine (no
 intervals; neither \pkg{analysistools} nor \pkg{srvyr} needed).
 \code{"survey"} forces the old behaviour.}
 

@@ -2625,6 +2625,15 @@ ck_res_df <- function(type, avar, avalue, gvar, gvalue,
 #' @param keep_missing_groups Logical. Report respondents missing on the
 #'   grouping variable as their own group. Default \code{TRUE}, matching
 #'   \pkg{srvyr}; \code{survey::svyby} drops them.
+#' @param survey_shape Logical. Lay the rows out exactly as
+#'   \code{analysistools::create_analysis()} would, so a row moved off the
+#'   survey engine produces the same workbook it always did. The numbers are
+#'   the same either way; what changes is which rows exist and their order:
+#'   groups are sorted in the C locale with the missing group last, rows run
+#'   group by group, a select_one category nobody in a group chose has no row
+#'   (rather than a zero), and a select_multiple group with nobody in the
+#'   denominator keeps an empty row (rather than none). Applies to
+#'   proportions and means. Default \code{FALSE}.
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return A long results table with \code{analysis_type}, \code{analysis_var},
 #'   \code{analysis_var_value}, \code{group_var}, \code{group_var_value},
@@ -2636,6 +2645,7 @@ ck_fast_analysis <- function(dataset,
                              weight_column = NULL,
                              sm_separator = "/",
                              keep_missing_groups = TRUE,
+                             survey_shape = FALSE,
                              verbose = TRUE) {
   if (nrow(loa) == 0) return(NULL)
 
@@ -2669,6 +2679,13 @@ ck_fast_analysis <- function(dataset,
 
     group_cache[[tag]] <<- gvec
     gvec
+  }
+
+  # The survey engine's group order: C locale, respondents missing on the
+  # grouping variable last. Only used when survey_shape is on.
+  survey_order <- function(g_lv) {
+    named <- g_lv[g_lv != missing_key]
+    c(sort(named, method = "radix"), g_lv[g_lv == missing_key])
   }
 
   out <- vector("list", nrow(loa))
@@ -2715,25 +2732,46 @@ ck_fast_analysis <- function(dataset,
           n_w = as.vector(tab$w),
           n_w_total = rep(w_tot, length(x_lv))
         )
+
+        if (isTRUE(survey_shape)) {
+          # Group by group, categories in C-locale order, and no row for a
+          # category nobody in the group chose.
+          res <- res[res$n > 0, , drop = FALSE]
+          res <- res[
+            order(
+              match(res$group_var_value, survey_order(g_lv)),
+              match(res$analysis_var_value, sort(x_lv, method = "radix"))
+            ), ,
+            drop = FALSE
+          ]
+        }
       }
     } else if (type == "prop_select_multiple") {
       suffixes <- ck_sm_child_suffixes(avar, names(dataset), sm_separator)
       blocks <- vector("list", length(suffixes))
 
+      # Every group the grouping variable has, whether or not anyone in it is
+      # in this question's denominator.
+      all_groups <- if (isTRUE(survey_shape)) {
+        survey_order(unique(gvec[keep_row]))
+      } else {
+        NULL
+      }
+
       for (j in seq_along(suffixes)) {
         xc <- suppressWarnings(as.numeric(dataset[[names(suffixes)[j]]]))
         ok <- keep_row & !is.na(xc)
-        if (!any(ok)) next
+        if (!any(ok) && is.null(all_groups)) next
 
         g_ok <- gvec[ok]
-        g_lv <- sort(unique(g_ok))
+        g_lv <- if (is.null(all_groups)) sort(unique(g_ok)) else all_groups
 
         s <- ck_group_sums(
           cbind(w = w[ok], n = 1, wx = w[ok] * xc[ok], nx = xc[ok]),
           g_ok, g_lv
         )
 
-        blocks[[j]] <- ck_res_df(
+        block <- ck_res_df(
           type, avar, unname(suffixes[j]), gvar, g_lv,
           stat = s[, "wx"] / s[, "w"],
           n = s[, "nx"],
@@ -2741,17 +2779,43 @@ ck_fast_analysis <- function(dataset,
           n_w = s[, "wx"],
           n_w_total = s[, "w"]
         )
+
+        if (!is.null(all_groups)) {
+          # A group with nobody in the denominator: an empty row, count zero.
+          empty <- block$n_total == 0
+          for (cc in c("stat", "n_total", "n_w", "n_w_total")) {
+            block[[cc]][empty] <- NaN
+          }
+          block$.group_rank <- seq_along(g_lv)
+          block$.child_rank <- j
+        }
+
+        blocks[[j]] <- block
       }
 
       blocks <- blocks[!vapply(blocks, is.null, logical(1))]
-      if (length(blocks) > 0) res <- dplyr::bind_rows(blocks)
+      if (length(blocks) > 0) {
+        res <- dplyr::bind_rows(blocks)
+
+        if (!is.null(all_groups)) {
+          res <- res[order(res$.group_rank, res$.child_rank), , drop = FALSE]
+          res$.group_rank <- NULL
+          res$.child_rank <- NULL
+        }
+      }
     } else if (type %in% c("mean", "median")) {
       x <- suppressWarnings(as.numeric(dataset[[avar]]))
       ok <- keep_row & !is.na(x)
 
-      if (any(ok)) {
+      if (any(ok) || isTRUE(survey_shape)) {
         g_ok <- gvec[ok]
-        g_lv <- sort(unique(g_ok))
+        # As for select_multiple: under survey_shape a group with no value to
+        # average keeps an empty row.
+        g_lv <- if (isTRUE(survey_shape)) {
+          survey_order(unique(gvec[keep_row]))
+        } else {
+          sort(unique(g_ok))
+        }
 
         s <- ck_group_sums(
           cbind(w = w[ok], n = 1, wx = w[ok] * x[ok]),
@@ -2778,6 +2842,13 @@ ck_fast_analysis <- function(dataset,
           n_w = s[, "w"],
           n_w_total = s[, "w"]
         )
+
+        if (isTRUE(survey_shape)) {
+          empty <- res$n == 0
+          for (cc in c("stat", "n_total", "n_w", "n_w_total")) {
+            res[[cc]][empty] <- NaN
+          }
+        }
       }
     } else if (type == "ratio") {
       num_var <- as.character(loa$analysis_var_numerator[i])
@@ -2841,6 +2912,79 @@ ck_fast_analysis <- function(dataset,
   )
 
   results
+}
+
+
+#' Which Rows Carry a Level Nobody Will See
+#'
+#' A row's \code{level} asks for a confidence interval, and the interval only
+#' reaches the output through \code{stat_low} / \code{stat_upp} in
+#' \code{value_columns}. Where neither is asked for, the survey engine would
+#' compute an interval and discard it, so under \code{engine = "auto"} the row
+#' is tabulated instead.
+#'
+#' Medians and ratios stay on the survey engine whatever \code{value_columns}
+#' says: the survey median interpolates where the fast one reports an observed
+#' value, and the two engines describe a ratio's counts differently, so moving
+#' either could change a number in the workbook.
+#'
+#' @param analysis_type Character vector of analysis types.
+#' @param supplied Logical vector: was a level supplied for the row.
+#' @param value_columns The statistic columns the run reports.
+#' @param engine \code{"auto"}, \code{"fast"} or \code{"survey"}.
+#' @return A logical vector, \code{TRUE} for each row to tabulate in the survey
+#'   engine's layout.
+#' @keywords internal
+ck_level_is_redundant <- function(analysis_type,
+                                  supplied,
+                                  value_columns,
+                                  engine = "auto") {
+  n <- length(analysis_type)
+  if (!identical(engine, "auto")) return(rep(FALSE, n))
+  if (any(c("stat_low", "stat_upp") %in% value_columns)) return(rep(FALSE, n))
+
+  type <- tolower(as.character(analysis_type))
+  as.logical(supplied) & !is.na(type) &
+    type %in% c("prop_select_one", "prop_select_multiple", "mean")
+}
+
+
+#' Put Rerouted Rows Back Among the Survey Rows
+#'
+#' Rows that carry a level used to come back from one
+#' \code{create_analysis()} call, in LOA order. When some of them are tabulated
+#' instead, the two sets are stacked and re-sorted into that order, so the wide
+#' table's rows and columns appear exactly where they did.
+#'
+#' @param rerouted Long results from \code{\link{ck_fast_analysis}}, or
+#'   \code{NULL}.
+#' @param survey Long results from \code{create_analysis()}.
+#' @param stacked_loa The stacked LOA both were estimated from.
+#' @return One long results table.
+#' @keywords internal
+ck_merge_level_rows <- function(rerouted, survey, stacked_loa) {
+  if (is.null(rerouted) || nrow(rerouted) == 0) return(survey)
+
+  both <- dplyr::bind_rows(
+    ck_harmonise_results(rerouted),
+    ck_harmonise_results(survey)
+  )
+
+  row_key <- function(type, var, group) {
+    paste(tolower(as.character(type)), var, group, sep = "\r")
+  }
+
+  position <- match(
+    row_key(both$analysis_type, both$analysis_var, both$group_var),
+    row_key(
+      stacked_loa$analysis_type, ck_loa_var_key(stacked_loa),
+      stacked_loa$group_var
+    )
+  )
+
+  # order() is stable, so rows keep the order their engine gave them within
+  # one analysis; anything unmatched goes to the end rather than disappearing.
+  both[order(position, na.last = TRUE), , drop = FALSE]
 }
 
 
@@ -3394,7 +3538,11 @@ ck_design_columns <- function(dataset,
 #'   in the output.
 #' @param engine \code{"auto"} (default) sends rows that asked for an interval
 #'   to \code{analysistools}/\pkg{survey} and everything else to
-#'   \code{\link{ck_fast_analysis}}. \code{"fast"} forces the fast engine (no
+#'   \code{\link{ck_fast_analysis}}. A row only counts as asking for an
+#'   interval when its \code{level} is set \emph{and} \code{value_columns}
+#'   carries \code{stat_low} or \code{stat_upp}; a proportion or mean with a
+#'   level nobody will see is tabulated, with the same results. Medians and
+#'   ratios with a level always go to survey. \code{"fast"} forces the fast engine (no
 #'   intervals; neither \pkg{analysistools} nor \pkg{srvyr} needed).
 #'   \code{"survey"} forces the old behaviour.
 #' @param min_group_n Optional minimum interviews a group level must have.
@@ -3887,11 +4035,19 @@ run_group_analysis_pipeline <- function(dataset,
   supplied <- attr(stacked_loa, "level_supplied")
   if (is.null(supplied)) supplied <- rep(TRUE, nrow(stacked_loa))
 
+  # A level buys stat_low and stat_upp and nothing else. When value_columns
+  # does not carry either, the interval would be computed and thrown away, so
+  # under "auto" those rows are tabulated instead - laid out as the survey
+  # engine lays them out, so the workbook is the one it always was.
+  rerouted <- ck_level_is_redundant(
+    stacked_loa$analysis_type, supplied, value_columns, engine
+  )
+
   use_fast <- switch(
     engine,
     fast = rep(TRUE, nrow(stacked_loa)),
     survey = rep(FALSE, nrow(stacked_loa)),
-    auto = !supplied
+    auto = !supplied | rerouted
   )
 
   ck_note(
@@ -3901,18 +4057,46 @@ run_group_analysis_pipeline <- function(dataset,
     verbose = verbose
   )
 
-  parts <- list()
+  if (any(rerouted)) {
+    ck_note(
+      sum(rerouted), " of those have a level but value_columns asks for no ",
+      "confidence interval, so they are tabulated rather than sent to survey; ",
+      "the results are the same. Add stat_low / stat_upp to value_columns to ",
+      "get the interval",
+      verbose = verbose
+    )
+  }
 
-  if (any(use_fast)) {
+  parts <- list()
+  rerouted_part <- NULL
+
+  if (any(use_fast & !rerouted)) {
     parts[[length(parts) + 1]] <- ck_fast_analysis(
       dataset = dataset,
-      loa = stacked_loa[use_fast, , drop = FALSE],
+      loa = stacked_loa[use_fast & !rerouted, , drop = FALSE],
       weight_column = weight_column,
       sm_separator = sm_separator,
       keep_missing_groups = keep_missing_groups,
       verbose = verbose
     )
+  }
 
+  if (any(rerouted)) {
+    # keep_missing_groups is not passed on: the survey engine always reports
+    # the missing group, and these rows must come out as it would have left
+    # them.
+    rerouted_part <- ck_fast_analysis(
+      dataset = dataset,
+      loa = stacked_loa[rerouted, , drop = FALSE],
+      weight_column = weight_column,
+      sm_separator = sm_separator,
+      keep_missing_groups = TRUE,
+      survey_shape = TRUE,
+      verbose = verbose
+    )
+  }
+
+  if (any(use_fast)) {
     if (!is.null(strata_column) && engine == "fast") {
       ck_note(
         "strata affect the variance only, so '", strata_column,
@@ -3951,11 +4135,17 @@ run_group_analysis_pipeline <- function(dataset,
       verbose = verbose
     )
 
-    parts[[length(parts) + 1]] <- analysistools::create_analysis(
+    survey_part <- analysistools::create_analysis(
       design,
       loa = survey_loa,
       sm_separator = sm_separator
     )[["results_table"]]
+
+    parts[[length(parts) + 1]] <- ck_merge_level_rows(
+      rerouted_part, survey_part, stacked_loa
+    )
+  } else if (!is.null(rerouted_part)) {
+    parts[[length(parts) + 1]] <- rerouted_part
   }
 
   stage("estimate")
