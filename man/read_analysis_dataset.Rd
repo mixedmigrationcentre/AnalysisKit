@@ -4,14 +4,18 @@
 \alias{read_analysis_dataset}
 \title{Read a Dataset from a Path}
 \usage{
-read_analysis_dataset(path)
+read_analysis_dataset(path, loa = NULL)
 }
 \arguments{
 \item{path}{Path to a \code{.csv} or \code{.xlsx} file. Only the first sheet of an
 \code{.xlsx} is read.}
+
+\item{loa}{Optional. A List of Analysis path, or the list from
+\code{\link[=read_loa_workbook]{read_loa_workbook()}}. When given, only the columns it refers to are read.}
 }
 \value{
-A list with \code{data}, \code{extension}, \code{filename} and \code{size}.
+A list with \code{data}, \code{extension}, \code{filename}, \code{size},
+\code{duplicate_rows} and \code{columns_in_file}.
 }
 \description{
 Reads a \code{.csv} or \code{.xlsx} research dataset and reports what it found. The
@@ -26,6 +30,22 @@ Column names are preserved exactly (\code{check.names = FALSE}), because the
 select_multiple child columns carry choice labels that R would otherwise
 mangle.
 }
+\section{Reading only what the List of Analysis uses}{
+
+
+A 4Mi export is often more than a thousand columns wide, and a List of
+Analysis names a few dozen of them. Give the List of Analysis as \code{loa} and
+only the columns it refers to are read: every analysis variable with its
+select_multiple children, the ratio variables, the grouping variables, and
+the weight and strata columns. The analysis reads no other column, so the
+results are the same; what changes is the time and memory the read takes.
+
+A dataset read this way is for running that List of Analysis. It reports how
+many columns the file has in \code{columns_in_file}, and it does not count
+duplicate rows, because rows that agree on a few columns are not duplicates.
+Read the file without \code{loa} to profile the whole export.
+}
+
 \examples{
 path <- tempfile(fileext = ".csv")
 utils::write.csv(

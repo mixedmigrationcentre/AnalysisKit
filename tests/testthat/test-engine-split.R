@@ -3,14 +3,21 @@
 # it before the run; these tests pin it to the routing the pipeline actually
 # performs.
 
-spec_with <- function(level, engine = NULL, groups = c("Overall", "G1", "G2")) {
+# value_columns defaults to one that shows the interval, because a level only
+# reaches the survey engine when the interval it asks for will be reported.
+spec_with <- function(level,
+                      engine = NULL,
+                      groups = c("Overall", "G1", "G2"),
+                      value_columns = c("stat", "stat_low", "stat_upp", "n", "n_total"),
+                      type = "prop_select_one") {
   settings <- list()
   if (!is.null(engine)) settings$engine <- engine
+  if (!is.null(value_columns)) settings$value_columns <- value_columns
 
   structure(
     list(
       loa = data.frame(
-        analysis_type = rep("prop_select_one", length(level)),
+        analysis_type = rep(type, length.out = length(level)),
         analysis_var = paste0("Q", seq_along(level)),
         level = level,
         stringsAsFactors = FALSE
@@ -64,6 +71,30 @@ test_that("a List of Analysis with no level column at all is entirely fast", {
   split <- loa_engine_split(spec)
   expect_equal(split$survey, 0L)
   expect_equal(split$fast, 2L)
+})
+
+
+test_that("a level whose interval is not reported does not reach survey", {
+  shown <- c("stat", "n", "n_total")
+
+  # The settings sheet's default value_columns, and the same thing left unset.
+  expect_equal(loa_engine_split(spec_with(c(0.95, 0.95), value_columns = shown))$survey, 0L)
+  expect_equal(loa_engine_split(spec_with(c(0.95, 0.95), value_columns = NULL))$survey, 0L)
+
+  # Medians and ratios keep the survey engine: moving them could change a value.
+  split <- loa_engine_split(spec_with(
+    rep(0.95, 5),
+    value_columns = shown,
+    type = c("prop_select_one", "prop_select_multiple", "mean", "median", "ratio")
+  ))
+  expect_equal(split$survey, 2L)
+  expect_equal(split$fast, 3L)
+
+  # engine = "survey" is still honoured to the letter.
+  expect_equal(
+    loa_engine_split(spec_with(c(0.95, NA), "survey", value_columns = shown))$survey,
+    2L
+  )
 })
 
 

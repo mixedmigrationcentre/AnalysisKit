@@ -56,7 +56,7 @@ The existing LoA table, unchanged. This is the sheet the current pipeline alread
 | Column | Notes |
 |---|---|
 | `group_var` | per-row grouping; normally left empty, since `group_analysis` handles disaggregation |
-| `level` | empty = no confidence interval (fast engine). `0.95` or `95` = interval (survey engine) |
+| `level` | empty = no confidence interval (fast engine). `0.95` or `95` = interval (survey engine, when `settings/value_columns` reports `stat_low` or `stat_upp`; see below) |
 | `analysis_var_numerator` | required when `analysis_type` is `ratio`, ignored on every other row |
 | `analysis_var_denominator` | required when `analysis_type` is `ratio`, ignored on every other row |
 | `numerator_NA_to_0` | ratio only. Blank or absent = `FALSE` |
@@ -73,6 +73,17 @@ The existing LoA table, unchanged. This is the sheet the current pipeline alread
 > `stat_low` and `stat_upp`. Fill it in on the rows that publish a confidence
 > interval, and leave it empty everywhere else. The **List of Analysis** tab
 > shows how many rows will take the survey engine before you run.
+>
+> **A level nobody will see costs nothing.** The interval only reaches the
+> workbook through `stat_low` / `stat_upp` in `settings/value_columns`. Under
+> `engine = auto`, a `prop_select_one`, `prop_select_multiple` or `mean` row
+> that has a `level` while `value_columns` carries neither column is tabulated
+> by the fast engine instead, and laid out exactly as the survey engine would
+> have laid it out — same rows, same order, same blanks — so the workbook is
+> unchanged and only the run time drops. `median` and `ratio` rows with a
+> `level` always stay on the survey engine, because moving them could change a
+> number (see the caveat below). Set `engine = survey` to send every row to the
+> survey engine regardless.
 >
 > One caveat if you are clearing a `level` from a `median` row: the fast engine
 > reports the lower weighted median, the survey package interpolates, and the
@@ -413,7 +424,7 @@ fixed set.
 
 | setting | type | default | notes |
 |---|---|---|---|
-| `engine` | enum | `auto` | `auto` \| `fast` \| `survey`. `auto` routes rows with a `level` to survey, the rest to fast tabulation |
+| `engine` | enum | `auto` | `auto` \| `fast` \| `survey`. `auto` routes rows with a `level` to survey when `value_columns` reports `stat_low` / `stat_upp` (medians and ratios with a `level` always), the rest to fast tabulation |
 | `fallback_level` | num | `0.95` | placeholder for rows with an empty `level`; the resulting interval is blanked |
 | `min_group_n` | num | *(none)* | group levels below this are set aside |
 | `keep_missing_groups` | lgl | `TRUE` | report respondents missing on the grouping variable as their own group |
@@ -674,9 +685,9 @@ they are kept and `row_type` is moved in among the identifier columns.
 - Nothing is written to `outputs/`, and there is no download handler — the destination is
   always a folder the user picks. A served deployment would need one.
 - The Results tab previews the first 12 columns of the wide table only.
-- The survey engine (`level` set on an analysis row) needs `srvyr` and
-  `analysistools`, which are not installed by default. The fast engine — every row with an
-  empty `level` — needs neither.
+- The survey engine (a `level` on an analysis row whose interval is reported, or on a
+  `median` / `ratio` row) needs `srvyr` and `analysistools`, which are not installed by
+  default. The fast engine — every other row — needs neither.
 - The export side (`format_my_xlsx_variable_x_group()`) has its own arguments —
   `layout`, `split_by`, `total_columns`, `hidden_columns` — which this schema does not
   cover. They may deserve an `export` sheet, or may be fixed house style. Decide with

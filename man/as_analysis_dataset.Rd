@@ -4,12 +4,16 @@
 \alias{as_analysis_dataset}
 \title{Accept a Dataset in Any of the Three Useful Shapes}
 \usage{
-as_analysis_dataset(dataset, name = NULL)
+as_analysis_dataset(dataset, name = NULL, loa = NULL)
 }
 \arguments{
 \item{dataset}{A path, a dataset list, or a data frame.}
 
 \item{name}{Name to record when a bare data frame is given.}
+
+\item{loa}{Optional List of Analysis workbook. When \code{dataset} is a path,
+only the columns the workbook refers to are read; see
+\code{\link[=read_analysis_dataset]{read_analysis_dataset()}}. Ignored for a dataset already in memory.}
 }
 \value{
 A dataset list with \code{data}, \code{extension}, \code{filename} and \code{size}.

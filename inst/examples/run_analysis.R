@@ -95,7 +95,9 @@ results$combined_results[1:5, 1:6]       # a corner of the wide table
 #
 # LEAVE `level` EMPTY unless you want a confidence interval. Empty uses the
 #   fast engine - same point estimates, far faster on a big disaggregation,
-#   and needs neither srvyr nor analysistools.
+#   and needs neither srvyr nor analysistools. A level on a proportion or a
+#   mean is also tabulated by the fast engine, with an identical workbook,
+#   unless value_columns in the settings sheet lists stat_low / stat_upp.
 #
 # exclude_choices CHANGES THE DENOMINATOR. Someone who picked "Don't know"
 #   leaves the base for that question entirely.

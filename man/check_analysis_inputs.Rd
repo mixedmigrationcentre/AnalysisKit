@@ -11,7 +11,8 @@ check_analysis_inputs(dataset, loa, output_folder = NULL)
 }
 \arguments{
 \item{dataset}{A dataset path, the list from \code{\link[=read_analysis_dataset]{read_analysis_dataset()}}, or a
-plain data frame with the ONA label row still on top.}
+plain data frame with the ONA label row still on top. From a path, only
+the columns the List of Analysis refers to are read.}
 
 \item{loa}{A List of Analysis path, or the list from
 \code{\link[=read_loa_workbook]{read_loa_workbook()}}.}
@@ -28,8 +29,9 @@ never lost to a read-only destination.}
 An object of class \code{analysis_readiness}: a list with \code{ready},
 \code{problems}, \code{counts}, \code{coverage}, \code{sheets}, \code{engine}, \code{spec}, \code{dataset}
 and \code{folder_problem}. \code{engine} is \code{\link[=loa_engine_split]{loa_engine_split()}}: how many analyses
-set a confidence \code{level} and so take the slower survey engine. Print it
-for a summary.
+will take the slower survey engine - those with a confidence \code{level}
+whose interval is reported, and medians and ratios with a \code{level}. Print
+it for a summary.
 }
 \description{
 Everything \code{\link[=run_analysis_locally]{run_analysis_locally()}} checks before it commits to a run, with

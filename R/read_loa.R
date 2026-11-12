@@ -1723,6 +1723,12 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
 #' with the disaggregation at all. The gap is a factor of 136 at a 200-level
 #' grouping variable.
 #'
+#' A level only buys `stat_low` and `stat_upp`. Under `engine = "auto"`, a
+#' proportion or mean whose level would produce an interval that
+#' `value_columns` does not report is counted as fast, because that is where
+#' the pipeline sends it. Medians and ratios with a level are always counted
+#' as survey.
+#'
 #' This reports the split before the run, so nobody discovers it from a
 #' progress bar that has stopped moving.
 #'
@@ -1745,12 +1751,20 @@ loa_engine_split <- function(spec) {
   }
 
   # Mirrors the routing in run_group_analysis_pipeline(): "auto" asks the level
-  # cell, the other two settings decide for every row.
+  # cell - and whether value_columns would show the interval at all - while
+  # the other two settings decide for every row.
+  value_columns <- spec$settings$value_columns %||% c("stat", "n", "n_total")
+  redundant <- if (n == 0L) {
+    logical(0)
+  } else {
+    ck_level_is_redundant(loa$analysis_type, supplied, value_columns, engine)
+  }
+
   on_survey <- switch(
     engine,
     fast = rep(FALSE, n),
     survey = rep(TRUE, n),
-    supplied
+    supplied & !redundant
   )
 
   list(
