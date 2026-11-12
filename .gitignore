@@ -4,3 +4,4 @@
 .Ruserdata
 docs
 Claude outputs
+.claude/settings.local.json
