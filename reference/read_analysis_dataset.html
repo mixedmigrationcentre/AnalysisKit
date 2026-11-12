@@ -36,7 +36,7 @@ itself, under the skip_label_row setting."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Read a Dataset from a Path</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.09.1/R/read_dataset.R" class="external-link"><code>R/read_dataset.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/read_dataset.R" class="external-link"><code>R/read_dataset.R</code></a></small>
       <div class="d-none name"><code>read_analysis_dataset.Rd</code></div>
     </div>
 
@@ -50,7 +50,7 @@ itself, under the <code>skip_label_row</code> setting.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_analysis_dataset</span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_analysis_dataset</span><span class="op">(</span><span class="va">path</span>, loa <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -61,10 +61,16 @@ itself, under the <code>skip_label_row</code> setting.</p>
 <dd><p>Path to a <code>.csv</code> or <code>.xlsx</code> file. Only the first sheet of an
 <code>.xlsx</code> is read.</p></dd>
 
+
+<dt id="arg-loa">loa<a class="anchor" aria-label="anchor" href="#arg-loa"></a></dt>
+<dd><p>Optional. A List of Analysis path, or the list from
+<code><a href="read_loa_workbook.html">read_loa_workbook()</a></code>. When given, only the columns it refers to are read.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with <code>data</code>, <code>extension</code>, <code>filename</code> and <code>size</code>.</p>
+    <p>A list with <code>data</code>, <code>extension</code>, <code>filename</code>, <code>size</code>,
+<code>duplicate_rows</code> and <code>columns_in_file</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -72,6 +78,22 @@ itself, under the <code>skip_label_row</code> setting.</p>
 Column names are preserved exactly (<code>check.names = FALSE</code>), because the
 select_multiple child columns carry choice labels that R would otherwise
 mangle.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="reading-only-what-the-list-of-analysis-uses">Reading only what the List of Analysis uses<a class="anchor" aria-label="anchor" href="#reading-only-what-the-list-of-analysis-uses"></a></h2>
+
+
+
+<p>A 4Mi export is often more than a thousand columns wide, and a List of
+Analysis names a few dozen of them. Give the List of Analysis as <code>loa</code> and
+only the columns it refers to are read: every analysis variable with its
+select_multiple children, the ratio variables, the grouping variables, and
+the weight and strata columns. The analysis reads no other column, so the
+results are the same; what changes is the time and memory the read takes.</p>
+<p>A dataset read this way is for running that List of Analysis. It reports how
+many columns the file has in <code>columns_in_file</code>, and it does not count
+duplicate rows, because rows that agree on a few columns are not duplicates.
+Read the file without <code>loa</code> to profile the whole export.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -91,7 +113,7 @@ mangle.</p>
 <span class="r-in"><span><span class="va">dataset</span> <span class="op">&lt;-</span> <span class="fu">read_analysis_dataset</span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="dataset_overview.html">dataset_overview</a></span><span class="op">(</span><span class="va">dataset</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          Measure                Value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      File name file19757a04fe98.csv</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1      File name file18812385d1a9.csv</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2      File type                  CSV</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3      File size             45 bytes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4           Rows                    3</span>

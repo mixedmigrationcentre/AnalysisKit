@@ -3,10 +3,11 @@
 `need = "required"` means every run uses it and it is installed with the
 package. `need = "optional"` means one feature needs it, and that
 feature is the survey engine: an analysis row with a `level` set asks
-for a confidence interval, which routes that row through srvyr and
-analysistools. Leave every `level` cell empty and the fast tabulation
-engine handles the whole run, needing neither - and, on a large
-disaggregation, taking seconds rather than minutes.
+for a confidence interval, which - when `value_columns` reports
+`stat_low` or `stat_upp`, or the row is a median or a ratio - routes
+that row through srvyr and analysistools. Leave every `level` cell empty
+and the fast tabulation engine handles the whole run, needing neither -
+and, on a large disaggregation, taking seconds rather than minutes.
 
 ## Usage
 

@@ -20,7 +20,9 @@ print(x, ...)
 
   A dataset path (`.csv` / `.xlsx`), the list from
   [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md),
-  or a data frame with the ONA label row still on top.
+  or a data frame with the ONA label row still on top. From a path, only
+  the columns the List of Analysis refers to are read, which is what
+  makes a wide export quick to load; the results do not depend on it.
 
 - loa:
 

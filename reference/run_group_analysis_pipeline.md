@@ -302,8 +302,12 @@ run_group_analysis_pipeline(
   `"auto"` (default) sends rows that asked for an interval to
   `analysistools`/survey and everything else to
   [`ck_fast_analysis`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_fast_analysis.md).
-  `"fast"` forces the fast engine (no intervals; neither analysistools
-  nor srvyr needed). `"survey"` forces the old behaviour.
+  A row only counts as asking for an interval when its `level` is set
+  *and* `value_columns` carries `stat_low` or `stat_upp`; a proportion
+  or mean with a level nobody will see is tabulated, with the same
+  results. Medians and ratios with a level always go to survey. `"fast"`
+  forces the fast engine (no intervals; neither analysistools nor srvyr
+  needed). `"survey"` forces the old behaviour.
 
 - min_group_n:
 

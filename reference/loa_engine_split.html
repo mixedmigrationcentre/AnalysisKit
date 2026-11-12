@@ -40,7 +40,7 @@ grouping variable."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Which Estimation Engine Each Analysis Will Use</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.09.1/R/read_loa.R" class="external-link"><code>R/read_loa.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/read_loa.R" class="external-link"><code>R/read_loa.R</code></a></small>
       <div class="d-none name"><code>loa_engine_split.Rd</code></div>
     </div>
 
@@ -75,7 +75,12 @@ analysis-by-grouping-variable estimations the survey engine will perform.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This reports the split before the run, so nobody discovers it from a
+    <p>A level only buys <code>stat_low</code> and <code>stat_upp</code>. Under <code>engine = "auto"</code>, a
+proportion or mean whose level would produce an interval that
+<code>value_columns</code> does not report is counted as fast, because that is where
+the pipeline sends it. Medians and ratios with a level are always counted
+as survey.</p>
+<p>This reports the split before the run, so nobody discovers it from a
 progress bar that has stopped moving.</p>
     </div>
 

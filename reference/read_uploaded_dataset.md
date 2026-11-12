@@ -8,7 +8,7 @@ From a path, use
 ## Usage
 
 ``` r
-read_uploaded_dataset(file_info)
+read_uploaded_dataset(file_info, columns = NULL)
 ```
 
 ## Arguments
@@ -17,6 +17,13 @@ read_uploaded_dataset(file_info)
 
   A one-row data frame with `name`, `datapath` and `size`.
 
+- columns:
+
+  Optional function taking the file's column names and returning a
+  logical vector: which columns to read. `NULL` reads them all. If it
+  selects nothing, every column is read.
+
 ## Value
 
-A list with `data`, `extension`, `filename` and `size`.
+A list with `data`, `extension`, `filename`, `size`, `duplicate_rows`
+and `columns_in_file`.

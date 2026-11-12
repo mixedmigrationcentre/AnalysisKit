@@ -12,7 +12,7 @@ expect. The label row is set aside by the pipeline itself, under the
 ## Usage
 
 ``` r
-read_analysis_dataset(path)
+read_analysis_dataset(path, loa = NULL)
 ```
 
 ## Arguments
@@ -22,9 +22,16 @@ read_analysis_dataset(path)
   Path to a `.csv` or `.xlsx` file. Only the first sheet of an `.xlsx`
   is read.
 
+- loa:
+
+  Optional. A List of Analysis path, or the list from
+  [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
+  When given, only the columns it refers to are read.
+
 ## Value
 
-A list with `data`, `extension`, `filename` and `size`.
+A list with `data`, `extension`, `filename`, `size`, `duplicate_rows`
+and `columns_in_file`.
 
 ## Details
 
@@ -32,6 +39,21 @@ CSV blanks and the strings `NA`, `N/A` and `NULL` are read as missing.
 Column names are preserved exactly (`check.names = FALSE`), because the
 select_multiple child columns carry choice labels that R would otherwise
 mangle.
+
+## Reading only what the List of Analysis uses
+
+A 4Mi export is often more than a thousand columns wide, and a List of
+Analysis names a few dozen of them. Give the List of Analysis as `loa`
+and only the columns it refers to are read: every analysis variable with
+its select_multiple children, the ratio variables, the grouping
+variables, and the weight and strata columns. The analysis reads no
+other column, so the results are the same; what changes is the time and
+memory the read takes.
+
+A dataset read this way is for running that List of Analysis. It reports
+how many columns the file has in `columns_in_file`, and it does not
+count duplicate rows, because rows that agree on a few columns are not
+duplicates. Read the file without `loa` to profile the whole export.
 
 ## See also
 
@@ -55,7 +77,7 @@ utils::write.csv(
 dataset <- read_analysis_dataset(path)
 dataset_overview(dataset)
 #>          Measure                Value
-#> 1      File name file19757a04fe98.csv
+#> 1      File name file18812385d1a9.csv
 #> 2      File type                  CSV
 #> 3      File size             45 bytes
 #> 4           Rows                    3

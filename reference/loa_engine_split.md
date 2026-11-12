@@ -31,5 +31,11 @@ perform.
 
 ## Details
 
+A level only buys `stat_low` and `stat_upp`. Under `engine = "auto"`, a
+proportion or mean whose level would produce an interval that
+`value_columns` does not report is counted as fast, because that is
+where the pipeline sends it. Medians and ratios with a level are always
+counted as survey.
+
 This reports the split before the run, so nobody discovers it from a
 progress bar that has stopped moving.

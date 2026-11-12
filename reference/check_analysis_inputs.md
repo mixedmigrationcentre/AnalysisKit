@@ -21,7 +21,8 @@ print(x, ...)
 
   A dataset path, the list from
   [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md),
-  or a plain data frame with the ONA label row still on top.
+  or a plain data frame with the ONA label row still on top. From a
+  path, only the columns the List of Analysis refers to are read.
 
 - loa:
 
@@ -48,8 +49,9 @@ An object of class `analysis_readiness`: a list with `ready`,
 `problems`, `counts`, `coverage`, `sheets`, `engine`, `spec`, `dataset`
 and `folder_problem`. `engine` is
 [`loa_engine_split()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_engine_split.md):
-how many analyses set a confidence `level` and so take the slower survey
-engine. Print it for a summary.
+how many analyses will take the slower survey engine - those with a
+confidence `level` whose interval is reported, and medians and ratios
+with a `level`. Print it for a summary.
 
 ## Details
 

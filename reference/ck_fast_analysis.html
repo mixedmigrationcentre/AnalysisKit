@@ -40,7 +40,7 @@ does."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Point Estimates Without the Survey Package</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.09.1/R/analysis_pipeline.R" class="external-link"><code>R/analysis_pipeline.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/analysis_pipeline.R" class="external-link"><code>R/analysis_pipeline.R</code></a></small>
       <div class="d-none name"><code>ck_fast_analysis.Rd</code></div>
     </div>
 
@@ -62,6 +62,7 @@ does.</p>
 <span>  weight_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sm_separator <span class="op">=</span> <span class="st">"/"</span>,</span>
 <span>  keep_missing_groups <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  survey_shape <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -92,6 +93,18 @@ plain proportion or mean.</p></dd>
 <dd><p>Logical. Report respondents missing on the
 grouping variable as their own group. Default <code>TRUE</code>, matching
 <span class="pkg">srvyr</span>; <code>survey::svyby</code> drops them.</p></dd>
+
+
+<dt id="arg-survey-shape">survey_shape<a class="anchor" aria-label="anchor" href="#arg-survey-shape"></a></dt>
+<dd><p>Logical. Lay the rows out exactly as
+<code>analysistools::create_analysis()</code> would, so a row moved off the
+survey engine produces the same workbook it always did. The numbers are
+the same either way; what changes is which rows exist and their order:
+groups are sorted in the C locale with the missing group last, rows run
+group by group, a select_one category nobody in a group chose has no row
+(rather than a zero), and a select_multiple group with nobody in the
+denominator keeps an empty row (rather than none). Applies to
+proportions and means. Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

@@ -9,7 +9,7 @@ out to a file first.
 ## Usage
 
 ``` r
-as_analysis_dataset(dataset, name = NULL)
+as_analysis_dataset(dataset, name = NULL, loa = NULL)
 ```
 
 ## Arguments
@@ -21,6 +21,13 @@ as_analysis_dataset(dataset, name = NULL)
 - name:
 
   Name to record when a bare data frame is given.
+
+- loa:
+
+  Optional List of Analysis workbook. When `dataset` is a path, only the
+  columns the workbook refers to are read; see
+  [`read_analysis_dataset()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_analysis_dataset.md).
+  Ignored for a dataset already in memory.
 
 ## Value
 

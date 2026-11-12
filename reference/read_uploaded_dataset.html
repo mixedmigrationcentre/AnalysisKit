@@ -32,7 +32,7 @@ path, use read_analysis_dataset()."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Read an Uploaded Dataset</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.09.1/R/read_dataset.R" class="external-link"><code>R/read_dataset.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/read_dataset.R" class="external-link"><code>R/read_dataset.R</code></a></small>
       <div class="d-none name"><code>read_uploaded_dataset.Rd</code></div>
     </div>
 
@@ -44,7 +44,7 @@ path, use <code><a href="read_analysis_dataset.html">read_analysis_dataset()</a>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_uploaded_dataset</span><span class="op">(</span><span class="va">file_info</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_uploaded_dataset</span><span class="op">(</span><span class="va">file_info</span>, columns <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -54,10 +54,17 @@ path, use <code><a href="read_analysis_dataset.html">read_analysis_dataset()</a>
 <dl><dt id="arg-file-info">file_info<a class="anchor" aria-label="anchor" href="#arg-file-info"></a></dt>
 <dd><p>A one-row data frame with <code>name</code>, <code>datapath</code> and <code>size</code>.</p></dd>
 
+
+<dt id="arg-columns">columns<a class="anchor" aria-label="anchor" href="#arg-columns"></a></dt>
+<dd><p>Optional function taking the file's column names and
+returning a logical vector: which columns to read. <code>NULL</code> reads them all.
+If it selects nothing, every column is read.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with <code>data</code>, <code>extension</code>, <code>filename</code> and <code>size</code>.</p>
+    <p>A list with <code>data</code>, <code>extension</code>, <code>filename</code>, <code>size</code>,
+<code>duplicate_rows</code> and <code>columns_in_file</code>.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -9,7 +9,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/mixedmigrationcentre/analysiskit/blob/2026.09.1/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/mixedmigrationcentre/analysiskit/blob/main/DESCRIPTION)
 
 Athman A (2026). *analysiskit: Run MMC 4Mi Analyses Locally from a
 Dataset and a List of Analysis*. R package version 2026.09.1,

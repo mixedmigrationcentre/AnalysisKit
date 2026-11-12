@@ -32,7 +32,7 @@ it would refuse to do - without waiting for an analysis."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Check a Dataset and a List of Analysis Against Each Other</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.09.1/R/checks.R" class="external-link"><code>R/checks.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/checks.R" class="external-link"><code>R/checks.R</code></a></small>
       <div class="d-none name"><code>check_analysis_inputs.Rd</code></div>
     </div>
 
@@ -56,7 +56,8 @@ it would refuse to do - without waiting for an analysis.</p>
 
 <dl><dt id="arg-dataset">dataset<a class="anchor" aria-label="anchor" href="#arg-dataset"></a></dt>
 <dd><p>A dataset path, the list from <code><a href="read_analysis_dataset.html">read_analysis_dataset()</a></code>, or a
-plain data frame with the ONA label row still on top.</p></dd>
+plain data frame with the ONA label row still on top. From a path, only
+the columns the List of Analysis refers to are read.</p></dd>
 
 
 <dt id="arg-loa">loa<a class="anchor" aria-label="anchor" href="#arg-loa"></a></dt>
@@ -83,8 +84,9 @@ never lost to a read-only destination.</p></dd>
     <p>An object of class <code>analysis_readiness</code>: a list with <code>ready</code>,
 <code>problems</code>, <code>counts</code>, <code>coverage</code>, <code>sheets</code>, <code>engine</code>, <code>spec</code>, <code>dataset</code>
 and <code>folder_problem</code>. <code>engine</code> is <code><a href="loa_engine_split.html">loa_engine_split()</a></code>: how many analyses
-set a confidence <code>level</code> and so take the slower survey engine. Print it
-for a summary.</p>
+will take the slower survey engine - those with a confidence <code>level</code>
+whose interval is reported, and medians and ratios with a <code>level</code>. Print
+it for a summary.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

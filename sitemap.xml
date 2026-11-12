@@ -1,5 +1,6 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/404.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/CLAUDE.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/LICENSE-text.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/LICENSE.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/authors.html</loc></url>
@@ -66,11 +67,13 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_insert_count_separators.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_is_decimal_type.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_level_info.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_level_is_redundant.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_columns.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_flag.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_is_available.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_loa_var_key.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_make_analysis_key.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_merge_level_rows.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_missing_key.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_new_style_grid.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_nonempty_blocks.html</loc></url>
@@ -122,6 +125,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_problems.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_severity.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_summary.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_dataset_columns.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_default_selection_labels.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_delegate_check.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_derived_analysis_types.html</loc></url>
