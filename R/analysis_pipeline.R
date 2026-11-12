@@ -2767,7 +2767,9 @@ ck_fast_analysis <- function(dataset,
         g_lv <- if (is.null(all_groups)) sort(unique(g_ok)) else all_groups
 
         s <- ck_group_sums(
-          cbind(w = w[ok], n = 1, wx = w[ok] * xc[ok], nx = xc[ok]),
+          # rep(), not a bare 1: with nobody in the denominator a recycled
+          # scalar would leave a one-row matrix where a zero-row one is meant.
+          cbind(w = w[ok], n = rep(1, sum(ok)), wx = w[ok] * xc[ok], nx = xc[ok]),
           g_ok, g_lv
         )
 
@@ -2818,7 +2820,7 @@ ck_fast_analysis <- function(dataset,
         }
 
         s <- ck_group_sums(
-          cbind(w = w[ok], n = 1, wx = w[ok] * x[ok]),
+          cbind(w = w[ok], n = rep(1, sum(ok)), wx = w[ok] * x[ok]),
           g_ok, g_lv
         )
 

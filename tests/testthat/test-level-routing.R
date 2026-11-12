@@ -41,6 +41,14 @@ routing_dataset <- function(n = 400) {
   d[["sm/A"]] <- ifelse(asked & a, "A", NA)
   d[["sm/B"]] <- ifelse(asked & b, "B", NA)
 
+  # Variables with nothing usable at all: a question nobody was asked, and a
+  # text column asked for as a mean. A level on either used to stop the run.
+  d$sm2 <- NA
+  d[["sm2/A"]] <- NA
+  d[["sm2/B"]] <- NA
+  d$unasked <- NA
+  d$words <- sample(c("low", "high"), n, TRUE)
+
   d$age2 <- d$age
   d$age2[skipped] <- NA
   d$age[sample(n, 20)] <- NA
@@ -58,12 +66,16 @@ routing_loa <- function(level = 0.95) {
   data.frame(
     analysis_type = c(
       "prop_select_one", "prop_select_multiple", "mean", "median",
-      "ratio", "prop_select_one", "mean"
+      "ratio", "prop_select_one", "mean",
+      "prop_select_multiple", "mean", "mean", "prop_select_one"
     ),
-    analysis_var = c("q", "sm", "age", "age", NA, "sex", "age2"),
+    analysis_var = c(
+      "q", "sm", "age", "age", NA, "sex", "age2",
+      "sm2", "unasked", "words", "unasked"
+    ),
     level = level,
-    analysis_var_numerator = c(NA, NA, NA, NA, "num", NA, NA),
-    analysis_var_denominator = c(NA, NA, NA, NA, "den", NA, NA),
+    analysis_var_numerator = c(NA, NA, NA, NA, "num", NA, NA, NA, NA, NA, NA),
+    analysis_var_denominator = c(NA, NA, NA, NA, "den", NA, NA, NA, NA, NA, NA),
     stringsAsFactors = FALSE
   )
 }
@@ -158,7 +170,7 @@ test_that("it holds when only some rows carry a level", {
 
   # Rows without a level are tabulated under either routing; what is compared
   # is the old "auto" (level -> survey), rebuilt here by hand.
-  loa <- routing_loa(c(0.95, NA, 0.95, 0.95, NA, NA, 0.95))
+  loa <- routing_loa(c(0.95, NA, 0.95, 0.95, NA, NA, 0.95, 0.95, NA, 0.95, NA))
   auto <- routing_run(loa, "auto")
 
   expect_true(all(c("q", "sm", "age", "sex", "age2") %in% auto$combined_results$analysis_var))
