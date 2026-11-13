@@ -34,7 +34,7 @@ pipeline_formals <- function() {
     "blank_to_na", "label_choices", "add_analysis_type_label",
     "analysis_type_labels", "recreate_sm_parents", "drop_empty_prop_rows",
     "summary_value_label", "missing_group_label", "use_group_prefix",
-    "lonely_psu", "verbose"
+    "lonely_psu", "verbose", "full_sample_base", "full_sample_label"
   )
 }
 

@@ -64,7 +64,9 @@ run_group_analysis_pipeline(
   missing_group_label = "Missing",
   use_group_prefix = TRUE,
   lonely_psu = "adjust",
-  verbose = TRUE
+  verbose = TRUE,
+  full_sample_base = FALSE,
+  full_sample_label = "Not asked / no response"
 )
 }
 \arguments{
@@ -287,13 +289,28 @@ a value.}
 Default \code{"adjust"}; \code{NULL} leaves the option alone.}
 
 \item{verbose}{Logical. Default \code{TRUE}.}
+
+\item{full_sample_base}{Logical. Count respondents with no answer - usually
+because skip logic never asked them - in the denominator, so proportions
+are out of the full sample (or the full group) rather than out of those
+who answered. A select_one blank is reported as its own row,
+\code{full_sample_label}, so the question adds to 100\\%; a blank
+select_multiple counts as "not selected". Means, medians and ratios are
+unaffected, \code{exclude_choices} still removes respondents from the
+base, and a variable that is also a grouping variable is left as it is.
+See \code{\link{ck_full_sample_base}}. Default \code{FALSE}.}
+
+\item{full_sample_label}{Row label for select_one respondents with no answer
+when \code{full_sample_base = TRUE}. Default
+\code{"Not asked / no response"}.}
 }
 \value{
 A list with \code{combined_results} (the wide table),
 \code{results_long}, \code{column_map}, \code{label_lookup},
 \code{loa_used}, \code{excluded_choices}, \code{dropped_groups},
-\code{selection_counts}, \code{choice_combinations} and
-\code{exclusive_combinations}.
+\code{selection_counts}, \code{choice_combinations},
+\code{exclusive_combinations} and \code{full_sample_filled} (the
+variables whose blanks were counted under \code{full_sample_base}).
 }
 \description{
 Runs an analysis plan (LOA / DAP) over one or more grouping variables and

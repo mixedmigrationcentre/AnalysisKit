@@ -256,6 +256,8 @@ loa_settings_schema <- function() {
 
     # denominator
     s("exclude_ignore_case", "lgl"),
+    s("full_sample_base", "lgl"),
+    s("full_sample_label", "chr"),
 
     # output shape
     s("value_columns", "chr[]"),

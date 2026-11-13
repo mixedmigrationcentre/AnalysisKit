@@ -7,8 +7,7 @@
 # Six steps, top to bottom. After the first run you only need 3 to 6.
 #
 # Open your own copy:
-#   file.edit(system.file("examples", "run_analysis.R",
-#                         package = "analysiskit"))
+#   file.edit(system.file("examples", "run_analysis.R", package = "analysiskit"))
 # =============================================================================
 
 library(analysiskit)
@@ -29,18 +28,16 @@ load_packages()
 # is left alone, never emptied - but there is no reason to.
 
 setup_project_folders()
-
-# A List of Analysis workbook to fill in. Also once.
-copy_loa_template("resources")
+copy_loa_template("resources") # a List of Analysis to fill in, also once
 
 
 # --- 3. read the files -------------------------------------------------------
 # Edit these two paths.
 
-dataset <- read_analysis_dataset("data/mmr_analysis_data_25_26.xlsx")
-loa     <- read_loa_workbook("resources/loa_template.xlsx")
+dataset <- read_analysis_dataset("data/data.xlsx")
+loa <- read_loa_workbook("resources/loa_template.xlsx")
 
-dataset_overview(dataset)   # rows, columns, size, duplicate rows
+dataset_overview(dataset) # rows, columns, size, duplicate rows
 
 
 # --- 4. check the List of Analysis -------------------------------------------
@@ -48,36 +45,44 @@ dataset_overview(dataset)   # rows, columns, size, duplicate rows
 # Milliseconds - always do this before a long run.
 
 checks <- check_analysis_inputs(dataset, loa, output_folder = "output")
-checks                                 # ends in "ready to run : yes" or "no"
+checks # ends in "ready to run : yes" or "no"
 
-ak_problems_display(checks$problems)   # every problem, must-fix first
-
-# MUST FIX = the run would produce wrong or misleading output.
-# WARNING  = the run would only produce less output.
+# Every problem, must-fix first.
+#   MUST FIX = the run would produce wrong or misleading output.
+#   WARNING  = the run would only produce less output.
+ak_problems_display(checks$problems)
 
 
 # --- 5. run the analysis pipeline --------------------------------------------
 # checks$spec is the workbook, already read and validated, so there is nothing
 # to build here. This stops without doing any work if anything is must-fix.
-#
+
+# >>> NEW: full sample base ------------------------------------------------ >>>
+# FALSE  each question is out of those who ANSWERED it: if only the 600 of
+#        1,000 who said "Yes" were asked the follow-up, its n is 600.
+# TRUE   out of the FULL sample (or group): select_one blanks get a "Not asked /
+#        no response" row, so it adds to 100%; a blank select_multiple counts
+#        as "not selected". Means, medians and ratios are unchanged.
+# Overrides full_sample_base in the settings sheet; delete it to use the sheet.
+checks$spec$settings$full_sample_base <- FALSE
+# <<< NEW: full sample base ------------------------------------------------ <<<
+
 # Note the $data: this step wants the data frame itself, not the list that
 # read_analysis_dataset() returned.
-
 results <- run_analysis_spec(dataset$data, checks$spec, verbose = TRUE)
 
 
 # --- 6. create the output ----------------------------------------------------
 
 path <- ak_export_results(
-  results      = results,
-  spec         = checks$spec,
-  folder       = "output",
+  results = results,
+  spec = checks$spec,
+  folder = "output",
   dataset_name = dataset$filename
 )
 
-path                                     # the workbook that was written
-results$combined_results[1:5, 1:6]       # a corner of the wide table
-
+path # the workbook that was written
+results$combined_results[1:5, 1:6] # a corner of the wide table
 
 # =============================================================================
 # Worth knowing
@@ -85,7 +90,8 @@ results$combined_results[1:5, 1:6]       # a corner of the wide table
 #
 # ONE CALL INSTEAD OF 4-6, if you would rather not see the stages. It also
 #   keeps a run log, times the run, recovers the results if only the save
-#   fails, and prints the caveat below:
+#   fails, and prints the caveat below. It reads full_sample_base from the
+#   settings sheet:
 #     run <- run_analysis_locally(dataset, loa, output_folder = "output")
 #
 # ROW 1 IS THE LABEL ROW. An ONA export puts question text there and the
@@ -100,7 +106,11 @@ results$combined_results[1:5, 1:6]       # a corner of the wide table
 #   unless value_columns in the settings sheet lists stat_low / stat_upp.
 #
 # exclude_choices CHANGES THE DENOMINATOR. Someone who picked "Don't know"
-#   leaves the base for that question entirely.
+#   leaves the base for that question entirely - also with full_sample_base.
+#
+# [NEW] full_sample_base = TRUE PUTS SKIPPED RESPONDENTS BACK IN THE BASE. A
+#   question that is also a grouping variable is left out of it. Rename the
+#   row with full_sample_label. Say in the publication which base you used.
 #
 # THE TWO COMBINATION BLOCKS SPLIT ONE BASE. count_combinations reports the
 #   respondents who selected more than one choice, count_exclusive_combinations
@@ -112,6 +122,5 @@ results$combined_results[1:5, 1:6]       # a corner of the wide table
 #   Footnote it wherever those percentages are published.
 #
 # The full workbook specification - every sheet, every setting, every rule:
-#   file.show(system.file("extdata", "loa-schema.md",
-#                         package = "analysiskit"))
+#   file.show(system.file("extdata", "loa-schema.md", package = "analysiskit"))
 # =============================================================================

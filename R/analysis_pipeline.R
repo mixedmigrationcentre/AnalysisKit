@@ -3578,12 +3578,25 @@ ck_design_columns <- function(dataset,
 #' @param lonely_psu How \pkg{survey} treats strata with a single observation.
 #'   Default \code{"adjust"}; \code{NULL} leaves the option alone.
 #' @param verbose Logical. Default \code{TRUE}.
+#' @param full_sample_base Logical. Count respondents with no answer - usually
+#'   because skip logic never asked them - in the denominator, so proportions
+#'   are out of the full sample (or the full group) rather than out of those
+#'   who answered. A select_one blank is reported as its own row,
+#'   \code{full_sample_label}, so the question adds to 100\%; a blank
+#'   select_multiple counts as "not selected". Means, medians and ratios are
+#'   unaffected, \code{exclude_choices} still removes respondents from the
+#'   base, and a variable that is also a grouping variable is left as it is.
+#'   See \code{\link{ck_full_sample_base}}. Default \code{FALSE}.
+#' @param full_sample_label Row label for select_one respondents with no answer
+#'   when \code{full_sample_base = TRUE}. Default
+#'   \code{"Not asked / no response"}.
 #'
 #' @return A list with \code{combined_results} (the wide table),
 #'   \code{results_long}, \code{column_map}, \code{label_lookup},
 #'   \code{loa_used}, \code{excluded_choices}, \code{dropped_groups},
-#'   \code{selection_counts}, \code{choice_combinations} and
-#'   \code{exclusive_combinations}.
+#'   \code{selection_counts}, \code{choice_combinations},
+#'   \code{exclusive_combinations} and \code{full_sample_filled} (the
+#'   variables whose blanks were counted under \code{full_sample_base}).
 #' @export
 #' @importFrom dplyr all_of bind_rows distinct left_join relocate
 #' @importFrom tidyr pivot_wider
@@ -3652,7 +3665,9 @@ run_group_analysis_pipeline <- function(dataset,
                                         missing_group_label = "Missing",
                                         use_group_prefix = TRUE,
                                         lonely_psu = "adjust",
-                                        verbose = TRUE) {
+                                        verbose = TRUE,
+                                        full_sample_base = FALSE,
+                                        full_sample_label = "Not asked / no response") {
   # --- 0. Contract ----------------------------------------------------------
   sm_child_style <- match.arg(sm_child_style)
   engine <- match.arg(engine)
@@ -3957,6 +3972,22 @@ run_group_analysis_pipeline <- function(dataset,
     )
   }
 
+  # Full-sample base: blanks join the denominator. After the children are 0/1
+  # (so "not asked" is a clean NA to fill) and before the exclusions (so a
+  # choice excluded on purpose still leaves the base).
+  full_sample <- list(dataset = dataset, filled = NULL, select_one_vars = character(0))
+  if (isTRUE(full_sample_base)) {
+    full_sample <- ck_full_sample_base(
+      dataset = dataset,
+      loa = loa,
+      group_variables = group_variables,
+      label = full_sample_label,
+      sm_separator = sm_separator,
+      verbose = verbose
+    )
+    dataset <- full_sample$dataset
+  }
+
   # Excluded choices leave the denominator, so this must happen before the
   # design is built - and after the select_multiple children are 0/1.
   exclusion <- ck_exclude_choices(
@@ -4221,6 +4252,13 @@ run_group_analysis_pipeline <- function(dataset,
     results_long <- results_long[!drop_hidden, , drop = FALSE]
   }
 
+  # --- 3b-ii. Full-sample base: the no-response row goes last -------------
+  if (isTRUE(full_sample_base)) {
+    results_long <- ck_no_response_last(
+      results_long, full_sample$select_one_vars, trimws(full_sample_label)
+    )
+  }
+
   # --- 3c. Honour an empty level: no interval requested, none reported ------
   ci_cols <- intersect(c("stat_low", "stat_upp"), names(results_long))
 
@@ -4389,6 +4427,7 @@ run_group_analysis_pipeline <- function(dataset,
     dropped_groups = small$dropped,
     selection_counts = counts$map,
     choice_combinations = combos$map,
-    exclusive_combinations = exclusive$map
+    exclusive_combinations = exclusive$map,
+    full_sample_filled = full_sample$filled
   )
 }
