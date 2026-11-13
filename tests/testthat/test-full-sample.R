@@ -117,6 +117,52 @@ test_that("full_sample_base counts a select_multiple blank as not selected", {
 })
 
 
+test_that("a select_multiple gets its own not-asked row, last", {
+  res <- run_skip(full_sample_base = TRUE)
+  q3 <- rows_for(res, "Q3")
+
+  nr <- q3[q3$analysis_var_value == "Not asked / no response", ]
+  expect_equal(nr$n, 4)
+  expect_equal(nr$n_total, 10)
+  expect_equal(nr$stat, 0.4)
+  expect_equal(q3$analysis_var_value[nrow(q3)], "Not asked / no response")
+
+  wide <- res$combined_results
+  q3_wide <- wide$analysis_var_value[wide$analysis_var == "Q3"]
+  expect_equal(q3_wide[length(q3_wide)], "Not asked / no response")
+
+  # Off by default.
+  off <- rows_for(run_skip(), "Q3")
+  expect_false("Not asked / no response" %in% off$analysis_var_value)
+})
+
+
+test_that("the not-asked row is reported for every group", {
+  res <- run_skip(full_sample_base = TRUE, groups = c("Overall", "gender"))
+  q3 <- rows_for(res, "Q3", group = "gender")
+  nr <- q3[q3$analysis_var_value == "Not asked / no response", ]
+
+  # Respondents 7-10 were not asked: two of each gender.
+  expect_equal(nr$group_var_value, c("Female", "Male"))
+  expect_equal(nr$n, c(2, 2))
+  expect_equal(nr$n_total, c(5, 5))
+  expect_equal(nr$stat, c(0.4, 0.4))
+})
+
+
+test_that("an existing choice with the label's name is not duplicated", {
+  ds <- skip_dataset()
+  ds[["Q3/Not asked / no response"]] <- c(rep(0, 6), rep(NA, 4))
+
+  expect_warning(
+    res <- run_skip(full_sample_base = TRUE, dataset = ds),
+    "already has a choice called"
+  )
+  q3 <- rows_for(res, "Q3")
+  expect_equal(sum(q3$analysis_var_value == "Not asked / no response"), 1)
+})
+
+
 test_that("means are left out of the full sample", {
   off <- rows_for(run_skip(), "Q4")
   on <- rows_for(run_skip(full_sample_base = TRUE), "Q4")

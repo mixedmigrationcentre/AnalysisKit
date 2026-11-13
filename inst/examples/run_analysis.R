@@ -60,9 +60,10 @@ ak_problems_display(checks$problems)
 # >>> NEW: full sample base ------------------------------------------------ >>>
 # FALSE  each question is out of those who ANSWERED it: if only the 600 of
 #        1,000 who said "Yes" were asked the follow-up, its n is 600.
-# TRUE   out of the FULL sample (or group): select_one blanks get a "Not asked /
-#        no response" row, so it adds to 100%; a blank select_multiple counts
-#        as "not selected". Means, medians and ratios are unchanged.
+# TRUE   out of the FULL sample (or group), with a "Not asked / no response"
+#        row last in every select_one and select_multiple, overall and per
+#        group; in a select_multiple a blank counts as "not selected" for every
+#        choice. Means, medians and ratios are unchanged.
 # Overrides full_sample_base in the settings sheet; delete it to use the sheet.
 checks$spec$settings$full_sample_base <- FALSE
 # <<< NEW: full sample base ------------------------------------------------ <<<

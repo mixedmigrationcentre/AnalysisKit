@@ -436,8 +436,8 @@ fixed set.
 | setting | type | default | notes |
 |---|---|---|---|
 | `exclude_ignore_case` | lgl | `TRUE` | applies to the `exclude_choices` sheet |
-| `full_sample_base` | lgl | `FALSE` | `TRUE` counts respondents with no answer (for example, skipped by skip logic) in the denominator, so proportions are out of the full sample or full group. A blank select_one is reported as its own row, `full_sample_label`, so the question adds to 100%. A blank select_multiple counts as "not selected". Means, medians and ratios are unchanged. `exclude_choices` still removes respondents from the base. A variable that is also a grouping variable is left as it is |
-| `full_sample_label` | chr | `Not asked / no response` | row label for select_one blanks when `full_sample_base` is `TRUE` |
+| `full_sample_base` | lgl | `FALSE` | `TRUE` counts respondents with no answer (for example, skipped by skip logic) in the denominator, so proportions are out of the full sample or full group. A blank select_one is reported as its own row, `full_sample_label`, so the question adds to 100%. In a select_multiple a blank counts as "not selected" for every choice, and the not-asked share is added as a `full_sample_label` row of its own, last, overall and in every disaggregation. Means, medians and ratios are unchanged. `exclude_choices` still removes respondents from the base. A variable that is also a grouping variable is left as it is |
+| `full_sample_label` | chr | `Not asked / no response` | row label for the not-asked row of select_one and select_multiple questions when `full_sample_base` is `TRUE` |
 
 **Output shape**
 

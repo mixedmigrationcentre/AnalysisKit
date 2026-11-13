@@ -9,7 +9,7 @@ ck_no_response_last(results_long, vars, label)
 \arguments{
 \item{results_long}{Long results.}
 
-\item{vars}{The select_one variables that were filled.}
+\item{vars}{The select_one and select_multiple variables that were filled.}
 
 \item{label}{The row label used for them.}
 }

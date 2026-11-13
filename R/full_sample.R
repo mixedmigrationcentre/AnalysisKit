@@ -14,7 +14,10 @@
 #'     the question's rows add up to the whole sample.}
 #'   \item{select_multiple}{A blank child (the question was not asked) becomes
 #'     \code{0} (not selected), so every choice is a share of the full
-#'     sample.}
+#'     sample. A child column named \code{label} is added, 1 for respondents
+#'     never asked and 0 for everyone else, so the not-asked share is its own
+#'     row, last, in every column. The parent is filled with \code{label} too,
+#'     because the survey engine reads who was asked from the parent.}
 #' }
 #'
 #' Means, medians and ratios are left alone: a blank number cannot be averaged
@@ -28,13 +31,13 @@
 #' @param dataset The analysis dataset.
 #' @param loa The list of analyses, used to find the variables to act on.
 #' @param group_variables Grouping variables; these are never filled.
-#' @param label Row label for select_one respondents with no answer. Default
-#'   \code{"Not asked / no response"}.
+#' @param label Row label for respondents with no answer, in select_one and
+#'   select_multiple questions. Default \code{"Not asked / no response"}.
 #' @param sm_separator Separator between parent and choice. Default \code{"/"}.
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return A list with \code{dataset}, \code{filled} (one row per variable:
 #'   \code{analysis_var}, \code{analysis_type}, \code{n_filled}) and
-#'   \code{select_one_vars} (the select_one variables that were filled).
+#'   \code{filled_vars} (the variables that were filled).
 #' @keywords internal
 ck_full_sample_base <- function(
   dataset,
@@ -117,6 +120,13 @@ ck_full_sample_base <- function(
       next
     }
 
+    # Who was not asked, read before the children are filled: after
+    # ck_sm_children_to_binary() every child of a never-asked respondent is NA.
+    not_asked <- Reduce(
+      `&`,
+      lapply(children, function(cc) is.na(dataset[[cc]]))
+    )
+
     n_blank <- 0L
     for (cc in children) {
       x <- dataset[[cc]]
@@ -142,6 +152,27 @@ ck_full_sample_base <- function(
       }
     }
 
+    # The not-asked share as one more choice, so it is reported as its own row
+    # in every column, overall and disaggregated, like the select_one row. It is
+    # an ordinary child column - 1 for not asked, 0 otherwise - added last so it
+    # is tabulated last, and blanked with the rest by exclude_choices.
+    if (any(not_asked)) {
+      na_col <- paste0(p, sm_separator, label)
+      if (na_col %in% names(dataset)) {
+        ck_warn(
+          "full_sample_base: '",
+          p,
+          "' already has a choice called '",
+          label,
+          "', so no separate not-asked row was added for it. Set ",
+          "full_sample_label to a different text."
+        )
+      } else {
+        dataset[[na_col]] <- as.numeric(not_asked)
+      }
+      n_blank <- max(n_blank, sum(not_asked))
+    }
+
     if (n_blank > 0) add_log(p, "prop_select_multiple", n_blank)
   }
 
@@ -159,7 +190,7 @@ ck_full_sample_base <- function(
   ck_note(
     "full sample base: blanks counted in the denominator for ",
     nrow(filled),
-    " variable(s); select_one blanks reported as '",
+    " variable(s); blanks reported as '",
     label,
     "'",
     verbose = verbose
@@ -168,9 +199,7 @@ ck_full_sample_base <- function(
   list(
     dataset = dataset,
     filled = filled,
-    select_one_vars = filled$analysis_var[
-      filled$analysis_type == "prop_select_one"
-    ]
+    filled_vars = filled$analysis_var
   )
 }
 
@@ -184,7 +213,7 @@ ck_full_sample_base <- function(
 #' row.
 #'
 #' @param results_long Long results.
-#' @param vars The select_one variables that were filled.
+#' @param vars The select_one and select_multiple variables that were filled.
 #' @param label The row label used for them.
 #' @return \code{results_long}, reordered.
 #' @keywords internal
@@ -197,7 +226,8 @@ ck_no_response_last <- function(results_long, vars, label) {
   var <- as.character(results_long$analysis_var)
   value <- as.character(results_long$analysis_var_value)
 
-  is_label <- type == "prop_select_one" &
+  is_label <- type %in%
+    c("prop_select_one", "prop_select_multiple") &
     var %in% vars &
     !is.na(value) &
     value == label
