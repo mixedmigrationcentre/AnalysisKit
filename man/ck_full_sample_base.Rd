@@ -20,8 +20,8 @@ ck_full_sample_base(
 
 \item{group_variables}{Grouping variables; these are never filled.}
 
-\item{label}{Row label for select_one respondents with no answer. Default
-\code{"Not asked / no response"}.}
+\item{label}{Row label for respondents with no answer, in select_one and
+select_multiple questions. Default \code{"Not asked / no response"}.}
 
 \item{sm_separator}{Separator between parent and choice. Default \code{"/"}.}
 
@@ -30,7 +30,7 @@ ck_full_sample_base(
 \value{
 A list with \code{dataset}, \code{filled} (one row per variable:
 \code{analysis_var}, \code{analysis_type}, \code{n_filled}) and
-\code{select_one_vars} (the select_one variables that were filled).
+\code{filled_vars} (the variables that were filled).
 }
 \description{
 By default a respondent with no answer to a question - typically because
@@ -45,7 +45,10 @@ This puts those respondents back in the base:
 the question's rows add up to the whole sample.}
 \item{select_multiple}{A blank child (the question was not asked) becomes
 \code{0} (not selected), so every choice is a share of the full
-sample.}
+sample. A child column named \code{label} is added, 1 for respondents
+never asked and 0 for everyone else, so the not-asked share is its own
+row, last, in every column. The parent is filled with \code{label} too,
+because the survey engine reads who was asked from the parent.}
 }
 
 Means, medians and ratios are left alone: a blank number cannot be averaged
