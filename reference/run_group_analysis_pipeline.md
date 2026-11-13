@@ -67,7 +67,9 @@ run_group_analysis_pipeline(
   missing_group_label = "Missing",
   use_group_prefix = TRUE,
   lonely_psu = "adjust",
-  verbose = TRUE
+  verbose = TRUE,
+  full_sample_base = FALSE,
+  full_sample_label = "Not asked / no response"
 )
 ```
 
@@ -388,12 +390,31 @@ run_group_analysis_pipeline(
 
   Logical. Default `TRUE`.
 
+- full_sample_base:
+
+  Logical. Count respondents with no answer - usually because skip logic
+  never asked them - in the denominator, so proportions are out of the
+  full sample (or the full group) rather than out of those who answered.
+  A select_one blank is reported as its own row, `full_sample_label`, so
+  the question adds to 100\\ select_multiple counts as "not selected".
+  Means, medians and ratios are unaffected, `exclude_choices` still
+  removes respondents from the base, and a variable that is also a
+  grouping variable is left as it is. See
+  [`ck_full_sample_base`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_full_sample_base.md).
+  Default `FALSE`.
+
+- full_sample_label:
+
+  Row label for select_one respondents with no answer when
+  `full_sample_base = TRUE`. Default `"Not asked / no response"`.
+
 ## Value
 
 A list with `combined_results` (the wide table), `results_long`,
 `column_map`, `label_lookup`, `loa_used`, `excluded_choices`,
-`dropped_groups`, `selection_counts`, `choice_combinations` and
-`exclusive_combinations`.
+`dropped_groups`, `selection_counts`, `choice_combinations`,
+`exclusive_combinations` and `full_sample_filled` (the variables whose
+blanks were counted under `full_sample_base`).
 
 ## Details
 

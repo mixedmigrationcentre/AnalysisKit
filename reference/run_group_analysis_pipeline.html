@@ -104,7 +104,9 @@ of columns. Differences from the Kobo/XLSForm version:</p>
 <span>  missing_group_label <span class="op">=</span> <span class="st">"Missing"</span>,</span>
 <span>  use_group_prefix <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  lonely_psu <span class="op">=</span> <span class="st">"adjust"</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  full_sample_base <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  full_sample_label <span class="op">=</span> <span class="st">"Not asked / no response"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -444,14 +446,33 @@ Default <code>"adjust"</code>; <code>NULL</code> leaves the option alone.</p></d
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. Default <code>TRUE</code>.</p></dd>
 
+
+<dt id="arg-full-sample-base">full_sample_base<a class="anchor" aria-label="anchor" href="#arg-full-sample-base"></a></dt>
+<dd><p>Logical. Count respondents with no answer - usually
+because skip logic never asked them - in the denominator, so proportions
+are out of the full sample (or the full group) rather than out of those
+who answered. A select_one blank is reported as its own row,
+<code>full_sample_label</code>, so the question adds to 100\<!-- %; a blank -->
+select_multiple counts as "not selected". Means, medians and ratios are
+unaffected, <code>exclude_choices</code> still removes respondents from the
+base, and a variable that is also a grouping variable is left as it is.
+See <code><a href="ck_full_sample_base.html">ck_full_sample_base</a></code>. Default <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-full-sample-label">full_sample_label<a class="anchor" aria-label="anchor" href="#arg-full-sample-label"></a></dt>
+<dd><p>Row label for select_one respondents with no answer
+when <code>full_sample_base = TRUE</code>. Default
+<code>"Not asked / no response"</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with <code>combined_results</code> (the wide table),
 <code>results_long</code>, <code>column_map</code>, <code>label_lookup</code>,
 <code>loa_used</code>, <code>excluded_choices</code>, <code>dropped_groups</code>,
-<code>selection_counts</code>, <code>choice_combinations</code> and
-<code>exclusive_combinations</code>.</p>
+<code>selection_counts</code>, <code>choice_combinations</code>,
+<code>exclusive_combinations</code> and <code>full_sample_filled</code> (the
+variables whose blanks were counted under <code>full_sample_base</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
