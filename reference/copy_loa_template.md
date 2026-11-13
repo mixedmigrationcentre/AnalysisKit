@@ -32,5 +32,5 @@ The path written, invisibly.
 
 ``` r
 copy_loa_template(tempdir())
-#> List of Analysis template written to /tmp/RtmpWjyyI3/loa_template.xlsx
+#> List of Analysis template written to /tmp/RtmpvF5xWT/loa_template.xlsx
 ```

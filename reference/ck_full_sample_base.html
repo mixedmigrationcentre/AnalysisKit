@@ -74,8 +74,8 @@ This puts those respondents back in the base:</p>
 
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
-<dd><p>Row label for select_one respondents with no answer. Default
-<code>"Not asked / no response"</code>.</p></dd>
+<dd><p>Row label for respondents with no answer, in select_one and
+select_multiple questions. Default <code>"Not asked / no response"</code>.</p></dd>
 
 
 <dt id="arg-sm-separator">sm_separator<a class="anchor" aria-label="anchor" href="#arg-sm-separator"></a></dt>
@@ -90,7 +90,7 @@ This puts those respondents back in the base:</p>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with <code>dataset</code>, <code>filled</code> (one row per variable:
 <code>analysis_var</code>, <code>analysis_type</code>, <code>n_filled</code>) and
-<code>select_one_vars</code> (the select_one variables that were filled).</p>
+<code>filled_vars</code> (the variables that were filled).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -103,7 +103,10 @@ the question's rows add up to the whole sample.</p></dd>
 <dt>select_multiple</dt>
 <dd><p>A blank child (the question was not asked) becomes
 <code>0</code> (not selected), so every choice is a share of the full
-sample.</p></dd>
+sample. A child column named <code>label</code> is added, 1 for respondents
+never asked and 0 for everyone else, so the not-asked share is its own
+row, last, in every column. The parent is filled with <code>label</code> too,
+because the survey engine reads who was asked from the parent.</p></dd>
 
 
 </dl><p>Means, medians and ratios are left alone: a blank number cannot be averaged

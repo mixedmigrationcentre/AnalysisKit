@@ -452,16 +452,19 @@ Default <code>"adjust"</code>; <code>NULL</code> leaves the option alone.</p></d
 because skip logic never asked them - in the denominator, so proportions
 are out of the full sample (or the full group) rather than out of those
 who answered. A select_one blank is reported as its own row,
-<code>full_sample_label</code>, so the question adds to 100\<!-- %; a blank -->
-select_multiple counts as "not selected". Means, medians and ratios are
+<code>full_sample_label</code>, so the question adds to 100\<!-- %; in a -->
+select_multiple a blank counts as "not selected" for every choice and the
+not-asked share gets a <code>full_sample_label</code> row of its own, last, in
+every column. Means, medians and ratios are
 unaffected, <code>exclude_choices</code> still removes respondents from the
 base, and a variable that is also a grouping variable is left as it is.
 See <code><a href="ck_full_sample_base.html">ck_full_sample_base</a></code>. Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-full-sample-label">full_sample_label<a class="anchor" aria-label="anchor" href="#arg-full-sample-label"></a></dt>
-<dd><p>Row label for select_one respondents with no answer
-when <code>full_sample_base = TRUE</code>. Default
+<dd><p>Row label for respondents with no answer, in
+select_one and select_multiple questions, when
+<code>full_sample_base = TRUE</code>. Default
 <code>"Not asked / no response"</code>.</p></dd>
 
 </dl></div>

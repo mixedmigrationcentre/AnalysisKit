@@ -396,17 +396,20 @@ run_group_analysis_pipeline(
   never asked them - in the denominator, so proportions are out of the
   full sample (or the full group) rather than out of those who answered.
   A select_one blank is reported as its own row, `full_sample_label`, so
-  the question adds to 100\\ select_multiple counts as "not selected".
-  Means, medians and ratios are unaffected, `exclude_choices` still
-  removes respondents from the base, and a variable that is also a
-  grouping variable is left as it is. See
+  the question adds to 100\\ select_multiple a blank counts as "not
+  selected" for every choice and the not-asked share gets a
+  `full_sample_label` row of its own, last, in every column. Means,
+  medians and ratios are unaffected, `exclude_choices` still removes
+  respondents from the base, and a variable that is also a grouping
+  variable is left as it is. See
   [`ck_full_sample_base`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_full_sample_base.md).
   Default `FALSE`.
 
 - full_sample_label:
 
-  Row label for select_one respondents with no answer when
-  `full_sample_base = TRUE`. Default `"Not asked / no response"`.
+  Row label for respondents with no answer, in select_one and
+  select_multiple questions, when `full_sample_base = TRUE`. Default
+  `"Not asked / no response"`.
 
 ## Value
 

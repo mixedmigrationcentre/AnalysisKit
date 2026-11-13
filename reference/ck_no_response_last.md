@@ -21,7 +21,7 @@ ck_no_response_last(results_long, vars, label)
 
 - vars:
 
-  The select_one variables that were filled.
+  The select_one and select_multiple variables that were filled.
 
 - label:
 

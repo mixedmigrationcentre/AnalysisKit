@@ -34,8 +34,8 @@ ck_full_sample_base(
 
 - label:
 
-  Row label for select_one respondents with no answer. Default
-  `"Not asked / no response"`.
+  Row label for respondents with no answer, in select_one and
+  select_multiple questions. Default `"Not asked / no response"`.
 
 - sm_separator:
 
@@ -48,8 +48,8 @@ ck_full_sample_base(
 ## Value
 
 A list with `dataset`, `filled` (one row per variable: `analysis_var`,
-`analysis_type`, `n_filled`) and `select_one_vars` (the select_one
-variables that were filled).
+`analysis_type`, `n_filled`) and `filled_vars` (the variables that were
+filled).
 
 ## Details
 
@@ -62,7 +62,11 @@ variables that were filled).
 - select_multiple:
 
   A blank child (the question was not asked) becomes `0` (not selected),
-  so every choice is a share of the full sample.
+  so every choice is a share of the full sample. A child column named
+  `label` is added, 1 for respondents never asked and 0 for everyone
+  else, so the not-asked share is its own row, last, in every column.
+  The parent is filled with `label` too, because the survey engine reads
+  who was asked from the parent.
 
 Means, medians and ratios are left alone: a blank number cannot be
 averaged without inventing a value for it.
