@@ -13,6 +13,8 @@ ak_export_results(
   folder,
   dataset_name,
   when = Sys.time(),
+  dataset = NULL,
+  include_dataset = spec$settings$include_dataset %||% FALSE,
   formatter = NULL,
   verbose = FALSE
 )
@@ -40,6 +42,17 @@ ak_export_results(
 - when:
 
   The run time.
+
+- dataset:
+
+  The data frame the analysis was run on. Written to a sheet of its own
+  when `include_dataset` is `TRUE`, and otherwise unused.
+
+- include_dataset:
+
+  Logical. Add the dataset to the workbook as a sheet named `dataset`.
+  Defaults to the List of Analysis's `settings/include_dataset`, and to
+  `FALSE` when that is not set.
 
 - formatter:
 

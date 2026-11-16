@@ -43,6 +43,8 @@ format_my_xlsx_variable_x_group(
   palette = NULL,
   font_name = "Arial Narrow",
   readme_text = NULL,
+  dataset_sheet = NULL,
+  dataset_sheet_name = "dataset",
   verbose = TRUE
 )
 ```
@@ -251,6 +253,16 @@ format_my_xlsx_variable_x_group(
 - readme_text:
 
   Optional character vector of extra readme lines.
+
+- dataset_sheet:
+
+  Optional data frame: the dataset behind the results. When given it is
+  written, as it is, to a sheet of its own after the result sheets.
+  `NULL` (the default) leaves it out.
+
+- dataset_sheet_name:
+
+  Name of that sheet. Made unique against the other sheet names.
 
 - verbose:
 

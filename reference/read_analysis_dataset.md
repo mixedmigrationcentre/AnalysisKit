@@ -26,7 +26,9 @@ read_analysis_dataset(path, loa = NULL)
 
   Optional. A List of Analysis path, or the list from
   [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
-  When given, only the columns it refers to are read.
+  When given, only the columns it refers to are read, unless its
+  `settings/include_dataset` is `TRUE`: the dataset then goes into the
+  results workbook, so every column is read.
 
 ## Value
 
@@ -76,11 +78,11 @@ utils::write.csv(
 
 dataset <- read_analysis_dataset(path)
 dataset_overview(dataset)
-#>          Measure                Value
-#> 1      File name file18b266f9e599.csv
-#> 2      File type                  CSV
-#> 3      File size             45 bytes
-#> 4           Rows                    3
-#> 5        Columns                    1
-#> 6 Duplicate rows                    0
+#>          Measure               Value
+#> 1      File name file1a071cf8fd1.csv
+#> 2      File type                 CSV
+#> 3      File size            45 bytes
+#> 4           Rows                   3
+#> 5        Columns                   1
+#> 6 Duplicate rows                   0
 ```
