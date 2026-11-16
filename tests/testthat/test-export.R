@@ -11,12 +11,15 @@ fake_results <- function(spec = NULL, extra = character(0)) {
     n_total_Overall = c(40, 40),
     stringsAsFactors = FALSE
   )
-  for (nm in extra) wide[[nm]] <- "Demographics"
+  for (nm in extra) {
+    wide[[nm]] <- "Demographics"
+  }
 
   list(
     combined_results = wide,
     column_map = data.frame(
-      column = "stat_Overall", group_variable = "Overall",
+      column = "stat_Overall",
+      group_variable = "Overall",
       stringsAsFactors = FALSE
     )
   )
@@ -89,7 +92,8 @@ test_that("export settings split the pipeline's value columns into stats and cou
   # cuts the blocks in the wrong place.
   pipeline_columns <- spec$settings$value_columns
   expect_setequal(
-    c(settings$value_columns, settings$total_columns), pipeline_columns
+    c(settings$value_columns, settings$total_columns),
+    pipeline_columns
   )
 })
 
@@ -107,16 +111,24 @@ test_that("confidence interval columns are treated as statistics, not counts", {
 
 test_that("a workbook asking only for counts is refused with a usable message", {
   sheets <- fixture_sheets()
-  sheets$settings$value[sheets$settings$setting == "value_columns"] <- "n,n_total"
+  sheets$settings$value[
+    sheets$settings$setting == "value_columns"
+  ] <- "n,n_total"
   spec <- build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
 
-  expect_error(ak_export_settings(fake_results(), spec), "no statistic to report")
+  expect_error(
+    ak_export_settings(fake_results(), spec),
+    "no statistic to report"
+  )
 })
 
 test_that("sheets are split by sector, and only when the table has one", {
   spec <- build_analysis_spec(fixture_workbook(), fixture_dataset())
 
-  expect_equal(ak_export_settings(fake_results(extra = "sector"), spec)$split_by, "sector")
+  expect_equal(
+    ak_export_settings(fake_results(extra = "sector"), spec)$split_by,
+    "sector"
+  )
   # Splitting on a column the table does not have aborts the whole export, so
   # the absence has to fall back rather than be assumed.
   expect_equal(ak_export_settings(fake_results(), spec)$split_by, "none")
@@ -159,7 +171,11 @@ test_that("a table with no row_type column is passed through untouched", {
 
 test_that("provenance records what produced the file", {
   spec <- build_analysis_spec(fixture_workbook(), fixture_dataset())
-  lines <- ak_provenance(spec, "4mi_round9.xlsx", as.POSIXct("2026-08-28 09:41:07", tz = "UTC"))
+  lines <- ak_provenance(
+    spec,
+    "4mi_round9.xlsx",
+    as.POSIXct("2026-08-28 09:41:07", tz = "UTC")
+  )
 
   expect_match(lines, "4mi_round9.xlsx", all = FALSE)
   expect_match(lines, "loa.xlsx", all = FALSE)
@@ -173,7 +189,10 @@ test_that("export refuses a bad folder before calling the formatter", {
 
   expect_error(
     ak_export_results(
-      fake_results(), spec, "/no/such/folder", "d.xlsx",
+      fake_results(),
+      spec,
+      "/no/such/folder",
+      "d.xlsx",
       formatter = function(...) called <<- TRUE
     ),
     "does not exist"
@@ -188,7 +207,10 @@ test_that("export hands the formatter a path in the chosen folder", {
 
   seen <- NULL
   path <- ak_export_results(
-    fake_results(extra = "sector"), spec, folder, "4mi_round9.xlsx",
+    fake_results(extra = "sector"),
+    spec,
+    folder,
+    "4mi_round9.xlsx",
     formatter = function(...) {
       seen <<- list(...)
       file.create(seen$file_path)
@@ -216,7 +238,10 @@ test_that("export fails loudly if the formatter writes nothing", {
 
   expect_error(
     ak_export_results(
-      fake_results(), spec, folder, "d.xlsx",
+      fake_results(),
+      spec,
+      folder,
+      "d.xlsx",
       formatter = function(...) invisible(NULL)
     ),
     "no file appeared"
@@ -257,4 +282,134 @@ test_that("a real run produces a real workbook", {
   expect_setequal(sheets, c("readme", "Demographics", "Drivers"))
 
   expect_equal(length(list.files(folder)), 1L)
+})
+
+
+# -----------------------------------------------------------------------------
+# include_dataset
+# -----------------------------------------------------------------------------
+
+spec_with_include_dataset <- function(value) {
+  sheets <- fixture_sheets()
+  sheets$settings <- rbind(
+    sheets$settings,
+    data.frame(setting = "include_dataset", value = value)
+  )
+  build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
+}
+
+capture_formatter_args <- function(spec, ...) {
+  folder <- tempfile()
+  dir.create(folder)
+  seen <- NULL
+  ak_export_results(
+    fake_results(),
+    spec,
+    folder,
+    "d.xlsx",
+    formatter = function(...) {
+      seen <<- list(...)
+      file.create(seen$file_path)
+    },
+    ...
+  )
+  seen
+}
+
+test_that("include_dataset is a typed setting that never reaches the pipeline", {
+  spec <- spec_with_include_dataset("TRUE")
+
+  expect_false(loa_has_errors(spec$problems))
+  expect_identical(spec$settings$include_dataset, TRUE)
+  expect_false(
+    "include_dataset" %in% names(analysis_spec_args(fixture_dataset(), spec))
+  )
+
+  bad <- spec_with_include_dataset("perhaps")
+  expect_true(loa_has_errors(bad$problems))
+  expect_match(bad$problems$message, "include_dataset", all = FALSE)
+})
+
+test_that("the dataset is left out of the workbook by default", {
+  spec <- build_analysis_spec(fixture_workbook(), fixture_dataset())
+  seen <- capture_formatter_args(spec, dataset = fixture_dataset())
+  expect_false("dataset_sheet" %in% names(seen))
+
+  spec_false <- spec_with_include_dataset("FALSE")
+  seen <- capture_formatter_args(spec_false, dataset = fixture_dataset())
+  expect_false("dataset_sheet" %in% names(seen))
+})
+
+test_that("include_dataset = TRUE hands the dataset to the formatter", {
+  spec <- spec_with_include_dataset("TRUE")
+  dataset <- fixture_dataset()
+
+  seen <- capture_formatter_args(spec, dataset = dataset)
+  expect_identical(seen$dataset_sheet, dataset)
+
+  # The argument overrides the workbook either way.
+  seen <- capture_formatter_args(
+    spec,
+    dataset = dataset,
+    include_dataset = FALSE
+  )
+  expect_false("dataset_sheet" %in% names(seen))
+})
+
+test_that("include_dataset = TRUE without a dataset is refused before writing", {
+  spec <- spec_with_include_dataset("TRUE")
+  folder <- tempfile()
+  dir.create(folder)
+  called <- FALSE
+
+  expect_error(
+    ak_export_results(
+      fake_results(),
+      spec,
+      folder,
+      "d.xlsx",
+      formatter = function(...) called <<- TRUE
+    ),
+    "no dataset was passed"
+  )
+  expect_false(called)
+})
+
+test_that("a real run with include_dataset writes the dataset sheet", {
+  skip_if_not_installed("openxlsx")
+  skip_if_not_installed("readxl")
+
+  folder <- tempfile()
+  dir.create(folder)
+
+  dataset <- fixture_dataset(n = 40)
+  sheets <- fixture_sheets()
+  sheets$settings <- rbind(
+    sheets$settings,
+    data.frame(setting = "include_dataset", value = "TRUE")
+  )
+  spec <- build_analysis_spec(fixture_workbook(sheets), dataset)
+  results <- suppressMessages(run_analysis_spec(dataset, spec, verbose = FALSE))
+
+  path <- suppressMessages(
+    ak_export_results(
+      results,
+      spec,
+      folder,
+      "4mi_round9.xlsx",
+      dataset = dataset
+    )
+  )
+
+  expect_setequal(
+    readxl::excel_sheets(path),
+    c("readme", "Demographics", "Drivers", "dataset")
+  )
+  # Written as it is: every row, label row included, under the original names.
+  written <- readxl::read_excel(path, "dataset", col_types = "text")
+  expect_equal(names(written), names(dataset))
+  expect_equal(nrow(written), nrow(dataset))
+
+  readme <- readxl::read_excel(path, "readme", col_names = FALSE)
+  expect_true(any(grepl("dataset", unlist(readme), fixed = TRUE)))
 })

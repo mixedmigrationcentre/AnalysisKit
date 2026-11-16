@@ -16,7 +16,6 @@
 # loaded: the ck_* validators are called only when they are on the search path.
 # =============================================================================
 
-
 # -----------------------------------------------------------------------------
 # 0. Small helpers
 # -----------------------------------------------------------------------------
@@ -46,7 +45,9 @@ loa_blank_rows <- function(df) {
     return(logical(0))
   }
   filled <- vapply(df, function(col) !is.na(loa_trim(col)), logical(nrow(df)))
-  if (is.null(dim(filled))) filled <- matrix(filled, nrow = nrow(df))
+  if (is.null(dim(filled))) {
+    filled <- matrix(filled, nrow = nrow(df))
+  }
   rowSums(filled) == 0L
 }
 
@@ -171,9 +172,13 @@ loa_has_errors <- function(problems) {
 #' @export
 loa_known_sheets <- function() {
   c(
-    "analysis", "group_analysis", "count_selections",
-    "count_combinations", "count_exclusive_combinations",
-    "exclude_choices", "settings"
+    "analysis",
+    "group_analysis",
+    "count_selections",
+    "count_combinations",
+    "count_exclusive_combinations",
+    "exclude_choices",
+    "settings"
   )
 }
 
@@ -210,7 +215,8 @@ loa_known_analysis_types <- function() {
 #' @keywords internal
 loa_derived_analysis_types <- function() {
   c(
-    "count_select_multiple", "combination_select_multiple",
+    "count_select_multiple",
+    "combination_select_multiple",
     "exclusive_combination_select_multiple"
   )
 }
@@ -230,7 +236,10 @@ loa_derived_analysis_types <- function() {
 loa_settings_schema <- function() {
   s <- function(setting, type, values = NA_character_, arg = setting) {
     data.frame(
-      setting = setting, arg = arg, type = type, values = values,
+      setting = setting,
+      arg = arg,
+      type = type,
+      values = values,
       stringsAsFactors = FALSE
     )
   }
@@ -301,8 +310,24 @@ loa_settings_schema <- function() {
     s("count_exclusive_combinations_heading", "chr"),
     s("count_exclusive_combinations_spacer", "lgl"),
     s("count_exclusive_combinations_title_suffix", "chr"),
-    s("max_exclusive_choices", "num")
+    s("max_exclusive_choices", "num"),
+
+    # results workbook - read by the exporter, never passed to the pipeline
+    s("include_dataset", "lgl")
   )
+}
+
+
+#' Settings That Belong to the Export, Not the Pipeline
+#'
+#' These keys are accepted in the `settings` sheet but are read by
+#' [ak_export_results()] rather than passed to `run_group_analysis_pipeline()`,
+#' which has no argument of that name.
+#'
+#' @return A character vector of setting names.
+#' @keywords internal
+loa_export_settings <- function() {
+  c("include_dataset")
 }
 
 
@@ -351,7 +376,9 @@ loa_default_selection_labels <- function() {
 #'   and `ignored_sheets`.
 #' @export
 read_loa_workbook <- function(path, filename = NULL) {
-  if (is.null(filename)) filename <- basename(path)
+  if (is.null(filename)) {
+    filename <- basename(path)
+  }
   extension <- tolower(tools::file_ext(filename))
 
   if (!extension %in% c("csv", "xlsx")) {
@@ -406,7 +433,9 @@ read_loa_workbook <- function(path, filename = NULL) {
     )
 
     # Excel leaves trailing blank rows behind constantly; they are not data.
-    if (nrow(df) > 0) df <- df[!loa_blank_rows(df), , drop = FALSE]
+    if (nrow(df) > 0) {
+      df <- df[!loa_blank_rows(df), , drop = FALSE]
+    }
     rownames(df) <- NULL
 
     sheets[[normalised[i]]] <- df
@@ -450,10 +479,15 @@ loa_parse_settings <- function(sheet) {
   }
 
   if (!all(c("setting", "value") %in% names(sheet))) {
-    add(NA, "error", paste0(
-      "The settings sheet must have 'setting' and 'value' columns. Found: ",
-      paste(names(sheet), collapse = ", "), "."
-    ))
+    add(
+      NA,
+      "error",
+      paste0(
+        "The settings sheet must have 'setting' and 'value' columns. Found: ",
+        paste(names(sheet), collapse = ", "),
+        "."
+      )
+    )
     out$problems <- do.call(rbind, problems)
     return(out)
   }
@@ -474,9 +508,15 @@ loa_parse_settings <- function(sheet) {
       next
     }
     if (anyDuplicated(key[seq_len(i)]) > 0 && k %in% key[seq_len(i - 1L)]) {
-      add(excel_row, "error", paste0(
-        "'", k, "' is set more than once. Keep one row per setting."
-      ))
+      add(
+        excel_row,
+        "error",
+        paste0(
+          "'",
+          k,
+          "' is set more than once. Keep one row per setting."
+        )
+      )
       next
     }
 
@@ -486,18 +526,30 @@ loa_parse_settings <- function(sheet) {
         startsWith(schema$setting, substr(k, 1, 6)) |
           startsWith(k, substr(schema$setting, 1, 6))
       ]
-      add(excel_row, "error", paste0(
-        "'", k, "' is not a recognised setting.",
-        if (length(near) > 0) {
-          paste0(" Did you mean: ", paste(utils::head(near, 4), collapse = ", "), "?")
-        } else {
-          " See docs/loa-schema.md for the full list."
-        }
-      ))
+      add(
+        excel_row,
+        "error",
+        paste0(
+          "'",
+          k,
+          "' is not a recognised setting.",
+          if (length(near) > 0) {
+            paste0(
+              " Did you mean: ",
+              paste(utils::head(near, 4), collapse = ", "),
+              "?"
+            )
+          } else {
+            " See docs/loa-schema.md for the full list."
+          }
+        )
+      )
       next
     }
 
-    if (is.na(value[i])) next # blank means "use the pipeline default"
+    if (is.na(value[i])) {
+      next
+    } # blank means "use the pipeline default"
 
     type <- schema$type[hit]
     arg <- schema$arg[hit]
@@ -528,17 +580,32 @@ loa_parse_settings <- function(sheet) {
     )
 
     if (isTRUE(bad)) {
-      add(excel_row, "error", switch(
-        type,
-        lgl = paste0("'", k, "' must be TRUE or FALSE. Found '", v, "'."),
-        num = paste0("'", k, "' must be a number. Found '", v, "'."),
-        enum = paste0(
-          "'", k, "' must be one of ",
-          paste(strsplit(schema$values[hit], ",", fixed = TRUE)[[1]], collapse = ", "),
-          ". Found '", v, "'."
-        ),
-        `chr[]` = paste0("'", k, "' is a comma-separated list and cannot be empty.")
-      ))
+      add(
+        excel_row,
+        "error",
+        switch(
+          type,
+          lgl = paste0("'", k, "' must be TRUE or FALSE. Found '", v, "'."),
+          num = paste0("'", k, "' must be a number. Found '", v, "'."),
+          enum = paste0(
+            "'",
+            k,
+            "' must be one of ",
+            paste(
+              strsplit(schema$values[hit], ",", fixed = TRUE)[[1]],
+              collapse = ", "
+            ),
+            ". Found '",
+            v,
+            "'."
+          ),
+          `chr[]` = paste0(
+            "'",
+            k,
+            "' is a comma-separated list and cannot be empty."
+          )
+        )
+      )
       next
     }
 
@@ -560,7 +627,11 @@ loa_parse_settings <- function(sheet) {
   }
 
   out$settings <- parsed
-  out$problems <- if (length(problems) > 0) do.call(rbind, problems) else loa_no_problems()
+  out$problems <- if (length(problems) > 0) {
+    do.call(rbind, problems)
+  } else {
+    loa_no_problems()
+  }
   out
 }
 
@@ -580,8 +651,12 @@ loa_parse_settings <- function(sheet) {
 #' @keywords internal
 loa_rename_map <- function(sheet, dataset = NULL, sm_separator = "/") {
   empty <- stats::setNames(character(0), character(0))
-  if (is.null(sheet) || nrow(sheet) == 0) return(empty)
-  if (!all(c("raw_data_name", "new_name") %in% names(sheet))) return(empty)
+  if (is.null(sheet) || nrow(sheet) == 0) {
+    return(empty)
+  }
+  if (!all(c("raw_data_name", "new_name") %in% names(sheet))) {
+    return(empty)
+  }
 
   raw <- loa_trim(sheet$raw_data_name)
   new <- loa_trim(sheet$new_name)
@@ -597,7 +672,9 @@ loa_rename_map <- function(sheet, dataset = NULL, sm_separator = "/") {
   }
 
   keep <- keep & !duplicated(raw) & !duplicated(new)
-  if (!any(keep)) return(empty)
+  if (!any(keep)) {
+    return(empty)
+  }
 
   stats::setNames(new[keep], raw[keep])
 }
@@ -620,7 +697,9 @@ loa_var_present <- function(vars, dataset, sm_separator = "/") {
   vapply(
     vars,
     function(v) {
-      if (is.na(v)) return(FALSE)
+      if (is.na(v)) {
+        return(FALSE)
+      }
       v %in% nms || any(startsWith(nms, paste0(v, sm_separator)))
     },
     logical(1),
@@ -663,7 +742,8 @@ apply_rename_map <- function(dataset, map, sm_separator = "/") {
     child <- startsWith(old_names, prefix)
     if (any(child)) {
       new_names[child] <- paste0(
-        new, sm_separator,
+        new,
+        sm_separator,
         substr(old_names[child], nchar(prefix) + 1L, nchar(old_names[child]))
       )
     }
@@ -680,7 +760,9 @@ apply_rename_map <- function(dataset, map, sm_separator = "/") {
 #' @return `x` with mapped names replaced.
 #' @keywords internal
 loa_rename_values <- function(x, map) {
-  if (length(map) == 0 || length(x) == 0) return(x)
+  if (length(map) == 0 || length(x) == 0) {
+    return(x)
+  }
   hit <- match(as.character(x), names(map))
   ifelse(is.na(hit), as.character(x), unname(map[hit]))
 }
@@ -737,14 +819,18 @@ loa_column_owner <- function(column, group_variables) {
 #'   variable.
 #' @return A data frame with `group_variable`, `column` and `attributed_to`.
 #' @keywords internal
-loa_group_tag_clashes <- function(group_variables,
-                                  dataset = NULL,
-                                  raw_names = NULL,
-                                  missing_group_label = "Missing") {
+loa_group_tag_clashes <- function(
+  group_variables,
+  dataset = NULL,
+  raw_names = NULL,
+  missing_group_label = "Missing"
+) {
   found <- list()
   note <- function(g, other, example) {
     found[[length(found) + 1]] <<- data.frame(
-      group_variable = g, clashes_with = other, example = example,
+      group_variable = g,
+      clashes_with = other,
+      example = example,
       stringsAsFactors = FALSE
     )
   }
@@ -778,11 +864,15 @@ loa_group_tag_clashes <- function(group_variables,
       } else {
         g
       }
-      if (!source_col %in% names(dataset)) next
+      if (!source_col %in% names(dataset)) {
+        next
+      }
 
       values <- loa_trim(dataset[[source_col]])
       levels_g <- unique(values[!is.na(values)])
-      if (anyNA(values)) levels_g <- c(levels_g, missing_group_label)
+      if (anyNA(values)) {
+        levels_g <- c(levels_g, missing_group_label)
+      }
 
       for (lv in levels_g) {
         column <- paste0("stat_", g, "_", lv)
@@ -796,8 +886,10 @@ loa_group_tag_clashes <- function(group_variables,
 
   if (length(found) == 0) {
     return(data.frame(
-      group_variable = character(0), clashes_with = character(0),
-      example = character(0), stringsAsFactors = FALSE
+      group_variable = character(0),
+      clashes_with = character(0),
+      example = character(0),
+      stringsAsFactors = FALSE
     ))
   }
 
@@ -833,24 +925,36 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
   sheets <- wb$sheets
 
   empty <- data.frame(
-    variable = character(0), role = character(0), sheet = character(0),
-    row = integer(0), present = logical(0), stringsAsFactors = FALSE
+    variable = character(0),
+    role = character(0),
+    sheet = character(0),
+    row = integer(0),
+    present = logical(0),
+    stringsAsFactors = FALSE
   )
   if (is.null(dataset) || ncol(dataset) == 0) {
     return(empty)
   }
 
   if (is.null(sm_separator)) {
-    sm_separator <- loa_parse_settings(sheets$settings)$settings$sm_separator %||% "/"
+    sm_separator <- loa_parse_settings(
+      sheets$settings
+    )$settings$sm_separator %||%
+      "/"
   }
 
   refs <- list()
   ref <- function(variable, role, sheet, row) {
     keep <- !is.na(variable)
-    if (!any(keep)) return(invisible(NULL))
+    if (!any(keep)) {
+      return(invisible(NULL))
+    }
     refs[[length(refs) + 1]] <<- data.frame(
-      variable = variable[keep], role = role, sheet = sheet,
-      row = as.integer(row)[keep], stringsAsFactors = FALSE
+      variable = variable[keep],
+      role = role,
+      sheet = sheet,
+      row = as.integer(row)[keep],
+      stringsAsFactors = FALSE
     )
   }
 
@@ -887,7 +991,11 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
   # --- group_analysis --------------------------------------------------------
   ga <- sheets$group_analysis
   if (!is.null(ga) && nrow(ga) > 0 && "raw_data_name" %in% names(ga)) {
-    inc <- if ("include" %in% names(ga)) loa_as_logical(ga$include) else rep(TRUE, nrow(ga))
+    inc <- if ("include" %in% names(ga)) {
+      loa_as_logical(ga$include)
+    } else {
+      rep(TRUE, nrow(ga))
+    }
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(ga$raw_data_name)
     v[!inc] <- NA_character_
@@ -897,7 +1005,11 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
   # --- count_selections ------------------------------------------------------
   cs <- sheets$count_selections
   if (!is.null(cs) && nrow(cs) > 0 && "analysis_var" %in% names(cs)) {
-    inc <- if ("include" %in% names(cs)) loa_as_logical(cs$include) else rep(TRUE, nrow(cs))
+    inc <- if ("include" %in% names(cs)) {
+      loa_as_logical(cs$include)
+    } else {
+      rep(TRUE, nrow(cs))
+    }
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(cs$analysis_var)
     v[!inc] <- NA_character_
@@ -907,7 +1019,11 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
   # --- count_combinations ----------------------------------------------------
   cc <- sheets$count_combinations
   if (!is.null(cc) && nrow(cc) > 0 && "analysis_var" %in% names(cc)) {
-    inc <- if ("include" %in% names(cc)) loa_as_logical(cc$include) else rep(TRUE, nrow(cc))
+    inc <- if ("include" %in% names(cc)) {
+      loa_as_logical(cc$include)
+    } else {
+      rep(TRUE, nrow(cc))
+    }
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(cc$analysis_var)
     v[!inc] <- NA_character_
@@ -916,11 +1032,20 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
 
   xc <- sheets$count_exclusive_combinations
   if (!is.null(xc) && nrow(xc) > 0 && "analysis_var" %in% names(xc)) {
-    inc <- if ("include" %in% names(xc)) loa_as_logical(xc$include) else rep(TRUE, nrow(xc))
+    inc <- if ("include" %in% names(xc)) {
+      loa_as_logical(xc$include)
+    } else {
+      rep(TRUE, nrow(xc))
+    }
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(xc$analysis_var)
     v[!inc] <- NA_character_
-    ref(v, "count_exclusive_combinations", "count_exclusive_combinations", seq_len(nrow(xc)) + 1L)
+    ref(
+      v,
+      "count_exclusive_combinations",
+      "count_exclusive_combinations",
+      seq_len(nrow(xc)) + 1L
+    )
   }
 
   # --- settings --------------------------------------------------------------
@@ -955,10 +1080,14 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
 #' @export
 loa_coverage_severity <- function(role) {
   ifelse(
-    role %in% c(
-      "count_selections", "count_combinations", "count_exclusive_combinations"
-    ),
-    "error", "warning"
+    role %in%
+      c(
+        "count_selections",
+        "count_combinations",
+        "count_exclusive_combinations"
+      ),
+    "error",
+    "warning"
   )
 }
 
@@ -980,8 +1109,7 @@ loa_coverage_problems <- function(coverage) {
     group_var = "this disaggregation will not appear in the output",
     count_selections = "the run will stop when it reaches the selection counts",
     count_combinations = "the run will stop when it reaches the choice combinations",
-    count_exclusive_combinations =
-      "the run will stop when it reaches the exclusive choice combinations",
+    count_exclusive_combinations = "the run will stop when it reaches the exclusive choice combinations",
     weight_column = "the analysis will run unweighted",
     strata_column = "the analysis will run without strata"
   )
@@ -995,13 +1123,18 @@ loa_coverage_problems <- function(coverage) {
       missing$row,
       loa_coverage_severity(missing$role),
       paste0(
-        "'", missing$variable, "' is not a column of the dataset",
-        " (referenced as ", missing$role, "), so ",
+        "'",
+        missing$variable,
+        "' is not a column of the dataset",
+        " (referenced as ",
+        missing$role,
+        "), so ",
         ifelse(
           missing$role %in% names(consequence),
           consequence[missing$role],
           "it cannot be used"
-        ), "."
+        ),
+        "."
       )
     )
   }
@@ -1009,14 +1142,19 @@ loa_coverage_problems <- function(coverage) {
   # Nothing left to analyse is a different failure from a few skipped rows:
   # ck_stack_loa() stops outright, so say so before the run rather than during.
   analysable <- coverage[
-    coverage$role %in% c("analysis_var", "ratio_numerator", "ratio_denominator"), ,
+    coverage$role %in%
+      c("analysis_var", "ratio_numerator", "ratio_denominator"),
+    ,
     drop = FALSE
   ]
   if (nrow(analysable) > 0 && !any(analysable$present)) {
     found[[length(found) + 1]] <- loa_problem(
-      "analysis", NA, "error",
+      "analysis",
+      NA,
+      "error",
       paste0(
-        "None of the ", length(unique(analysable$variable)),
+        "None of the ",
+        length(unique(analysable$variable)),
         " variable(s) requested in the analysis sheet are in this dataset. ",
         "Check that the List of Analysis and the dataset belong to the same ",
         "round: the column names look unrelated."
@@ -1039,25 +1177,35 @@ loa_coverage_problems <- function(coverage) {
 loa_coverage_summary <- function(coverage) {
   if (nrow(coverage) == 0) {
     return(data.frame(
-      Variable = character(0), `Used as` = character(0),
-      References = integer(0), Status = character(0),
-      check.names = FALSE, stringsAsFactors = FALSE
+      Variable = character(0),
+      `Used as` = character(0),
+      References = integer(0),
+      Status = character(0),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
     ))
   }
 
   variables <- unique(coverage$variable)
   roles <- vapply(
     variables,
-    function(v) paste(unique(coverage$role[coverage$variable == v]), collapse = ", "),
+    function(v) {
+      paste(unique(coverage$role[coverage$variable == v]), collapse = ", ")
+    },
     character(1),
     USE.NAMES = FALSE
   )
   n_refs <- vapply(
-    variables, function(v) sum(coverage$variable == v), integer(1), USE.NAMES = FALSE
+    variables,
+    function(v) sum(coverage$variable == v),
+    integer(1),
+    USE.NAMES = FALSE
   )
   present <- vapply(
-    variables, function(v) all(coverage$present[coverage$variable == v]),
-    logical(1), USE.NAMES = FALSE
+    variables,
+    function(v) all(coverage$present[coverage$variable == v]),
+    logical(1),
+    USE.NAMES = FALSE
   )
 
   out <- data.frame(
@@ -1137,25 +1285,42 @@ validate_loa <- function(workbook, dataset = NULL) {
 
   # --- 0. Workbook level -----------------------------------------------------
   for (nm in wb$unknown_sheets %||% character(0)) {
-    problem("workbook", NA, "error", paste0(
-      "Sheet '", nm, "' is not part of the List of Analysis schema. ",
-      "Expected one of: ", paste(loa_known_sheets(), collapse = ", "),
-      ". Rename it to 'notes', or prefix it with '_', to have it ignored."
-    ))
+    problem(
+      "workbook",
+      NA,
+      "error",
+      paste0(
+        "Sheet '",
+        nm,
+        "' is not part of the List of Analysis schema. ",
+        "Expected one of: ",
+        paste(loa_known_sheets(), collapse = ", "),
+        ". Rename it to 'notes', or prefix it with '_', to have it ignored."
+      )
+    )
   }
 
   if (identical(wb$format, "CSV")) {
-    problem("workbook", NA, "warning", paste0(
-      "A CSV List of Analysis carries no sheets, so only the analysis table ",
-      "was read. Grouping variables, selection counts, choice combinations, ",
-      "excluded choices and settings all fall back to their defaults. ",
-      "Upload an XLSX workbook to configure them."
-    ))
+    problem(
+      "workbook",
+      NA,
+      "warning",
+      paste0(
+        "A CSV List of Analysis carries no sheets, so only the analysis table ",
+        "was read. Grouping variables, selection counts, choice combinations, ",
+        "excluded choices and settings all fall back to their defaults. ",
+        "Upload an XLSX workbook to configure them."
+      )
+    )
   }
 
   if (is.null(sheets$analysis)) {
-    problem("workbook", NA, "error",
-            "The List of Analysis must contain an 'analysis' sheet.")
+    problem(
+      "workbook",
+      NA,
+      "error",
+      "The List of Analysis must contain an 'analysis' sheet."
+    )
     return(loa_collect(found))
   }
 
@@ -1180,10 +1345,16 @@ validate_loa <- function(workbook, dataset = NULL) {
   absent <- setdiff(required, names(analysis))
 
   if (length(absent) > 0) {
-    problem("analysis", NA, "error", paste0(
-      "The analysis sheet is missing required column(s): ",
-      paste(absent, collapse = ", "), "."
-    ))
+    problem(
+      "analysis",
+      NA,
+      "error",
+      paste0(
+        "The analysis sheet is missing required column(s): ",
+        paste(absent, collapse = ", "),
+        "."
+      )
+    )
   } else {
     a_type <- tolower(loa_trim(analysis$analysis_type))
     a_var <- loa_trim(analysis$analysis_var)
@@ -1197,25 +1368,41 @@ validate_loa <- function(workbook, dataset = NULL) {
       }
 
       if (a_type[i] %in% loa_derived_analysis_types()) {
-        problem("analysis", excel_row, "error", paste0(
-          "'", a_type[i], "' is produced by the pipeline, not requested here. ",
-          "Use the ",
-          switch(
+        problem(
+          "analysis",
+          excel_row,
+          "error",
+          paste0(
+            "'",
             a_type[i],
-            count_select_multiple = "count_selections",
-            combination_select_multiple = "count_combinations",
-            exclusive_combination_select_multiple = "count_exclusive_combinations"
-          ),
-          " sheet instead."
-        ))
+            "' is produced by the pipeline, not requested here. ",
+            "Use the ",
+            switch(
+              a_type[i],
+              count_select_multiple = "count_selections",
+              combination_select_multiple = "count_combinations",
+              exclusive_combination_select_multiple = "count_exclusive_combinations"
+            ),
+            " sheet instead."
+          )
+        )
         next
       }
 
       if (!a_type[i] %in% loa_known_analysis_types()) {
-        problem("analysis", excel_row, "error", paste0(
-          "'", analysis$analysis_type[i], "' is not a supported analysis_type. ",
-          "Allowed: ", paste(loa_known_analysis_types(), collapse = ", "), "."
-        ))
+        problem(
+          "analysis",
+          excel_row,
+          "error",
+          paste0(
+            "'",
+            analysis$analysis_type[i],
+            "' is not a supported analysis_type. ",
+            "Allowed: ",
+            paste(loa_known_analysis_types(), collapse = ", "),
+            "."
+          )
+        )
         next
       }
 
@@ -1227,26 +1414,41 @@ validate_loa <- function(workbook, dataset = NULL) {
       ratio_cols <- c("analysis_var_numerator", "analysis_var_denominator")
       filled <- vapply(
         ratio_cols,
-        function(cc) cc %in% names(analysis) && !is.na(loa_trim(analysis[[cc]][i])),
+        function(cc) {
+          cc %in% names(analysis) && !is.na(loa_trim(analysis[[cc]][i]))
+        },
         logical(1)
       )
 
       if (a_type[i] == "ratio") {
         if (!all(filled)) {
-          problem("analysis", excel_row, "error", paste0(
-            "A ratio needs both ", paste(ratio_cols[!filled], collapse = " and "), "."
-          ))
+          problem(
+            "analysis",
+            excel_row,
+            "error",
+            paste0(
+              "A ratio needs both ",
+              paste(ratio_cols[!filled], collapse = " and "),
+              "."
+            )
+          )
         }
 
         # Not merely redundant: ck_stack_loa() drops any row whose analysis_var
         # is the grouping variable, so a leftover code here can make the ratio
         # vanish from one disaggregation block and no other.
         if (!is.na(a_var[i])) {
-          problem("analysis", excel_row, "warning", paste0(
-            "A ratio does not use analysis_var, but this row has '", a_var[i],
-            "' in it. Clear the cell: if that variable is also a ",
-            "disaggregation, the ratio will be missing from its column block."
-          ))
+          problem(
+            "analysis",
+            excel_row,
+            "warning",
+            paste0(
+              "A ratio does not use analysis_var, but this row has '",
+              a_var[i],
+              "' in it. Clear the cell: if that variable is also a ",
+              "disaggregation, the ratio will be missing from its column block."
+            )
+          )
         }
       } else {
         if (is.na(a_var[i])) {
@@ -1257,13 +1459,25 @@ validate_loa <- function(workbook, dataset = NULL) {
         # which is usually a half-finished edit: the author meant a ratio and
         # left analysis_type behind.
         if (any(filled)) {
-          problem("analysis", excel_row, "warning", paste0(
-            "Only a ratio uses ", paste(ratio_cols[filled], collapse = " and "),
-            ", so the value", if (sum(filled) > 1) "s" else "", " here ",
-            if (sum(filled) > 1) "are" else "is", " ignored on this ",
-            a_type[i], " row. Set analysis_type to ratio if that was the ",
-            "intention, or clear the cell", if (sum(filled) > 1) "s" else "", "."
-          ))
+          problem(
+            "analysis",
+            excel_row,
+            "warning",
+            paste0(
+              "Only a ratio uses ",
+              paste(ratio_cols[filled], collapse = " and "),
+              ", so the value",
+              if (sum(filled) > 1) "s" else "",
+              " here ",
+              if (sum(filled) > 1) "are" else "is",
+              " ignored on this ",
+              a_type[i],
+              " row. Set analysis_type to ratio if that was the ",
+              "intention, or clear the cell",
+              if (sum(filled) > 1) "s" else "",
+              "."
+            )
+          )
         }
       }
     }
@@ -1275,12 +1489,25 @@ validate_loa <- function(workbook, dataset = NULL) {
       } else {
         rep(NA_character_, nrow(analysis))
       }
-      dup <- duplicated(data.frame(a_type, a_var, grp, stringsAsFactors = FALSE))
+      dup <- duplicated(data.frame(
+        a_type,
+        a_var,
+        grp,
+        stringsAsFactors = FALSE
+      ))
       for (i in which(dup)) {
-        problem("analysis", i + 1L, "warning", paste0(
-          "This analysis repeats an earlier row (", a_type[i], " of ", a_var[i],
-          "). Only the first will appear in the output."
-        ))
+        problem(
+          "analysis",
+          i + 1L,
+          "warning",
+          paste0(
+            "This analysis repeats an earlier row (",
+            a_type[i],
+            " of ",
+            a_var[i],
+            "). Only the first will appear in the output."
+          )
+        )
       }
     }
   }
@@ -1294,10 +1521,16 @@ validate_loa <- function(workbook, dataset = NULL) {
     absent <- setdiff(required, names(ga))
 
     if (length(absent) > 0) {
-      problem("group_analysis", NA, "error", paste0(
-        "The group_analysis sheet is missing required column(s): ",
-        paste(absent, collapse = ", "), "."
-      ))
+      problem(
+        "group_analysis",
+        NA,
+        "error",
+        paste0(
+          "The group_analysis sheet is missing required column(s): ",
+          paste(absent, collapse = ", "),
+          "."
+        )
+      )
     } else {
       raw <- loa_trim(ga$raw_data_name)
       new <- loa_trim(ga$new_name)
@@ -1307,9 +1540,16 @@ validate_loa <- function(workbook, dataset = NULL) {
         # A blank include means "yes"; anything unrecognised is reported rather
         # than guessed, since guessing wrong silently drops a disaggregation.
         for (i in which(!is.na(loa_trim(ga$include)) & is.na(inc))) {
-          problem("group_analysis", i + 1L, "error", paste0(
-            "include must be TRUE or FALSE. Found '", ga$include[i], "'."
-          ))
+          problem(
+            "group_analysis",
+            i + 1L,
+            "error",
+            paste0(
+              "include must be TRUE or FALSE. Found '",
+              ga$include[i],
+              "'."
+            )
+          )
         }
         inc[is.na(inc)] <- TRUE
       } else {
@@ -1318,29 +1558,54 @@ validate_loa <- function(workbook, dataset = NULL) {
 
       for (i in seq_len(nrow(ga))) {
         excel_row <- i + 1L
-        if (!inc[i]) next
+        if (!inc[i]) {
+          next
+        }
 
         if (is.na(raw[i]) || is.na(new[i])) {
-          problem("group_analysis", excel_row, "error",
-                  "Both raw_data_name and new_name are required.")
+          problem(
+            "group_analysis",
+            excel_row,
+            "error",
+            "Both raw_data_name and new_name are required."
+          )
           next
         }
         if (tolower(new[i]) == "overall") {
-          problem("group_analysis", excel_row, "error", paste0(
-            "'Overall' is added automatically and must not be listed here."
-          ))
+          problem(
+            "group_analysis",
+            excel_row,
+            "error",
+            paste0(
+              "'Overall' is added automatically and must not be listed here."
+            )
+          )
           next
         }
         if (i > 1 && raw[i] %in% raw[seq_len(i - 1L)][inc[seq_len(i - 1L)]]) {
-          problem("group_analysis", excel_row, "error", paste0(
-            "'", raw[i], "' is renamed more than once."
-          ))
+          problem(
+            "group_analysis",
+            excel_row,
+            "error",
+            paste0(
+              "'",
+              raw[i],
+              "' is renamed more than once."
+            )
+          )
           next
         }
         if (i > 1 && new[i] %in% new[seq_len(i - 1L)][inc[seq_len(i - 1L)]]) {
-          problem("group_analysis", excel_row, "error", paste0(
-            "Two rows both rename to '", new[i], "'. Output names must be distinct."
-          ))
+          problem(
+            "group_analysis",
+            excel_row,
+            "error",
+            paste0(
+              "Two rows both rename to '",
+              new[i],
+              "'. Output names must be distinct."
+            )
+          )
           next
         }
 
@@ -1349,10 +1614,19 @@ validate_loa <- function(workbook, dataset = NULL) {
           # "is this variable in the dataset" question, so the answer is
           # reported once and in one voice.
           if (new[i] %in% names(dataset) && new[i] != raw[i]) {
-            problem("group_analysis", excel_row, "error", paste0(
-              "'", new[i], "' is already a column of the dataset. Renaming ",
-              "'", raw[i], "' to it would produce two columns with one name."
-            ))
+            problem(
+              "group_analysis",
+              excel_row,
+              "error",
+              paste0(
+                "'",
+                new[i],
+                "' is already a column of the dataset. Renaming ",
+                "'",
+                raw[i],
+                "' to it would produce two columns with one name."
+              )
+            )
             next
           }
         }
@@ -1369,15 +1643,25 @@ validate_loa <- function(workbook, dataset = NULL) {
 
       for (g in unique(clashes$group_variable)) {
         hit <- clashes[clashes$group_variable == g, , drop = FALSE]
-        problem("group_analysis", NA, "error", paste0(
-          "Output columns for '", g, "' would be attributed to '",
-          hit$clashes_with[1], "' instead (e.g. ", hit$example[1], "). ",
-          "The wide table names its columns stat_<group>_<value>, and the ",
-          "column map decides which disaggregation a column belongs to by ",
-          "matching '_<group>_', first match wins. The table itself stays ",
-          "correct; the map that labels it does not. Rename one of them so ",
-          "that neither name contains the other."
-        ))
+        problem(
+          "group_analysis",
+          NA,
+          "error",
+          paste0(
+            "Output columns for '",
+            g,
+            "' would be attributed to '",
+            hit$clashes_with[1],
+            "' instead (e.g. ",
+            hit$example[1],
+            "). ",
+            "The wide table names its columns stat_<group>_<value>, and the ",
+            "column map decides which disaggregation a column belongs to by ",
+            "matching '_<group>_', first match wins. The table itself stays ",
+            "correct; the map that labels it does not. Rename one of them so ",
+            "that neither name contains the other."
+          )
+        )
       }
     }
   }
@@ -1388,21 +1672,40 @@ validate_loa <- function(workbook, dataset = NULL) {
 
   if (!is.null(cs) && nrow(cs) > 0) {
     if (!"analysis_var" %in% names(cs)) {
-      problem("count_selections", NA, "error",
-              "The count_selections sheet must have an 'analysis_var' column.")
+      problem(
+        "count_selections",
+        NA,
+        "error",
+        "The count_selections sheet must have an 'analysis_var' column."
+      )
     } else {
       v <- loa_trim(cs$analysis_var)
-      inc <- if ("include" %in% names(cs)) loa_as_logical(cs$include) else rep(TRUE, nrow(cs))
+      inc <- if ("include" %in% names(cs)) {
+        loa_as_logical(cs$include)
+      } else {
+        rep(TRUE, nrow(cs))
+      }
       inc[is.na(inc)] <- TRUE
 
       for (i in seq_len(nrow(cs))) {
-        if (!inc[i]) next
+        if (!inc[i]) {
+          next
+        }
         if (is.na(v[i])) {
           problem("count_selections", i + 1L, "error", "analysis_var is empty.")
-        } else if (i > 1 && v[i] %in% v[seq_len(i - 1L)][inc[seq_len(i - 1L)]]) {
-          problem("count_selections", i + 1L, "warning", paste0(
-            "'", v[i], "' is listed more than once; the duplicate is ignored."
-          ))
+        } else if (
+          i > 1 && v[i] %in% v[seq_len(i - 1L)][inc[seq_len(i - 1L)]]
+        ) {
+          problem(
+            "count_selections",
+            i + 1L,
+            "warning",
+            paste0(
+              "'",
+              v[i],
+              "' is listed more than once; the duplicate is ignored."
+            )
+          )
         }
       }
 
@@ -1419,20 +1722,36 @@ validate_loa <- function(workbook, dataset = NULL) {
     absent <- setdiff(required, names(cc))
 
     if (length(absent) > 0) {
-      problem("count_combinations", NA, "error", paste0(
-        "The count_combinations sheet is missing required column(s): ",
-        paste(absent, collapse = ", "), "."
-      ))
+      problem(
+        "count_combinations",
+        NA,
+        "error",
+        paste0(
+          "The count_combinations sheet is missing required column(s): ",
+          paste(absent, collapse = ", "),
+          "."
+        )
+      )
     } else {
       v <- loa_trim(cc$analysis_var)
       label <- loa_trim(cc$choice_label)
 
       for (i in seq_len(nrow(cc))) {
         if (is.na(v[i])) {
-          problem("count_combinations", i + 1L, "error", "analysis_var is empty.")
+          problem(
+            "count_combinations",
+            i + 1L,
+            "error",
+            "analysis_var is empty."
+          )
         }
         if (is.na(label[i])) {
-          problem("count_combinations", i + 1L, "error", "choice_label is empty.")
+          problem(
+            "count_combinations",
+            i + 1L,
+            "error",
+            "choice_label is empty."
+          )
         }
       }
 
@@ -1451,20 +1770,36 @@ validate_loa <- function(workbook, dataset = NULL) {
     absent <- setdiff(required, names(xc))
 
     if (length(absent) > 0) {
-      problem("count_exclusive_combinations", NA, "error", paste0(
-        "The count_exclusive_combinations sheet is missing required column(s): ",
-        paste(absent, collapse = ", "), "."
-      ))
+      problem(
+        "count_exclusive_combinations",
+        NA,
+        "error",
+        paste0(
+          "The count_exclusive_combinations sheet is missing required column(s): ",
+          paste(absent, collapse = ", "),
+          "."
+        )
+      )
     } else {
       v <- loa_trim(xc$analysis_var)
       label <- loa_trim(xc$choice_label)
 
       for (i in seq_len(nrow(xc))) {
         if (is.na(v[i])) {
-          problem("count_exclusive_combinations", i + 1L, "error", "analysis_var is empty.")
+          problem(
+            "count_exclusive_combinations",
+            i + 1L,
+            "error",
+            "analysis_var is empty."
+          )
         }
         if (is.na(label[i])) {
-          problem("count_exclusive_combinations", i + 1L, "error", "choice_label is empty.")
+          problem(
+            "count_exclusive_combinations",
+            i + 1L,
+            "error",
+            "choice_label is empty."
+          )
         }
       }
 
@@ -1477,11 +1812,19 @@ validate_loa <- function(workbook, dataset = NULL) {
 
   if (!is.null(ec) && nrow(ec) > 0) {
     if (!"choice_label" %in% names(ec)) {
-      problem("exclude_choices", NA, "error",
-              "The exclude_choices sheet must have a 'choice_label' column.")
+      problem(
+        "exclude_choices",
+        NA,
+        "error",
+        "The exclude_choices sheet must have a 'choice_label' column."
+      )
     } else {
       v <- loa_trim(ec$choice_label)
-      inc <- if ("include" %in% names(ec)) loa_as_logical(ec$include) else rep(TRUE, nrow(ec))
+      inc <- if ("include" %in% names(ec)) {
+        loa_as_logical(ec$include)
+      } else {
+        rep(TRUE, nrow(ec))
+      }
       inc[is.na(inc)] <- TRUE
 
       for (i in seq_len(nrow(ec))) {
@@ -1519,7 +1862,9 @@ validate_loa <- function(workbook, dataset = NULL) {
       } else {
         count_exclusive_combinations
       }
-      if (length(combinations) == 0) next
+      if (length(combinations) == 0) {
+        next
+      }
 
       names(combinations) <- loa_rename_values(names(combinations), rename_map)
 
@@ -1534,14 +1879,15 @@ validate_loa <- function(workbook, dataset = NULL) {
       )
       # Older builds of the pipeline have no arg_name; passing it there would
       # be an unused-argument error rather than a validation result.
-      if (exists("ck_check_choice_combinations", mode = "function") &&
-            "arg_name" %in% names(formals(ck_check_choice_combinations))) {
+      if (
+        exists("ck_check_choice_combinations", mode = "function") &&
+          "arg_name" %in% names(formals(ck_check_choice_combinations))
+      ) {
         arguments$arg_name <- which
       }
 
       add(loa_delegate_check("ck_check_choice_combinations", arguments, which))
     }
-
   }
 
   # --- 8. Every variable the workbook names, against the dataset -------------
@@ -1558,9 +1904,15 @@ validate_loa <- function(workbook, dataset = NULL) {
 #' @return One problems data frame, errors first.
 #' @keywords internal
 loa_collect <- function(found) {
-  if (length(found) == 0) return(loa_no_problems())
+  if (length(found) == 0) {
+    return(loa_no_problems())
+  }
   out <- do.call(rbind, found)
-  out <- out[order(out$severity != "error", out$sheet, out$row, na.last = TRUE), , drop = FALSE]
+  out <- out[
+    order(out$severity != "error", out$sheet, out$row, na.last = TRUE),
+    ,
+    drop = FALSE
+  ]
   rownames(out) <- NULL
   out
 }
@@ -1582,8 +1934,12 @@ loa_collect <- function(found) {
 #' @return A named list of named character vectors.
 #' @keywords internal
 loa_combination_list <- function(sheet) {
-  if (is.null(sheet) || nrow(sheet) == 0) return(list())
-  if (!all(c("analysis_var", "choice_label") %in% names(sheet))) return(list())
+  if (is.null(sheet) || nrow(sheet) == 0) {
+    return(list())
+  }
+  if (!all(c("analysis_var", "choice_label") %in% names(sheet))) {
+    return(list())
+  }
 
   v <- loa_trim(sheet$analysis_var)
   label <- loa_trim(sheet$choice_label)
@@ -1593,11 +1949,17 @@ loa_combination_list <- function(sheet) {
     rep(NA_character_, nrow(sheet))
   }
 
-  inc <- if ("include" %in% names(sheet)) loa_as_logical(sheet$include) else rep(TRUE, nrow(sheet))
+  inc <- if ("include" %in% names(sheet)) {
+    loa_as_logical(sheet$include)
+  } else {
+    rep(TRUE, nrow(sheet))
+  }
   inc[is.na(inc)] <- TRUE
 
   keep <- inc & !is.na(v) & !is.na(label)
-  if (!any(keep)) return(list())
+  if (!any(keep)) {
+    return(list())
+  }
 
   # An unnamed choice falls back to the full export label as its row label,
   # which is what ck_check_choice_combinations() does with an unnamed vector.
@@ -1617,11 +1979,19 @@ loa_combination_list <- function(sheet) {
 #' @return A character vector.
 #' @keywords internal
 loa_exclude_choices <- function(sheet) {
-  if (is.null(sheet) || nrow(sheet) == 0) return(character(0))
-  if (!"choice_label" %in% names(sheet)) return(character(0))
+  if (is.null(sheet) || nrow(sheet) == 0) {
+    return(character(0))
+  }
+  if (!"choice_label" %in% names(sheet)) {
+    return(character(0))
+  }
 
   v <- loa_trim(sheet$choice_label)
-  inc <- if ("include" %in% names(sheet)) loa_as_logical(sheet$include) else rep(TRUE, nrow(sheet))
+  inc <- if ("include" %in% names(sheet)) {
+    loa_as_logical(sheet$include)
+  } else {
+    rep(TRUE, nrow(sheet))
+  }
   inc[is.na(inc)] <- TRUE
 
   unique(stats::na.omit(v[inc]))
@@ -1634,11 +2004,15 @@ loa_exclude_choices <- function(sheet) {
 #' @return `analysis` with its variable columns rewritten.
 #' @keywords internal
 loa_apply_map_to_analysis <- function(analysis, map) {
-  if (is.null(analysis) || length(map) == 0) return(analysis)
+  if (is.null(analysis) || length(map) == 0) {
+    return(analysis)
+  }
 
   cols <- c(
-    "analysis_var", "analysis_var_numerator",
-    "analysis_var_denominator", "group_var"
+    "analysis_var",
+    "analysis_var_numerator",
+    "analysis_var_denominator",
+    "group_var"
   )
   for (cc in intersect(cols, names(analysis))) {
     analysis[[cc]] <- loa_rename_values(analysis[[cc]], map)
@@ -1681,7 +2055,9 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
     names(combinations) <- loa_rename_values(names(combinations), rename_map)
   }
 
-  exclusive_combinations <- loa_combination_list(sheets$count_exclusive_combinations)
+  exclusive_combinations <- loa_combination_list(
+    sheets$count_exclusive_combinations
+  )
   if (length(exclusive_combinations) > 0) {
     names(exclusive_combinations) <-
       loa_rename_values(names(exclusive_combinations), rename_map)
@@ -1691,10 +2067,15 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
   cs <- sheets$count_selections
   if (!is.null(cs) && nrow(cs) > 0 && "analysis_var" %in% names(cs)) {
     v <- loa_trim(cs$analysis_var)
-    inc <- if ("include" %in% names(cs)) loa_as_logical(cs$include) else rep(TRUE, nrow(cs))
+    inc <- if ("include" %in% names(cs)) {
+      loa_as_logical(cs$include)
+    } else {
+      rep(TRUE, nrow(cs))
+    }
     inc[is.na(inc)] <- TRUE
     count_selections <- loa_rename_values(
-      unique(stats::na.omit(v[inc])), rename_map
+      unique(stats::na.omit(v[inc])),
+      rename_map
     )
   }
 
@@ -1793,8 +2174,10 @@ print.analysis_spec <- function(x, ...) {
   cat("  settings          :", length(x$settings), "\n")
   cat(
     "  problems          :",
-    sum(x$problems$severity == "error"), "error(s),",
-    sum(x$problems$severity == "warning"), "warning(s)\n"
+    sum(x$problems$severity == "error"),
+    "error(s),",
+    sum(x$problems$severity == "warning"),
+    "warning(s)\n"
   )
   invisible(x)
 }
@@ -1836,8 +2219,12 @@ analysis_spec_args <- function(dataset, spec) {
   }
 
   # Only settings the workbook actually supplied are passed, so every unset
-  # argument keeps the pipeline's own default.
-  utils::modifyList(args, spec$settings)
+  # argument keeps the pipeline's own default. Export-only settings are left
+  # for ak_export_results().
+  pipeline_settings <- spec$settings[
+    setdiff(names(spec$settings), loa_export_settings())
+  ]
+  utils::modifyList(args, pipeline_settings)
 }
 
 
@@ -1853,10 +2240,7 @@ analysis_spec_args <- function(dataset, spec) {
 #'   by the app for run-time concerns such as `verbose`.
 #' @return Whatever `pipeline` returns.
 #' @export
-run_analysis_spec <- function(dataset,
-                              spec,
-                              pipeline = NULL,
-                              ...) {
+run_analysis_spec <- function(dataset, spec, pipeline = NULL, ...) {
   # The one divergence from Analysis Kit's copy of this file, and it is purely
   # additive: a clear message where there used to be a baffling one.
   #
@@ -1887,13 +2271,15 @@ run_analysis_spec <- function(dataset,
     errors <- spec$problems[spec$problems$severity == "error", , drop = FALSE]
     stop(
       paste0(
-        "The List of Analysis has ", nrow(errors),
+        "The List of Analysis has ",
+        nrow(errors),
         " problem(s) that must be fixed before running:\n  - ",
         paste(
           paste0(
             errors$sheet,
             ifelse(is.na(errors$row), "", paste0(" row ", errors$row)),
-            ": ", errors$message
+            ": ",
+            errors$message
           ),
           collapse = "\n  - "
         )
@@ -1912,5 +2298,8 @@ run_analysis_spec <- function(dataset,
     pipeline <- get("run_group_analysis_pipeline", mode = "function")
   }
 
-  do.call(pipeline, utils::modifyList(analysis_spec_args(dataset, spec), list(...)))
+  do.call(
+    pipeline,
+    utils::modifyList(analysis_spec_args(dataset, spec), list(...))
+  )
 }

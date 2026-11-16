@@ -11,7 +11,6 @@
 # analysis has completed without error.
 # =============================================================================
 
-
 #' Columns That Are Counts Rather Than Statistics
 #'
 #' The formatter needs the statistic prefixes and the count prefixes separately:
@@ -62,7 +61,10 @@ ak_export_settings <- function(results, spec) {
   # actually there: sector by preference, otherwise the first metadata column
   # the workbook carried through, otherwise a single sheet.
   wide_names <- names(results$combined_results)
-  carried <- intersect(spec$settings$extra_columns %||% character(0), wide_names)
+  carried <- intersect(
+    spec$settings$extra_columns %||% character(0),
+    wide_names
+  )
   split_by <- if ("sector" %in% wide_names) {
     "sector"
   } else if (length(carried) > 0) {
@@ -153,13 +155,17 @@ ak_prepare_for_export <- function(wide, layout = c("blocks", "matrix")) {
 #' @param prefix Leading token.
 #' @return A filename ending in `.xlsx`.
 #' @export
-ak_output_filename <- function(dataset_name,
-                               when = Sys.time(),
-                               prefix = "analysiskit") {
+ak_output_filename <- function(
+  dataset_name,
+  when = Sys.time(),
+  prefix = "analysiskit"
+) {
   stem <- tools::file_path_sans_ext(basename(as.character(dataset_name)))
   stem <- gsub("[^A-Za-z0-9._-]+", "_", stem)
   stem <- gsub("^_+|_+$", "", stem)
-  if (!nzchar(stem)) stem <- "results"
+  if (!nzchar(stem)) {
+    stem <- "results"
+  }
 
   paste0(prefix, "_", stem, "_", format(when, "%Y%m%d-%H%M%S"), ".xlsx")
 }
@@ -205,7 +211,9 @@ ak_unique_path <- function(folder, filename, limit = 99L) {
 #'   why it is not.
 #' @export
 ak_check_folder <- function(folder) {
-  if (is.null(folder) || length(folder) != 1 || is.na(folder) || !nzchar(folder)) {
+  if (
+    is.null(folder) || length(folder) != 1 || is.na(folder) || !nzchar(folder)
+  ) {
     return("No destination folder has been chosen yet.")
   }
   if (!dir.exists(folder)) {
@@ -213,7 +221,9 @@ ak_check_folder <- function(folder) {
   }
   if (file.access(folder, mode = 2) != 0) {
     return(paste0(
-      "The folder '", folder, "' cannot be written to. Choose another one."
+      "The folder '",
+      folder,
+      "' cannot be written to. Choose another one."
     ))
   }
   NULL
@@ -248,16 +258,23 @@ ak_provenance <- function(spec, dataset_name, when = Sys.time()) {
   }
 
   c(
-    paste0("Produced by Analysis Kit on ", format(when, "%Y-%m-%d %H:%M:%S"), "."),
+    paste0(
+      "Produced by Analysis Kit on ",
+      format(when, "%Y-%m-%d %H:%M:%S"),
+      "."
+    ),
     paste0("Dataset: ", dataset_name, "."),
     paste0(
       "List of Analysis: ",
       spec$source$filename %||% "not recorded",
-      " (", nrow(spec$loa), " analyses)."
+      " (",
+      nrow(spec$loa),
+      " analyses)."
     ),
     paste0(
       "Disaggregated by: ",
-      paste(spec$group_variables, collapse = ", "), "."
+      paste(spec$group_variables, collapse = ", "),
+      "."
     ),
     paste0("Settings: ", described, ".")
   )
@@ -274,21 +291,59 @@ ak_provenance <- function(spec, dataset_name, when = Sys.time()) {
 #' @param folder Destination folder, already chosen by the user.
 #' @param dataset_name Original dataset filename, used for the output name.
 #' @param when The run time.
+#' @param dataset The data frame the analysis was run on. Written to a sheet of
+#'   its own when `include_dataset` is `TRUE`, and otherwise unused.
+#' @param include_dataset Logical. Add the dataset to the workbook as a sheet
+#'   named `dataset`. Defaults to the List of Analysis's
+#'   `settings/include_dataset`, and to `FALSE` when that is not set.
 #' @param formatter The export function. Injectable so the wiring can be tested
 #'   without building a real workbook.
 #' @param verbose Passed to the formatter.
 #' @return The full path of the file written.
 #' @export
-ak_export_results <- function(results,
-                              spec,
-                              folder,
-                              dataset_name,
-                              when = Sys.time(),
-                              formatter = NULL,
-                              verbose = FALSE) {
+ak_export_results <- function(
+  results,
+  spec,
+  folder,
+  dataset_name,
+  when = Sys.time(),
+  dataset = NULL,
+  include_dataset = spec$settings$include_dataset %||% FALSE,
+  formatter = NULL,
+  verbose = FALSE
+) {
   problem <- ak_check_folder(folder)
   if (!is.null(problem)) {
     stop(problem, call. = FALSE)
+  }
+
+  include_dataset <- isTRUE(include_dataset)
+  if (include_dataset) {
+    if (!is.data.frame(dataset)) {
+      stop(
+        paste0(
+          "include_dataset is TRUE but no dataset was passed to ",
+          "ak_export_results(). Pass the data frame the analysis was run on ",
+          "as `dataset`, or set include_dataset to FALSE."
+        ),
+        call. = FALSE
+      )
+    }
+    # Checked before the workbook is built, which on a large table takes
+    # minutes, rather than at the end of it.
+    if (nrow(dataset) + 1L > 1048576L || ncol(dataset) > 16384L) {
+      stop(
+        paste0(
+          "The dataset has ",
+          nrow(dataset),
+          " rows and ",
+          ncol(dataset),
+          " columns, which is more than one Excel sheet can hold. Set ",
+          "include_dataset to FALSE in the settings sheet of the List of Analysis."
+        ),
+        call. = FALSE
+      )
+    }
   }
 
   if (is.null(formatter)) {
@@ -317,7 +372,8 @@ ak_export_results <- function(results,
   args <- c(
     list(
       table_group_x_variable = ak_prepare_for_export(
-        results$combined_results, settings$layout
+        results$combined_results,
+        settings$layout
       ),
       file_path = path,
       overwrite = FALSE,
@@ -326,6 +382,11 @@ ak_export_results <- function(results,
     ),
     settings
   )
+  # Only added when asked for, so a formatter without the argument still works
+  # for every run that does not include the dataset.
+  if (include_dataset) {
+    args$dataset_sheet <- dataset
+  }
 
   do.call(formatter, args)
 

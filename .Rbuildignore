@@ -11,3 +11,4 @@
 ^pkgdown$
 ^CLAUDE\.md$
 ^\.claude$
+^Claude outputs$

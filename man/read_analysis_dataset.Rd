@@ -11,7 +11,9 @@ read_analysis_dataset(path, loa = NULL)
 \code{.xlsx} is read.}
 
 \item{loa}{Optional. A List of Analysis path, or the list from
-\code{\link[=read_loa_workbook]{read_loa_workbook()}}. When given, only the columns it refers to are read.}
+\code{\link[=read_loa_workbook]{read_loa_workbook()}}. When given, only the columns it refers to are read,
+unless its \code{settings/include_dataset} is \code{TRUE}: the dataset then goes
+into the results workbook, so every column is read.}
 }
 \value{
 A list with \code{data}, \code{extension}, \code{filename}, \code{size},
