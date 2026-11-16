@@ -8,19 +8,35 @@
 
 pipeline_formals <- function() {
   c(
-    "dataset", "loa", "group_variables", "skip_label_row", "label_row",
-    "weight_column", "strata_column", "value_columns", "extra_columns",
-    "exclude_choices", "exclude_ignore_case", "count_selections",
-    "count_selections_mode", "count_selections_labels",
-    "count_selections_order", "count_selections_heading",
-    "count_selections_spacer", "count_selections_title_suffix",
-    "count_combinations", "count_combinations_ignore_case",
-    "count_combinations_joiner", "count_combinations_only_suffix",
+    "dataset",
+    "loa",
+    "group_variables",
+    "skip_label_row",
+    "label_row",
+    "weight_column",
+    "strata_column",
+    "value_columns",
+    "extra_columns",
+    "exclude_choices",
+    "exclude_ignore_case",
+    "count_selections",
+    "count_selections_mode",
+    "count_selections_labels",
+    "count_selections_order",
+    "count_selections_heading",
+    "count_selections_spacer",
+    "count_selections_title_suffix",
+    "count_combinations",
+    "count_combinations_ignore_case",
+    "count_combinations_joiner",
+    "count_combinations_only_suffix",
     "count_combinations_other_label",
     "count_combinations_other_multiple_label",
     "count_combinations_single_label",
-    "count_combinations_order", "count_combinations_heading",
-    "count_combinations_spacer", "count_combinations_title_suffix",
+    "count_combinations_order",
+    "count_combinations_heading",
+    "count_combinations_spacer",
+    "count_combinations_title_suffix",
     "count_exclusive_combinations",
     "count_exclusive_combinations_only_suffix",
     "count_exclusive_combinations_other_label",
@@ -28,13 +44,29 @@ pipeline_formals <- function() {
     "count_exclusive_combinations_heading",
     "count_exclusive_combinations_spacer",
     "count_exclusive_combinations_title_suffix",
-    "max_combination_choices", "max_exclusive_choices",
-    "fallback_level", "engine", "min_group_n", "slim_design",
-    "keep_missing_groups", "sm_separator", "prepare_sm", "sm_child_style",
-    "blank_to_na", "label_choices", "add_analysis_type_label",
-    "analysis_type_labels", "recreate_sm_parents", "drop_empty_prop_rows",
-    "summary_value_label", "missing_group_label", "use_group_prefix",
-    "lonely_psu", "verbose", "full_sample_base", "full_sample_label"
+    "max_combination_choices",
+    "max_exclusive_choices",
+    "fallback_level",
+    "engine",
+    "min_group_n",
+    "slim_design",
+    "keep_missing_groups",
+    "sm_separator",
+    "prepare_sm",
+    "sm_child_style",
+    "blank_to_na",
+    "label_choices",
+    "add_analysis_type_label",
+    "analysis_type_labels",
+    "recreate_sm_parents",
+    "drop_empty_prop_rows",
+    "summary_value_label",
+    "missing_group_label",
+    "use_group_prefix",
+    "lonely_psu",
+    "verbose",
+    "full_sample_base",
+    "full_sample_label"
   )
 }
 
@@ -86,7 +118,8 @@ test_that("a fully populated workbook binds to the pipeline's real signature", {
   sheets <- fixture_sheets(
     settings = settings,
     exclude_choices = data.frame(
-      choice_label = "Don't know", stringsAsFactors = FALSE
+      choice_label = "Don't know",
+      stringsAsFactors = FALSE
     )
   )
   # sm_separator must stay "/" or the fixture's child columns stop resolving.
@@ -99,13 +132,15 @@ test_that("a fully populated workbook binds to the pipeline's real signature", {
   seen <- NULL
   expect_silent(
     run_analysis_spec(
-      fixture_dataset(), spec,
+      fixture_dataset(),
+      spec,
       pipeline = pipeline_stub(function(a) seen <<- a),
       verbose = FALSE
     )
   )
 
   expect_true(all(names(seen) %in% pipeline_formals()))
+  expect_false("include_dataset" %in% names(seen))
   expect_equal(seen$count_selections, "Q78")
   expect_equal(seen$exclude_choices, "Don't know")
   # All three label keys were set, so all three are the supplied value rather
@@ -118,13 +153,22 @@ test_that("the settings allow-list covers the pipeline's signature exactly", {
   # rest are the settings sheet. A pipeline argument in none of those three
   # groups is one the workbook silently cannot reach.
   from_sheets <- c(
-    "dataset", "loa", "group_variables",
-    "count_selections", "count_combinations", "count_exclusive_combinations",
+    "dataset",
+    "loa",
+    "group_variables",
+    "count_selections",
+    "count_combinations",
+    "count_exclusive_combinations",
     "exclude_choices"
   )
   not_settable <- c("label_row", "analysis_type_labels", "verbose")
 
-  covered <- unique(c(from_sheets, not_settable, loa_settings_schema()$arg))
+  # Export-only settings are read by ak_export_results(), not the pipeline.
+  covered <- unique(c(
+    from_sheets,
+    not_settable,
+    setdiff(loa_settings_schema()$arg, loa_export_settings())
+  ))
 
   expect_setequal(pipeline_formals(), covered)
 })
@@ -174,8 +218,12 @@ test_that("a workbook runs end to end against the real pipeline", {
   }
 
   # Both derived analyses appear, under the question they came from.
-  expect_true("count_select_multiple" %in% results$combined_results$analysis_type)
-  expect_true("combination_select_multiple" %in% results$combined_results$analysis_type)
+  expect_true(
+    "count_select_multiple" %in% results$combined_results$analysis_type
+  )
+  expect_true(
+    "combination_select_multiple" %in% results$combined_results$analysis_type
+  )
   expect_equal(results$selection_counts$analysis_var, "Q78")
   expect_equal(results$choice_combinations$analysis_var, "Q78")
 })

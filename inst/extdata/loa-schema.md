@@ -489,6 +489,14 @@ reason as `exclude_choices`. The reader assembles them as
 The `count_exclusive_combinations_*` keys and `max_exclusive_choices` are listed
 in 5b.
 
+**Results workbook**
+
+These keys are read by `ak_export_results()` and are never passed to the pipeline.
+
+| setting | type | default | notes |
+|---|---|---|---|
+| `include_dataset` | lgl | `FALSE` | `TRUE` adds the dataset the analysis was run on to the results workbook, as a sheet named `dataset` after the result sheets, written as it is (the ONA label row included). `run_analysis_locally()` then reads every column of a dataset file rather than only the ones the analysis uses. The dataset is personal data: a workbook with this sheet must be handled and shared as such. Refused when the dataset exceeds one Excel sheet (1,048,576 rows or 16,384 columns) |
+
 ### 7.2 Deliberately not settable
 
 - `verbose` — owned by the app, which routes pipeline messages to the progress UI.
@@ -667,6 +675,10 @@ hard-coded, and reproduce the example output with the default workbook:
 Splitting one list guarantees `length(c(value_columns, total_columns))` matches the number
 of columns the pipeline wrote per group block; get that wrong and the formatter cuts the
 blocks in the wrong places.
+
+With `settings/include_dataset = TRUE` the dataset is passed to the formatter as
+`dataset_sheet` and written to a `dataset` sheet, listed in the readme alongside the
+result sheets. It is off by default.
 
 **Filenames** are `analysiskit_<dataset stem>_<YYYYmmdd-HHMMSS>.xlsx`, and an existing file
 is never overwritten — a second run in the same second gets a `_1` suffix. The workbook's

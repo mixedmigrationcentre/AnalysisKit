@@ -37,6 +37,8 @@ format_my_xlsx_variable_x_group(
   palette = NULL,
   font_name = "Arial Narrow",
   readme_text = NULL,
+  dataset_sheet = NULL,
+  dataset_sheet_name = "dataset",
   verbose = TRUE
 )
 }
@@ -174,6 +176,13 @@ narrow so the statistics of neighbouring disaggregations sit side by side.}
 \item{font_name}{Font used throughout.}
 
 \item{readme_text}{Optional character vector of extra readme lines.}
+
+\item{dataset_sheet}{Optional data frame: the dataset behind the results.
+When given it is written, as it is, to a sheet of its own after the result
+sheets. \code{NULL} (the default) leaves it out.}
+
+\item{dataset_sheet_name}{Name of that sheet. Made unique against the other
+sheet names.}
 
 \item{verbose}{Logical, print progress messages.}
 }

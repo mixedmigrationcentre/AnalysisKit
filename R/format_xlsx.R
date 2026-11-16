@@ -447,7 +447,10 @@ ck_body_style <- function(
 ck_percent_format <- function(digits = 0) {
   digits <- suppressWarnings(as.integer(digits))
   if (length(digits) != 1 || is.na(digits) || digits < 0) {
-    stop("percent_digits must be a single non-negative whole number.", call. = FALSE)
+    stop(
+      "percent_digits must be a single non-negative whole number.",
+      call. = FALSE
+    )
   }
   if (digits == 0) {
     return("0%")
@@ -595,7 +598,14 @@ ck_row_ref <- function(row, col_from, col_to) {
 #' @param last_row The last row the sheet uses.
 #' @return Invisibly the number of `writeData()` calls made.
 #' @keywords internal
-ck_write_question_cells <- function(wb, sheet, headers, bodies, n_col, last_row) {
+ck_write_question_cells <- function(
+  wb,
+  sheet,
+  headers,
+  bodies,
+  n_col,
+  last_row
+) {
   headers <- headers[!vapply(headers, is.null, logical(1))]
   bodies <- bodies[!vapply(bodies, is.null, logical(1))]
 
@@ -616,7 +626,11 @@ ck_write_question_cells <- function(wb, sheet, headers, bodies, n_col, last_row)
   modes <- vapply(
     seq_len(n_col),
     function(j) {
-      seen <- unique(vapply(bodies, function(b) kind(b$values[[j]]), character(1)))
+      seen <- unique(vapply(
+        bodies,
+        function(b) kind(b$values[[j]]),
+        character(1)
+      ))
       if (length(seen) == 1L) seen else "mixed"
     },
     character(1)
@@ -638,7 +652,9 @@ ck_write_question_cells <- function(wb, sheet, headers, bodies, n_col, last_row)
     for (b in bodies) {
       write_one(as.data.frame(b$values, stringsAsFactors = FALSE), b$row)
     }
-    for (h in headers) write_one(h$values, h$row)
+    for (h in headers) {
+      write_one(h$values, h$row)
+    }
     return(invisible(length(bodies) + length(headers)))
   }
 
@@ -665,7 +681,9 @@ ck_write_question_cells <- function(wb, sheet, headers, bodies, n_col, last_row)
   names(columns) <- paste0("v", seq_len(n_col))
   write_one(as.data.frame(columns, stringsAsFactors = FALSE), 1L)
 
-  for (h in headers) write_one(h$values, h$row)
+  for (h in headers) {
+    write_one(h$values, h$row)
+  }
 
   invisible(1L + length(headers))
 }
@@ -704,6 +722,62 @@ ck_short_group_label <- function(label, group_variable) {
   }
 
   label
+}
+
+
+#' Write the Analysed Dataset to a Sheet of its Own
+#'
+#' The data is written as it is, with a styled, frozen header row and a filter.
+#' The body is left unstyled on purpose: a style per cell would make a large
+#' dataset slow to write and the file much bigger. Written so the figures on the result sheets can be traced back to the respondents
+#' behind them.
+#'
+#' @param wb An `openxlsx` workbook.
+#' @param sheet Sheet name, already legal and unique.
+#' @param dataset A data frame.
+#' @param pal A resolved MMC palette.
+#' @param font_name Font used throughout.
+#' @return `NULL`, invisibly. Called for its effect on `wb`.
+#' @keywords internal
+ck_write_dataset_sheet <- function(wb, sheet, dataset, pal, font_name) {
+  dataset <- as.data.frame(dataset, stringsAsFactors = FALSE)
+
+  # Excel's own limits, checked here so the failure names the cause rather
+  # than surfacing as a corrupt file.
+  if (nrow(dataset) + 1L > 1048576L || ncol(dataset) > 16384L) {
+    stop(
+      paste0(
+        "The dataset has ",
+        nrow(dataset),
+        " rows and ",
+        ncol(dataset),
+        " columns, which is more than one Excel sheet can hold. Set ",
+        "include_dataset to FALSE in the settings sheet of the List of Analysis."
+      ),
+      call. = FALSE
+    )
+  }
+
+  openxlsx::addWorksheet(wb, sheetName = sheet, tabColour = pal[["teal"]])
+
+  header <- openxlsx::createStyle(
+    fontName = font_name,
+    fontColour = pal[["navy"]],
+    fgFill = pal[["light_blue"]],
+    textDecoration = "bold",
+    border = "Bottom",
+    borderColour = pal[["navy"]]
+  )
+  openxlsx::writeData(
+    wb,
+    sheet,
+    dataset,
+    headerStyle = header,
+    withFilter = ncol(dataset) > 0
+  )
+  openxlsx::freezePane(wb, sheet, firstRow = TRUE)
+
+  invisible(NULL)
 }
 
 
@@ -1318,6 +1392,11 @@ ck_sample_composition <- function(dat, blocks, block_group, sample_base) {
 #' @param palette Optional named vector of colour overrides. See [mmc_colours()].
 #' @param font_name Font used throughout.
 #' @param readme_text Optional character vector of extra readme lines.
+#' @param dataset_sheet Optional data frame: the dataset behind the results.
+#'   When given it is written, as it is, to a sheet of its own after the result
+#'   sheets. `NULL` (the default) leaves it out.
+#' @param dataset_sheet_name Name of that sheet. Made unique against the other
+#'   sheet names.
 #' @param verbose Logical, print progress messages.
 #'
 #' @return An `openxlsx` workbook if `file_path` is NULL, otherwise the file is
@@ -1358,6 +1437,8 @@ format_my_xlsx_variable_x_group <- function(
   palette = NULL,
   font_name = "Arial Narrow",
   readme_text = NULL,
+  dataset_sheet = NULL,
+  dataset_sheet_name = "dataset",
   verbose = TRUE
 ) {
   t_start <- Sys.time()
@@ -1803,6 +1884,32 @@ format_my_xlsx_variable_x_group <- function(
     }
   }
 
+  # --- 6b. Dataset ------------------------------------------------------------
+  sheet_names <- vapply(plan$sheets, function(z) z$name, character(1))
+  sheet_content <- vapply(plan$sheets, function(z) z$description, character(1))
+
+  if (!is.null(dataset_sheet)) {
+    dataset_name <- ck_safe_sheet_name(
+      dataset_sheet_name,
+      taken = c(readme_sheet_name, sheet_names)
+    )
+    say(
+      "--> writing sheet %s: the dataset (%s rows, %s columns)",
+      dataset_name,
+      format(NROW(dataset_sheet), big.mark = ","),
+      format(NCOL(dataset_sheet), big.mark = ",")
+    )
+    ck_write_dataset_sheet(
+      wb = wb,
+      sheet = dataset_name,
+      dataset = dataset_sheet,
+      pal = pal,
+      font_name = font_name
+    )
+    sheet_names <- c(sheet_names, dataset_name)
+    sheet_content <- c(sheet_content, "The dataset the analysis was run on")
+  }
+
   # --- 7. Readme --------------------------------------------------------------
   is_matrix <- identical(layout, "matrix")
 
@@ -1813,8 +1920,8 @@ format_my_xlsx_variable_x_group <- function(
     font_name = font_name,
     composition = ck_sample_composition(dat, blocks, block_group, sample_base),
     sheet_table = data.frame(
-      sheet = vapply(plan$sheets, function(z) z$name, character(1)),
-      content = vapply(plan$sheets, function(z) z$description, character(1)),
+      sheet = sheet_names,
+      content = sheet_content,
       stringsAsFactors = FALSE
     ),
     split_by = plan$split_by,
@@ -2436,8 +2543,14 @@ ck_write_block_sheet <- function(
   }
   cell_key <- function(shaded, edges, numfmt, bottom) {
     id <- paste0(
-      "cell|", shaded, "|", paste(edges, collapse = ""), "|",
-      if (is.null(numfmt)) "" else numfmt, "|", bottom
+      "cell|",
+      shaded,
+      "|",
+      paste(edges, collapse = ""),
+      "|",
+      if (is.null(numfmt)) "" else numfmt,
+      "|",
+      bottom
     )
     memo_key(id, function() {
       ck_body_style(
@@ -2657,7 +2770,12 @@ ck_write_block_sheet <- function(
             main_rows,
             cols_ci
           )
-          ck_add_rect(sg, cell_key(sh, edges, p$numfmt, TRUE), last_row, cols_ci)
+          ck_add_rect(
+            sg,
+            cell_key(sh, edges, p$numfmt, TRUE),
+            last_row,
+            cols_ci
+          )
         }
       }
     }

@@ -10,6 +10,8 @@ ak_export_results(
   folder,
   dataset_name,
   when = Sys.time(),
+  dataset = NULL,
+  include_dataset = spec$settings$include_dataset \%||\% FALSE,
   formatter = NULL,
   verbose = FALSE
 )
@@ -24,6 +26,13 @@ ak_export_results(
 \item{dataset_name}{Original dataset filename, used for the output name.}
 
 \item{when}{The run time.}
+
+\item{dataset}{The data frame the analysis was run on. Written to a sheet of
+its own when \code{include_dataset} is \code{TRUE}, and otherwise unused.}
+
+\item{include_dataset}{Logical. Add the dataset to the workbook as a sheet
+named \code{dataset}. Defaults to the List of Analysis's
+\code{settings/include_dataset}, and to \code{FALSE} when that is not set.}
 
 \item{formatter}{The export function. Injectable so the wiring can be tested
 without building a real workbook.}

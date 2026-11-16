@@ -31,7 +31,9 @@ columns_loa <- function() {
       stringsAsFactors = FALSE
     ),
     group_analysis = data.frame(
-      raw_data_name = "Q13", new_name = "Country", include = TRUE,
+      raw_data_name = "Q13",
+      new_name = "Country",
+      include = TRUE,
       stringsAsFactors = FALSE
     )
   )
@@ -93,7 +95,10 @@ test_that("a filtered read gives the same columns a full read would", {
 
     overview <- dataset_overview(some)
     expect_match(overview$Value[overview$Measure == "Columns"], "^11 \\(7 read")
-    expect_match(overview$Value[overview$Measure == "Duplicate rows"], "not counted")
+    expect_match(
+      overview$Value[overview$Measure == "Duplicate rows"],
+      "not counted"
+    )
     unlink(path)
   }
 })
@@ -126,7 +131,11 @@ test_that("a run from a path gives the results a run from the full data gives", 
   loa <- columns_loa()
   loa$analysis <- loa$analysis[1:2, 1:2]
 
-  from_path <- suppressWarnings(run_analysis_locally(path, loa, verbose = FALSE))
+  from_path <- suppressWarnings(run_analysis_locally(
+    path,
+    loa,
+    verbose = FALSE
+  ))
   from_full <- suppressWarnings(
     run_analysis_locally(read_analysis_dataset(path), loa, verbose = FALSE)
   )
@@ -137,6 +146,26 @@ test_that("a run from a path gives the results a run from the full data gives", 
     from_path$results$combined_results,
     from_full$results$combined_results
   )
-  expect_identical(from_path$results$results_long, from_full$results$results_long)
+  expect_identical(
+    from_path$results$results_long,
+    from_full$results$results_long
+  )
   unlink(path)
+})
+
+
+test_that("include_dataset reads every column, since the dataset goes in the output", {
+  path <- tempfile(fileext = ".csv")
+  utils::write.csv(columns_dataset(), path, row.names = FALSE, na = "")
+  on.exit(unlink(path), add = TRUE)
+
+  loa <- columns_loa()
+  loa$settings <- data.frame(
+    setting = "include_dataset",
+    value = "TRUE",
+    stringsAsFactors = FALSE
+  )
+
+  dataset <- read_analysis_dataset(path, loa = loa)
+  expect_equal(names(dataset$data), names(columns_dataset()))
 })

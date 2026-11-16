@@ -9,7 +9,6 @@
 # that can drift apart on how a CSV's blanks are treated.
 # =============================================================================
 
-
 #' Read a Dataset from a Path
 #'
 #' Reads a `.csv` or `.xlsx` research dataset and reports what it found. The
@@ -40,7 +39,9 @@
 #' @param path Path to a `.csv` or `.xlsx` file. Only the first sheet of an
 #'   `.xlsx` is read.
 #' @param loa Optional. A List of Analysis path, or the list from
-#'   [read_loa_workbook()]. When given, only the columns it refers to are read.
+#'   [read_loa_workbook()]. When given, only the columns it refers to are read,
+#'   unless its `settings/include_dataset` is `TRUE`: the dataset then goes
+#'   into the results workbook, so every column is read.
 #' @return A list with `data`, `extension`, `filename`, `size`,
 #'   `duplicate_rows` and `columns_in_file`.
 #' @seealso [dataset_overview()] and [dataset_columns()] to inspect the result,
@@ -67,7 +68,12 @@ read_analysis_dataset <- function(path, loa = NULL) {
   columns <- NULL
   if (!is.null(loa)) {
     workbook <- as_loa_workbook(loa)
-    columns <- function(header) loa_dataset_columns(workbook, header)
+    settings <- loa_parse_settings(workbook$sheets$settings)$settings
+    # A workbook that puts the dataset in the results needs all of it, not
+    # only the columns the analysis reads.
+    if (!isTRUE(settings$include_dataset)) {
+      columns <- function(header) loa_dataset_columns(workbook, header)
+    }
   }
 
   read_uploaded_dataset(
@@ -140,7 +146,10 @@ read_uploaded_dataset <- function(file_info, columns = NULL) {
   extension <- tolower(tools::file_ext(file_info$name))
 
   if (!extension %in% c("csv", "xlsx")) {
-    stop("Unsupported file type. Please upload a CSV or XLSX file.", call. = FALSE)
+    stop(
+      "Unsupported file type. Please upload a CSV or XLSX file.",
+      call. = FALSE
+    )
   }
 
   if (extension == "xlsx" && !requireNamespace("readxl", quietly = TRUE)) {
@@ -155,7 +164,8 @@ read_uploaded_dataset <- function(file_info, columns = NULL) {
   # they would have had.
   keep <- NULL
   if (!is.null(columns)) {
-    header <- switch(extension,
+    header <- switch(
+      extension,
       csv = names(utils::read.csv(
         file_info$datapath,
         nrows = 1,
@@ -168,12 +178,15 @@ read_uploaded_dataset <- function(file_info, columns = NULL) {
     )
 
     keep <- as.logical(columns(header))
-    if (length(keep) != length(header) || anyNA(keep) || !any(keep) || all(keep)) {
+    if (
+      length(keep) != length(header) || anyNA(keep) || !any(keep) || all(keep)
+    ) {
       keep <- NULL
     }
   }
 
-  data <- switch(extension,
+  data <- switch(
+    extension,
     csv = utils::read.csv(
       file_info$datapath,
       stringsAsFactors = FALSE,
@@ -236,13 +249,17 @@ dataset_overview <- function(dataset) {
   # Older callers (and any test building the list by hand) may not carry the
   # count, so it is still computed here when it is absent.
   duplicates <- dataset$duplicate_rows
-  if (is.null(duplicates)) duplicates <- sum(duplicated(data))
+  if (is.null(duplicates)) {
+    duplicates <- sum(duplicated(data))
+  }
 
   in_file <- dataset$columns_in_file %||% ncol(data)
   columns <- format(in_file, big.mark = ",")
   if (in_file != ncol(data)) {
     columns <- paste0(
-      columns, " (", format(ncol(data), big.mark = ","),
+      columns,
+      " (",
+      format(ncol(data), big.mark = ","),
       " read: those the List of Analysis uses)"
     )
   }
@@ -288,7 +305,11 @@ dataset_columns <- function(dataset) {
     Column = names(data),
     Type = vapply(data, function(column) class(column)[1L], character(1)),
     Missing = vapply(data, function(column) sum(is.na(column)), integer(1)),
-    Unique = vapply(data, function(column) length(unique(column[!is.na(column)])), integer(1)),
+    Unique = vapply(
+      data,
+      function(column) length(unique(column[!is.na(column)])),
+      integer(1)
+    ),
     check.names = FALSE
   )
 }

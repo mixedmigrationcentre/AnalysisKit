@@ -20,7 +20,6 @@
 #     than left to vanish up the console.
 # =============================================================================
 
-
 #' Accept a Dataset in Any of the Three Useful Shapes
 #'
 #' A path, the list [read_analysis_dataset()] returns, or a bare data frame.
@@ -238,11 +237,13 @@ with_run_log <- function(expr, echo = TRUE) {
 #'   output_folder = "output"
 #' )
 #' }
-run_analysis_locally <- function(dataset,
-                                 loa,
-                                 output_folder = NULL,
-                                 verbose = TRUE,
-                                 ...) {
+run_analysis_locally <- function(
+  dataset,
+  loa,
+  output_folder = NULL,
+  verbose = TRUE,
+  ...
+) {
   started <- Sys.time()
 
   # The workbook first: given a path, the dataset is then read for the columns
@@ -267,7 +268,8 @@ run_analysis_locally <- function(dataset,
   if (isTRUE(verbose)) {
     message(sprintf(
       "Running %d analyses across %d grouping variable(s)",
-      nrow(spec$loa), length(spec$group_variables)
+      nrow(spec$loa),
+      length(spec$group_variables)
     ))
   }
 
@@ -290,10 +292,14 @@ run_analysis_locally <- function(dataset,
           spec = spec,
           folder = output_folder,
           dataset_name = dataset$filename,
+          dataset = dataset$data,
           verbose = TRUE
         ),
         error = function(error) {
-          structure(list(message = conditionMessage(error)), class = "ak_save_error")
+          structure(
+            list(message = conditionMessage(error)),
+            class = "ak_save_error"
+          )
         }
       ),
       echo = verbose
@@ -310,7 +316,8 @@ run_analysis_locally <- function(dataset,
       warning(
         paste0(
           "The analysis finished, but the results could not be saved: ",
-          save_error, " The results are in $results."
+          save_error,
+          " The results are in $results."
         ),
         call. = FALSE
       )
@@ -349,8 +356,13 @@ print.analysis_run <- function(x, ...) {
   cat("  dataset      :", x$dataset$filename, "\n")
   cat("  analyses     :", nrow(x$spec$loa), "\n")
   cat("  disaggregated:", paste(x$spec$group_variables, collapse = ", "), "\n")
-  cat("  result table :", format(nrow(wide), big.mark = ","), "rows x",
-      format(ncol(wide), big.mark = ","), "columns\n")
+  cat(
+    "  result table :",
+    format(nrow(wide), big.mark = ","),
+    "rows x",
+    format(ncol(wide), big.mark = ","),
+    "columns\n"
+  )
   cat("  elapsed      :", format(round(as.numeric(x$elapsed), 1)), "seconds\n")
 
   counts <- ak_problem_counts(x$problems)
@@ -370,8 +382,12 @@ print.analysis_run <- function(x, ...) {
     ak_exclusive_base_note(x$results$exclusive_combinations)
   ))
   if (length(notes) > 0) {
-    cat("\n  The choice-combination rows use a smaller denominator than the rest of the workbook:\n")
-    for (note in notes) cat("    -", note, "\n")
+    cat(
+      "\n  The choice-combination rows use a smaller denominator than the rest of the workbook:\n"
+    )
+    for (note in notes) {
+      cat("    -", note, "\n")
+    }
     cat("  Footnote this wherever the combination percentages are published.\n")
   }
 
@@ -395,13 +411,21 @@ print.analysis_run <- function(x, ...) {
 #' @export
 #' @examples
 #' copy_loa_template(tempdir())
-copy_loa_template <- function(dir = ".",
-                              filename = "loa_template.xlsx",
-                              overwrite = FALSE) {
-  template <- system.file("extdata", "loa_template.xlsx",
-                          package = "analysiskit")
+copy_loa_template <- function(
+  dir = ".",
+  filename = "loa_template.xlsx",
+  overwrite = FALSE
+) {
+  template <- system.file(
+    "extdata",
+    "loa_template.xlsx",
+    package = "analysiskit"
+  )
   if (!nzchar(template) || !file.exists(template)) {
-    stop("The List of Analysis template is missing from the installation.", call. = FALSE)
+    stop(
+      "The List of Analysis template is missing from the installation.",
+      call. = FALSE
+    )
   }
 
   if (!dir.exists(dir)) {
@@ -411,7 +435,11 @@ copy_loa_template <- function(dir = ".",
   path <- file.path(dir, filename)
   if (file.exists(path) && !isTRUE(overwrite)) {
     stop(
-      paste0("'", path, "' already exists. Pass overwrite = TRUE to replace it."),
+      paste0(
+        "'",
+        path,
+        "' already exists. Pass overwrite = TRUE to replace it."
+      ),
       call. = FALSE
     )
   }
@@ -460,7 +488,9 @@ check_analysis_packages <- function() {
   version <- vapply(
     seq_along(required$package),
     function(i) {
-      if (!installed[i]) return(NA_character_)
+      if (!installed[i]) {
+        return(NA_character_)
+      }
       as.character(utils::packageVersion(required$package[i]))
     },
     character(1)
