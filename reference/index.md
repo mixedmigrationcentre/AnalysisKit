@@ -169,14 +169,10 @@
   : Sheets the Reader Recognises
 
 - [`loa_parse_settings()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_parse_settings.md)
-  :
-
-  Parse and Type-Check the `settings` Sheet
+  : Parse and Type-Check a Settings Sheet
 
 - [`loa_settings_schema()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_settings_schema.md)
-  :
-
-  The `settings` Sheet Allow-List
+  : The Settings Allow-List
 
 - [`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md)
   : Every Dataset Variable the Workbook Names, and Whether It Is There

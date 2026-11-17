@@ -4,10 +4,10 @@
 
 ### New features
 
-- **Route analysis.** Three new settings in the List of Analysis
-  `settings` sheet, all `FALSE` by default, pool 4Mi’s repeated country
-  and place questions and analyse them across every slot rather than
-  slot by slot:
+- **Route analysis.** Three new settings in a new List of Analysis
+  `route_analysis` sheet, all `FALSE` by default, pool 4Mi’s repeated
+  country and place questions and analyse them across every slot rather
+  than slot by slot:
 
   - `transit_country`: transit countries (Q47–Q54), with Q72 and QN8.
   - `places_stop`: places stopped (Q56–Q70) and why.
@@ -15,8 +15,8 @@
     incidents and perpetrators (experienced incidents only).
 
   Each block that is turned on gets a sheet of its own in the results
-  workbook: `transit-countries`, `places-stop` and
-  `dangerous-locations`. A sheet opens with the ranking of every
+  workbook: `Transit Countries`, `Places Stop` and
+  `Dangerous Locations`. A sheet opens with the ranking of every
   country, then has one wide table per follow-up question: `Overall`,
   then each country with the most respondents first
   (`route_top_countries`, default 10; 0 for all), each followed by its

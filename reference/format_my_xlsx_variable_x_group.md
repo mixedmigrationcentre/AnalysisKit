@@ -270,8 +270,8 @@ format_my_xlsx_variable_x_group(
   Optional data frame from
   [`run_route_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.md).
   When given, each route block in it is written to a sheet of its own
-  after the result sheets: `transit-countries`, `places-stop`,
-  `dangerous-locations`.
+  after the result sheets: `Transit Countries`, `Places Stop`,
+  `Dangerous Locations`.
 
 - verbose:
 

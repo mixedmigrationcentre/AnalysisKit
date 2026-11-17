@@ -1,9 +1,11 @@
-# The `settings` Sheet Allow-List
+# The Settings Allow-List
 
 One row per accepted key. `arg` is the
 [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md)
 argument it sets; `type` decides the coercion; `values` restricts an
-enum. A key absent from this table is a fatal error.
+enum; `sheet` is the sheet the key is written in (`settings`, or
+`route_analysis` for the route analysis keys). A key absent from this
+table is a fatal error.
 
 ## Usage
 
@@ -13,7 +15,7 @@ loa_settings_schema()
 
 ## Value
 
-A data frame with `setting`, `arg`, `type` and `values`.
+A data frame with `setting`, `arg`, `type`, `values` and `sheet`.
 
 ## Details
 
