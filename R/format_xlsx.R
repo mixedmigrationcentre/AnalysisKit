@@ -1399,7 +1399,7 @@ ck_sample_composition <- function(dat, blocks, block_group, sample_base) {
 #'   sheet names.
 #' @param route_sheet Optional data frame from [run_route_analysis()]. When
 #'   given, each route block in it is written to a sheet of its own after the
-#'   result sheets: `transit-countries`, `places-stop`, `dangerous-locations`.
+#'   result sheets: `Transit Countries`, `Places Stop`, `Dangerous Locations`.
 #' @param verbose Logical, print progress messages.
 #'
 #' @return An `openxlsx` workbook if `file_path` is NULL, otherwise the file is

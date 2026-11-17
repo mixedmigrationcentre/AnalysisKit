@@ -11,7 +11,7 @@ files: the dataset and the LoA.
 
 ## 1. Overview
 
-The LoA is an `.xlsx` workbook of up to seven sheets. Only `analysis_variables` is required.
+The LoA is an `.xlsx` workbook of up to eight sheets. Only `analysis_variables` is required.
 
 | Sheet | Required | Drives |
 |---|---|---|
@@ -22,12 +22,13 @@ The LoA is an `.xlsx` workbook of up to seven sheets. Only `analysis_variables` 
 | `count_exclusive_combinations` | no | `count_exclusive_combinations` |
 | `exclude_choices` | no | `exclude_choices` |
 | `settings` | no | the remaining scalar arguments |
+| `route_analysis` | no | the route analysis (§7, "Route analysis") |
 
 A missing or empty optional sheet means "not requested": the reader passes the
 pipeline's own default (usually `NULL`), never a guessed value.
 
 **CSV uploads carry no sheets.** A `.csv` LoA is read as the `analysis_variables` sheet alone; the
-other five are unavailable and their defaults apply. Configured runs therefore require
+other sheets are unavailable and their defaults apply. Configured runs therefore require
 `.xlsx`. The app should say so rather than silently running an under-configured analysis.
 
 Sheet names are matched case-insensitively after trimming and after collapsing spaces and
@@ -506,7 +507,12 @@ These keys are read by `ak_export_results()` and are never passed to the pipelin
 |---|---|---|---|
 | `include_dataset` | lgl | `FALSE` | `TRUE` adds the dataset the analysis was run on to the results workbook, as a sheet named `dataset` after the result sheets, written as it is (the ONA label row included). `run_analysis_locally()` then reads every column of a dataset file rather than only the ones the analysis uses. The dataset is personal data: a workbook with this sheet must be handled and shared as such. Refused when the dataset exceeds one Excel sheet (1,048,576 rows or 16,384 columns) |
 
-**Route analysis**
+**Route analysis — sheet `route_analysis`**
+
+These keys go in their own sheet, `route_analysis`, with the same two columns as
+`settings` (`setting`, `value`). Each key is accepted only in its own sheet: a route key
+in `settings`, or a `settings` key in `route_analysis`, is a fatal error that names the
+sheet it belongs in. Leaving the sheet out leaves every block off.
 
 These keys are read by `run_route_analysis()`, which `run_analysis_spec()` calls after
 the pipeline when any block is on. They are never passed to the pipeline. The route
@@ -723,7 +729,7 @@ result sheets. It is off by default.
 With any route block on (`transit_country`, `places_stop`, `dangerous_location`), the
 pipeline result carries `route_analysis`, which is passed to the formatter as
 `route_sheet`. Each block that is on gets a sheet of its own, after the result sheets
-and listed in the readme: `transit-countries`, `places-stop`, `dangerous-locations`. A
+and listed in the readme: `Transit Countries`, `Places Stop`, `Dangerous Locations`. A
 sheet runs top to bottom:
 
 1. **The country ranking** — every country, as a share of the respondents who named one:

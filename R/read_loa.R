@@ -228,7 +228,8 @@ loa_known_sheets <- function() {
     "count_combinations",
     "count_exclusive_combinations",
     "exclude_choices",
-    "settings"
+    "settings",
+    "route_analysis"
   )
 }
 
@@ -272,27 +273,36 @@ loa_derived_analysis_types <- function() {
 }
 
 
-#' The `settings` Sheet Allow-List
+#' The Settings Allow-List
 #'
 #' One row per accepted key. `arg` is the `run_group_analysis_pipeline()`
-#' argument it sets; `type` decides the coercion; `values` restricts an enum.
-#' A key absent from this table is a fatal error.
+#' argument it sets; `type` decides the coercion; `values` restricts an enum;
+#' `sheet` is the sheet the key is written in (`settings`, or `route_analysis`
+#' for the route analysis keys). A key absent from this table is a fatal error.
 #'
 #' Defaults deliberately live in the pipeline, not here: a blank or absent
 #' setting is simply not passed, so there is one definition of every default.
 #'
-#' @return A data frame with `setting`, `arg`, `type` and `values`.
+#' @return A data frame with `setting`, `arg`, `type`, `values` and `sheet`.
 #' @export
 loa_settings_schema <- function() {
-  s <- function(setting, type, values = NA_character_, arg = setting) {
+  s <- function(
+    setting,
+    type,
+    values = NA_character_,
+    arg = setting,
+    sheet = "settings"
+  ) {
     data.frame(
       setting = setting,
       arg = arg,
       type = type,
       values = values,
+      sheet = sheet,
       stringsAsFactors = FALSE
     )
   }
+  r <- function(setting, type) s(setting, type, sheet = "route_analysis")
 
   rbind(
     # data and design
@@ -365,14 +375,14 @@ loa_settings_schema <- function() {
     # results workbook - read by the exporter, never passed to the pipeline
     s("include_dataset", "lgl"),
 
-    # route analysis - read by run_route_analysis(), never passed to the
-    # pipeline
-    s("transit_country", "lgl"),
-    s("places_stop", "lgl"),
-    s("dangerous_location", "lgl"),
-    s("route_gender_var", "chr"),
-    s("route_top_countries", "num"),
-    s("route_top_locations", "num")
+    # route analysis - written in the route_analysis sheet, read by
+    # run_route_analysis(), never passed to the pipeline
+    r("transit_country", "lgl"),
+    r("places_stop", "lgl"),
+    r("dangerous_location", "lgl"),
+    r("route_gender_var", "chr"),
+    r("route_top_countries", "num"),
+    r("route_top_locations", "num")
   )
 }
 
@@ -521,16 +531,38 @@ read_loa_workbook <- function(path, filename = NULL) {
 # 3. Settings
 # -----------------------------------------------------------------------------
 
-#' Parse and Type-Check the `settings` Sheet
+#' Read Every Setting a Workbook Supplies
+#'
+#' The `settings` sheet and the `route_analysis` sheet, parsed with
+#' [loa_parse_settings()] and merged into one list. Each key has one sheet,
+#' so the two never overlap.
+#'
+#' @param sheets The workbook's named list of sheets.
+#' @return A list with `settings` and `problems`, as [loa_parse_settings()].
+#' @keywords internal
+loa_read_settings <- function(sheets) {
+  main <- loa_parse_settings(sheets$settings, "settings")
+  route <- loa_parse_settings(sheets$route_analysis, "route_analysis")
+  list(
+    settings = c(main$settings, route$settings),
+    problems = rbind(main$problems, route$problems)
+  )
+}
+
+
+#' Parse and Type-Check a Settings Sheet
 #'
 #' Returns only the settings that were actually supplied, so every unset
-#' argument keeps the pipeline's own default.
+#' argument keeps the pipeline's own default. Reads either the `settings`
+#' sheet or the `route_analysis` sheet; each accepts only its own keys (the
+#' `sheet` column of [loa_settings_schema()]).
 #'
-#' @param sheet The `settings` data frame, or `NULL`.
+#' @param sheet The sheet's data frame, or `NULL`.
+#' @param sheet_name `"settings"` or `"route_analysis"`.
 #' @return A list with `settings` (named list, pipeline argument names) and
 #'   `problems`.
 #' @export
-loa_parse_settings <- function(sheet) {
+loa_parse_settings <- function(sheet, sheet_name = "settings") {
   out <- list(settings = list(), problems = loa_no_problems())
 
   if (is.null(sheet) || nrow(sheet) == 0) {
@@ -540,7 +572,7 @@ loa_parse_settings <- function(sheet) {
   problems <- list()
   add <- function(row, severity, message) {
     problems[[length(problems) + 1]] <<-
-      loa_problem("settings", row, severity, message)
+      loa_problem(sheet_name, row, severity, message)
   }
 
   if (!all(c("setting", "value") %in% names(sheet))) {
@@ -548,7 +580,9 @@ loa_parse_settings <- function(sheet) {
       NA,
       "error",
       paste0(
-        "The settings sheet must have 'setting' and 'value' columns. Found: ",
+        "The ",
+        sheet_name,
+        " sheet must have 'setting' and 'value' columns. Found: ",
         paste(names(sheet), collapse = ", "),
         "."
       )
@@ -557,7 +591,8 @@ loa_parse_settings <- function(sheet) {
     return(out)
   }
 
-  schema <- loa_settings_schema()
+  full_schema <- loa_settings_schema()
+  schema <- full_schema[full_schema$sheet == sheet_name, , drop = FALSE]
   key <- loa_trim(sheet$setting)
   value <- loa_trim(sheet$value)
 
@@ -586,6 +621,23 @@ loa_parse_settings <- function(sheet) {
     }
 
     hit <- match(k, schema$setting)
+    elsewhere <- full_schema$sheet[match(k, full_schema$setting)]
+    if (is.na(hit) && !is.na(elsewhere)) {
+      add(
+        excel_row,
+        "error",
+        paste0(
+          "'",
+          k,
+          "' belongs in the ",
+          elsewhere,
+          " sheet, not the ",
+          sheet_name,
+          " sheet. Move the row there."
+        )
+      )
+      next
+    }
     if (is.na(hit)) {
       near <- schema$setting[
         startsWith(schema$setting, substr(k, 1, 6)) |
@@ -1406,7 +1458,7 @@ validate_loa <- function(workbook, dataset = NULL) {
   }
 
   # --- 1. Settings first: later checks need sm_separator ---------------------
-  parsed <- loa_parse_settings(sheets$settings)
+  parsed <- loa_read_settings(sheets)
   add(parsed$problems)
 
   sm_separator <- parsed$settings$sm_separator %||% "/"
@@ -2139,7 +2191,7 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
   sheets <- wb$sheets
 
   problems <- validate_loa(wb, dataset)
-  parsed <- loa_parse_settings(sheets$settings)
+  parsed <- loa_read_settings(sheets)
   sm_separator <- parsed$settings$sm_separator %||% "/"
 
   rename_map <- loa_rename_map(

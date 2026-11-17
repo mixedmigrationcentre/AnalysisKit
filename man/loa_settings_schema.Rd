@@ -2,17 +2,18 @@
 % Please edit documentation in R/read_loa.R
 \name{loa_settings_schema}
 \alias{loa_settings_schema}
-\title{The \code{settings} Sheet Allow-List}
+\title{The Settings Allow-List}
 \usage{
 loa_settings_schema()
 }
 \value{
-A data frame with \code{setting}, \code{arg}, \code{type} and \code{values}.
+A data frame with \code{setting}, \code{arg}, \code{type}, \code{values} and \code{sheet}.
 }
 \description{
 One row per accepted key. \code{arg} is the \code{run_group_analysis_pipeline()}
-argument it sets; \code{type} decides the coercion; \code{values} restricts an enum.
-A key absent from this table is a fatal error.
+argument it sets; \code{type} decides the coercion; \code{values} restricts an enum;
+\code{sheet} is the sheet the key is written in (\code{settings}, or \code{route_analysis}
+for the route analysis keys). A key absent from this table is a fatal error.
 }
 \details{
 Defaults deliberately live in the pipeline, not here: a blank or absent

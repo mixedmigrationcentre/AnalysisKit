@@ -70,13 +70,13 @@ checks$spec$settings$full_sample_base <- FALSE
 
 # >>> NEW: route analysis -------------------------------------------------- >>>
 # Each block set to TRUE gets a sheet of its own; no analysis rows needed.
-# Overrides the settings sheet. Details: loa-schema.md, "Route analysis".
+# Overrides the route_analysis sheet. Details: loa-schema.md, "Route analysis".
 checks$spec$settings <- utils::modifyList(
   checks$spec$settings,
   list(
-    transit_country = FALSE, # Q47-Q54, Q72, QN8 -> transit-countries
-    places_stop = FALSE, # Q56-Q70 -> places-stop
-    dangerous_location = FALSE, # Q98-Q117 -> dangerous-locations
+    transit_country = FALSE, # Q47-Q54, Q72, QN8 -> Transit Countries
+    places_stop = FALSE, # Q56-Q70 -> Places Stop
+    dangerous_location = FALSE, # Q98-Q117 -> Dangerous Locations
     route_gender_var = "Q27", # breakdown per table, with disaggregation_variables
     route_top_countries = 10, # countries shown as columns, most named first
     route_top_locations = 4 # places per country shown as columns
@@ -107,8 +107,8 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 #
 # ONE CALL INSTEAD OF 4-6, if you would rather not see the stages. It also
 #   keeps a run log, times the run, recovers the results if only the save
-#   fails, and prints the caveat below. It reads full_sample_base and the
-#   route analysis settings from the settings sheet:
+#   fails, and prints the caveat below. It reads every setting from the
+#   settings and route_analysis sheets:
 #     run <- run_analysis_locally(dataset, loa, output_folder = "output")
 #
 # ROW 1 IS THE LABEL ROW. An ONA export puts question text there and the
@@ -130,7 +130,7 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 #   row with full_sample_label. Say in the publication which base you used.
 #
 # [NEW] READ WITH loa = ? read_analysis_dataset(path, loa = loa) reads only the
-#   columns the workbook uses, so turn route blocks on in the settings sheet.
+#   columns the workbook uses, so turn route blocks on in route_analysis.
 #
 # THE TWO COMBINATION BLOCKS SPLIT ONE BASE. count_combinations reports the
 #   respondents who selected more than one choice, count_exclusive_combinations

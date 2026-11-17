@@ -88,7 +88,10 @@ test_that("a fully populated workbook binds to the pipeline's real signature", {
   # Every allow-listed setting at once: if any of them assembles into an
   # argument run_group_analysis_pipeline() does not accept, do.call() fails
   # here with "unused argument" rather than in front of a user.
+  # The settings sheet only: the route_analysis keys turn on a separate
+  # analysis, tested in test-route_analysis.R.
   schema <- loa_settings_schema()
+  schema <- schema[schema$sheet == "settings", , drop = FALSE]
 
   value_for <- function(setting, type, values) {
     switch(

@@ -187,7 +187,7 @@ sheet names.}
 
 \item{route_sheet}{Optional data frame from \code{\link[=run_route_analysis]{run_route_analysis()}}. When
 given, each route block in it is written to a sheet of its own after the
-result sheets: \code{transit-countries}, \code{places-stop}, \code{dangerous-locations}.}
+result sheets: \verb{Transit Countries}, \verb{Places Stop}, \verb{Dangerous Locations}.}
 
 \item{verbose}{Logical, print progress messages.}
 }

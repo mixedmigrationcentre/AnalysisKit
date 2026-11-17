@@ -2,12 +2,14 @@
 % Please edit documentation in R/read_loa.R
 \name{loa_parse_settings}
 \alias{loa_parse_settings}
-\title{Parse and Type-Check the \code{settings} Sheet}
+\title{Parse and Type-Check a Settings Sheet}
 \usage{
-loa_parse_settings(sheet)
+loa_parse_settings(sheet, sheet_name = "settings")
 }
 \arguments{
-\item{sheet}{The \code{settings} data frame, or \code{NULL}.}
+\item{sheet}{The sheet's data frame, or \code{NULL}.}
+
+\item{sheet_name}{\code{"settings"} or \code{"route_analysis"}.}
 }
 \value{
 A list with \code{settings} (named list, pipeline argument names) and
@@ -15,5 +17,7 @@ A list with \code{settings} (named list, pipeline argument names) and
 }
 \description{
 Returns only the settings that were actually supplied, so every unset
-argument keeps the pipeline's own default.
+argument keeps the pipeline's own default. Reads either the \code{settings}
+sheet or the \code{route_analysis} sheet; each accepts only its own keys (the
+\code{sheet} column of \code{\link[=loa_settings_schema]{loa_settings_schema()}}).
 }
