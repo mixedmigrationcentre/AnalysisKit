@@ -32,8 +32,9 @@ A list with `sheets` (named list of data frames), `format`, `filename`,
 
 Configuration sheets are read as text so their types are decided by this
 file rather than by whatever readxl guessed from the first few rows. The
-`analysis` sheet keeps its guessed types, so a numeric `level` column
-stays numeric.
+`analysis_variables` sheet keeps its guessed types, so a numeric `level`
+column stays numeric.
 
-A `.csv` upload carries no sheets: it is read as the `analysis` table
-alone, and `format` is `"CSV"` so the caller can say so.
+A `.csv` upload carries no sheets: it is read as the
+`analysis_variables` table alone, and `format` is `"CSV"` so the caller
+can say so.

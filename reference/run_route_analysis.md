@@ -51,11 +51,14 @@ or none could run.
 ## Details
 
 For each block the result has an overall section, then one section per
-country (most respondents first) and, for stops and dangerous locations,
-one per place within the country (the `route_top_locations` places with
-the most respondents). Every table is repeated for the gender variable
-(`route_gender_var`, default `Q27`) and for every grouping variable of
-the `group_analysis` sheet.
+country for the `route_top_countries` countries with the most
+respondents (default 10; 0 for all) and, for stops and dangerous
+locations, one per place within the country (the `route_top_locations`
+places with the most respondents, default 4). The overall section, which
+also ranks every country, is disaggregated by the gender variable
+(`route_gender_var`, default `Q27`) and by every grouping variable of
+the `disaggregation_variables` sheet; the country and place sections are
+not.
 
 Percentages are of respondents. A respondent counts once per country or
 place however many slots name it, and a choice counts as selected there

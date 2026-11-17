@@ -13,7 +13,8 @@ ck_route_block(
   weight_column,
   sm_separator,
   top_n,
-  label_row
+  label_row,
+  top_countries = 0
 )
 ```
 
@@ -51,6 +52,11 @@ ck_route_block(
 - label_row:
 
   The ONA label row, or `NULL`.
+
+- top_countries:
+
+  Countries that get a section of their own, most respondents first; `0`
+  for all.
 
 ## Value
 

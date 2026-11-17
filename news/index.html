@@ -29,7 +29,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.11.1/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
@@ -44,7 +44,7 @@
 <code>places_stop</code>: places stopped (Q56–Q70) and why.</li>
 <li>
 <code>dangerous_location</code>: most dangerous locations (Q98–Q117), with incidents and perpetrators (experienced incidents only).</li>
-</ul><p>Each block that is turned on gets a sheet of its own in the results workbook: <code>transit-countries</code>, <code>places-stop</code> and <code>dangerous-locations</code>. A sheet shows the overall picture, then each country with the most respondents first, each followed by its top places (<code>route_top_locations</code>, default 4). Every table is disaggregated by gender (<code>route_gender_var</code>, default <code>Q27</code>) and by every <code>group_analysis</code> variable, directly beneath it. Percentages are of respondents: a respondent counts once per country or place, however many slots name it. The question names are fixed, so no <code>analysis</code> rows are needed; the slots are reshaped in memory and never saved. The new <code><a href="../reference/run_route_analysis.html">run_route_analysis()</a></code> runs the same analysis from a script.</p>
+</ul><p>Each block that is turned on gets a sheet of its own in the results workbook: <code>transit-countries</code>, <code>places-stop</code> and <code>dangerous-locations</code>. A sheet opens with the ranking of every country, then has one wide table per follow-up question: <code>Overall</code>, then each country with the most respondents first (<code>route_top_countries</code>, default 10; 0 for all), each followed by its top places (<code>route_top_locations</code>, default 4), as columns, with the same table in counts alongside. Beneath each, the question is disaggregated by gender (<code>route_gender_var</code>, default <code>Q27</code>) and by every <code>disaggregation_variables</code> variable. Percentages are of respondents: a respondent counts once per country or place, however many slots name it. The question names are fixed, so no <code>analysis_variables</code> rows are needed; the slots are reshaped in memory and never saved. The new <code><a href="../reference/run_route_analysis.html">run_route_analysis()</a></code> runs the same analysis from a script.</p>
 </li>
 <li><p><strong><code>include_dataset</code>.</strong> A new setting that adds the dataset the analysis was run on to the results workbook, as a <code>dataset</code> sheet. Off by default; the dataset is personal data, so a workbook with this sheet must be handled as such.</p></li>
 <li><p><strong><code>full_sample_base</code> and <code>full_sample_label</code>.</strong> New settings that keep respondents who were not asked a question (for example, skipped by skip logic) in the denominator, so proportions are out of the full sample or group. The not-asked share is reported as its own row, <code>Not asked / no response</code> by default.</p></li>
@@ -53,6 +53,11 @@
 <h3 id="performance-2026-11-1">Performance<a class="anchor" aria-label="anchor" href="#performance-2026-11-1"></a></h3>
 <ul><li>Under <code>engine = "auto"</code>, rows with a <code>level</code> whose confidence interval is not reported in <code>value_columns</code> now run on the fast engine, laid out exactly as the survey engine would have laid them out. Medians and ratios with a <code>level</code> stay on the survey engine.</li>
 <li>A dataset read from a file with a List of Analysis now reads only the columns the analysis uses.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="breaking-changes-2026-11-1">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-2026-11-1"></a></h3>
+<ul><li>Two List of Analysis sheets are renamed: <code>analysis</code> is now <code>analysis_variables</code>, and <code>group_analysis</code> is now <code>disaggregation_variables</code>. Workbooks using the former names still read as before; one carrying both names for the same sheet is an error. Messages and the sheet summary use the new names, and the reader’s <code>sheets</code> list is keyed by them.</li>
+<li>The template no longer ships an <code>exclude_choices</code> sheet. The feature is unchanged: add the sheet when a run needs it.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="minor-changes-2026-11-1">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-2026-11-1"></a></h3>

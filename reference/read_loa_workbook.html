@@ -35,7 +35,7 @@ problem."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Read a List of Analysis Workbook</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.11.1/R/read_loa.R" class="external-link"><code>R/read_loa.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/read_loa.R" class="external-link"><code>R/read_loa.R</code></a></small>
       <div class="d-none name"><code>read_loa_workbook.Rd</code></div>
     </div>
 
@@ -74,9 +74,9 @@ and <code>ignored_sheets</code>.</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Configuration sheets are read as text so their types are decided by this
 file rather than by whatever <span class="pkg">readxl</span> guessed from the first few rows.
-The <code>analysis</code> sheet keeps its guessed types, so a numeric <code>level</code> column
+The <code>analysis_variables</code> sheet keeps its guessed types, so a numeric <code>level</code> column
 stays numeric.</p>
-<p>A <code>.csv</code> upload carries no sheets: it is read as the <code>analysis</code> table alone,
+<p>A <code>.csv</code> upload carries no sheets: it is read as the <code>analysis_variables</code> table alone,
 and <code>format</code> is <code>"CSV"</code> so the caller can say so.</p>
     </div>
 

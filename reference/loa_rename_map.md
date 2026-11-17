@@ -1,6 +1,6 @@
-# Build the Rename Map from the `group_analysis` Sheet
+# Build the Rename Map from the `disaggregation_variables` Sheet
 
-Build the Rename Map from the `group_analysis` Sheet
+Build the Rename Map from the `disaggregation_variables` Sheet
 
 ## Usage
 
@@ -12,7 +12,7 @@ loa_rename_map(sheet, dataset = NULL, sm_separator = "/")
 
 - sheet:
 
-  The `group_analysis` data frame, or `NULL`.
+  The `disaggregation_variables` data frame, or `NULL`.
 
 - dataset:
 

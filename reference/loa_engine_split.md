@@ -1,8 +1,8 @@
 # Which Estimation Engine Each Analysis Will Use
 
-The `level` cell of the `analysis` sheet is the largest performance
-decision in the application, and it is made in the workbook rather than
-in the code. A row with a level goes to
+The `level` cell of the `analysis_variables` sheet is the largest
+performance decision in the application, and it is made in the workbook
+rather than in the code. A row with a level goes to
 `analysistools::create_analysis()`, which builds a survey design and
 re-subsets it once per level of the grouping variable; a row without one
 goes to the fast tabulation engine, whose cost does not grow with the

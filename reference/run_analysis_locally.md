@@ -28,8 +28,8 @@ print(x, ...)
 
   A List of Analysis path, or the list from
   [`read_loa_workbook()`](https://mixedmigrationcentre.github.io/analysiskit/reference/read_loa_workbook.md).
-  A `.csv` carries no sheets and is read as the `analysis` table alone,
-  so a configured run needs `.xlsx`.
+  A `.csv` carries no sheets and is read as the `analysis_variables`
+  table alone, so a configured run needs `.xlsx`.
 
 - output_folder:
 

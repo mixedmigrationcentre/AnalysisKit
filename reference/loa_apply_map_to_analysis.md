@@ -12,7 +12,7 @@ loa_apply_map_to_analysis(analysis, map)
 
 - analysis:
 
-  The `analysis` data frame.
+  The `analysis_variables` data frame.
 
 - map:
 

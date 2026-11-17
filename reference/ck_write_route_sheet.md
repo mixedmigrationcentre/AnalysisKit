@@ -1,11 +1,6 @@
 # Write a Route Analysis Sheet
 
-Writes the rows it is given to one sheet, top to bottom: a band per
-block (the formatter passes one block per sheet), then its sections in
-order - overall, each country (most respondents first) and, under each
-country, its top places. Each section lists its tables; each table is
-followed directly by its disaggregations, one per grouping variable,
-with the groups side by side (percentages first, then counts).
+One block per sheet, laid out as MMC's route tables:
 
 ## Usage
 
@@ -25,8 +20,9 @@ ck_write_route_sheet(wb, sheet, route, pal, font_name, pct_fmt = "0%")
 
 - route:
 
-  The data frame from
-  [`run_route_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.md).
+  The rows of
+  [`run_route_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.md)
+  for one block.
 
 - pal:
 
@@ -43,3 +39,16 @@ ck_write_route_sheet(wb, sheet, route, pal, font_name, pct_fmt = "0%")
 ## Value
 
 `NULL`, invisibly. Called for its effect on `wb`.
+
+## Details
+
+1.  The country ranking: every country, as a share of respondents,
+    overall and by each disaggregation.
+
+2.  For each follow-up question, a wide table: `Overall`, then each
+    country (most respondents first) followed by its top places, as
+    columns; then, two rows below, the same question overall and by each
+    disaggregation.
+
+Every table is a percentage panel and, one column to the right, the same
+table in counts.

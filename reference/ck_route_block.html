@@ -29,7 +29,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Analyse One Route Block</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/2026.11.1/R/route_analysis.R" class="external-link"><code>R/route_analysis.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mixedmigrationcentre/analysiskit/blob/main/R/route_analysis.R" class="external-link"><code>R/route_analysis.R</code></a></small>
       <div class="d-none name"><code>ck_route_block.Rd</code></div>
     </div>
 
@@ -47,7 +47,8 @@
 <span>  <span class="va">weight_column</span>,</span>
 <span>  <span class="va">sm_separator</span>,</span>
 <span>  <span class="va">top_n</span>,</span>
-<span>  <span class="va">label_row</span></span>
+<span>  <span class="va">label_row</span>,</span>
+<span>  top_countries <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -85,6 +86,11 @@
 
 <dt id="arg-label-row">label_row<a class="anchor" aria-label="anchor" href="#arg-label-row"></a></dt>
 <dd><p>The ONA label row, or <code>NULL</code>.</p></dd>
+
+
+<dt id="arg-top-countries">top_countries<a class="anchor" aria-label="anchor" href="#arg-top-countries"></a></dt>
+<dd><p>Countries that get a section of their own, most
+respondents first; <code>0</code> for all.</p></dd>
 
 </dl></div>
     <div class="section level2">
