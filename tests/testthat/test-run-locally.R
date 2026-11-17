@@ -39,13 +39,13 @@ run_dataset <- function(n = 40) {
 
 run_loa_sheets <- function(...) {
   sheets <- list(
-    analysis = data.frame(
+    analysis_variables = data.frame(
       analysis_type = c("prop_select_one", "prop_select_multiple", "mean"),
       analysis_var = c("Q27", "Q78", "Q29"),
       sector = c("Demographics", "Drivers", "Demographics"),
       stringsAsFactors = FALSE
     ),
-    group_analysis = data.frame(
+    disaggregation_variables = data.frame(
       raw_data_name = "Q42",
       new_name = "Interview_Location",
       stringsAsFactors = FALSE
@@ -148,7 +148,7 @@ test_that("the readiness report says when rows will take the survey engine", {
   # Under "auto" a level whose interval is not reported is tabulated, as it is
   # in the pipeline, so there is still nothing to say.
   sheets <- run_loa_sheets()
-  sheets$analysis$level <- c(0.95, NA, NA)
+  sheets$analysis_variables$level <- c(0.95, NA, NA)
   sheets$settings$value[sheets$settings$setting == "engine"] <- "auto"
 
   unseen <- check_analysis_inputs(run_dataset(), sheets)
@@ -170,7 +170,7 @@ test_that("a fatal workbook is described rather than thrown", {
   # Interview and Interview_Location: one name contained in the other, so the
   # column map would attribute the wrong columns to the wrong disaggregation.
   files <- write_run_files(run_loa_sheets(
-    group_analysis = data.frame(
+    disaggregation_variables = data.frame(
       raw_data_name = c("Q42", "Q27"),
       new_name = c("Interview", "Interview_Location"),
       stringsAsFactors = FALSE
@@ -253,7 +253,7 @@ test_that("output_folder = NULL runs the analysis and writes nothing", {
 test_that("a fatal workbook stops before any work and names every problem", {
   skip_if_no_xlsx()
   files <- write_run_files(run_loa_sheets(
-    analysis = data.frame(
+    analysis_variables = data.frame(
       analysis_type = "nonsense", analysis_var = "Q27",
       stringsAsFactors = FALSE
     )
@@ -376,7 +376,7 @@ test_that("the template ships with the package and refuses to clobber", {
   expect_silent(suppressMessages(copy_loa_template(dir, overwrite = TRUE)))
 
   skip_if_not_installed("readxl")
-  expect_true("analysis" %in% loa_normalise_sheet_name(readxl::excel_sheets(path)))
+  expect_true("analysis_variables" %in% loa_normalise_sheet_name(readxl::excel_sheets(path)))
 })
 
 test_that("the schema document ships with the package", {

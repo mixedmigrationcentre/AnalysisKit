@@ -38,14 +38,14 @@ fixture_dataset <- function(n = 6) {
 
 fixture_sheets <- function(...) {
   sheets <- list(
-    analysis = data.frame(
+    analysis_variables = data.frame(
       analysis_type = c("prop_select_one", "prop_select_multiple", "mean"),
       analysis_var = c("Q27", "Q78", "Q29"),
       level = c(NA_real_, NA_real_, NA_real_),
       sector = c("Demographics", "Drivers", "Demographics"),
       stringsAsFactors = FALSE
     ),
-    group_analysis = data.frame(
+    disaggregation_variables = data.frame(
       raw_data_name = c("Q27", "Q31"),
       new_name = c("Respondent_Gender", "Travelling_with_children"),
       stringsAsFactors = FALSE

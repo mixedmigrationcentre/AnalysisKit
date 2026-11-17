@@ -17,7 +17,7 @@ read, which is what makes a wide export quick to load; the results do not
 depend on it.}
 
 \item{loa}{A List of Analysis path, or the list from \code{\link[=read_loa_workbook]{read_loa_workbook()}}.
-A \code{.csv} carries no sheets and is read as the \code{analysis} table alone, so a
+A \code{.csv} carries no sheets and is read as the \code{analysis_variables} table alone, so a
 configured run needs \code{.xlsx}.}
 
 \item{output_folder}{Folder to write the results workbook into. It must

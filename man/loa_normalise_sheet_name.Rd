@@ -14,6 +14,9 @@ A character vector.
 }
 \description{
 Lower case, trimmed, with spaces and hyphens collapsed to underscores, so
-\code{"Group Analysis"} and \code{"group-analysis"} both resolve to \code{group_analysis}.
+\code{"Disaggregation Variables"} and \code{"disaggregation-variables"} both resolve
+to \code{disaggregation_variables}. The sheets' former names, \code{analysis} and
+\code{group_analysis}, resolve to their current ones (see
+\code{\link[=loa_sheet_aliases]{loa_sheet_aliases()}}), so a workbook made before the rename still reads.
 }
 \keyword{internal}

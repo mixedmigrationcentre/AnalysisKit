@@ -99,6 +99,7 @@ loa_route_settings <- function() {
   c(
     names(ck_route_blocks()),
     "route_gender_var",
+    "route_top_countries",
     "route_top_locations"
   )
 }
@@ -138,11 +139,13 @@ ck_route_columns <- function(blocks) {
 #' settings; [run_analysis_spec()] calls this when any of them is `TRUE`.
 #'
 #' For each block the result has an overall section, then one section per
-#' country (most respondents first) and, for stops and dangerous locations,
-#' one per place within the country (the `route_top_locations` places with the
-#' most respondents). Every table is repeated for the gender variable
-#' (`route_gender_var`, default `Q27`) and for every grouping variable of the
-#' `group_analysis` sheet.
+#' country for the `route_top_countries` countries with the most respondents
+#' (default 10; 0 for all) and, for stops and dangerous locations, one per
+#' place within the country (the `route_top_locations` places with the most
+#' respondents, default 4). The overall section, which also ranks every
+#' country, is disaggregated by the gender variable (`route_gender_var`,
+#' default `Q27`) and by every grouping variable of the `disaggregation_variables`
+#' sheet; the country and place sections are not.
 #'
 #' Percentages are of respondents. A respondent counts once per country or
 #' place however many slots name it, and a choice counts as selected there if
@@ -192,6 +195,18 @@ run_route_analysis <- function(
       call. = FALSE
     )
   }
+  top_countries <- settings$route_top_countries %||% 10
+  if (
+    length(top_countries) != 1 ||
+      is.na(top_countries) ||
+      top_countries < 0 ||
+      top_countries != round(top_countries)
+  ) {
+    stop(
+      "route_top_countries must be a whole number: 0 for every country, or how many to show.",
+      call. = FALSE
+    )
+  }
 
   split <- ck_split_label_row(
     as.data.frame(dataset, stringsAsFactors = FALSE),
@@ -201,7 +216,7 @@ run_route_analysis <- function(
   label_row <- split$label_row
   rownames(data) <- NULL
 
-  # Grouping variables use the names the group_analysis sheet gave them.
+  # Grouping variables use the names the disaggregation_variables sheet gave them.
   rename_map <- spec$rename_map %||% character(0)
   data <- apply_rename_map(data, rename_map, sm_separator)
   if (!is.null(label_row)) {
@@ -242,7 +257,8 @@ run_route_analysis <- function(
       weight_column = weight_column,
       sm_separator = sm_separator,
       top_n = top_n,
-      label_row = label_row
+      label_row = label_row,
+      top_countries = top_countries
     )
     if (!is.null(res)) {
       ck_note(
@@ -459,6 +475,8 @@ ck_route_rank <- function(id, unit, value, variable, w, groups) {
 #' @param weight_column Weights column, or `NULL`.
 #' @param sm_separator The select_multiple separator.
 #' @param top_n Places per country that get a section of their own.
+#' @param top_countries Countries that get a section of their own, most
+#'   respondents first; `0` for all.
 #' @param label_row The ONA label row, or `NULL`.
 #' @return The block's rows of the [run_route_analysis()] result, or `NULL`.
 #' @keywords internal
@@ -470,7 +488,8 @@ ck_route_block <- function(
   weight_column,
   sm_separator,
   top_n,
-  label_row
+  label_row,
+  top_countries = 0
 ) {
   slots <- def$slots
   has_location <- "location" %in% names(slots)
@@ -639,7 +658,16 @@ ck_route_block <- function(
     fu_labels
   )
 
-  # Rankings first, so each section opens with them.
+  # Countries by respondents naming them, places by respondents naming them
+  # within the country; ties alphabetically.
+  rank_tab <- function(res, var) {
+    r <- res[res$variable == var & is.na(res$group_var), , drop = FALSE]
+    r <- r[order(-r$n, r$choice), , drop = FALSE]
+    r[r$n > 0, , drop = FALSE]
+  }
+
+  # The overall picture is the one disaggregated; countries and places are
+  # the columns of the wide tables, analysed only for the top countries.
   overall <- dplyr::bind_rows(
     ck_route_rank(
       id,
@@ -651,27 +679,34 @@ ck_route_block <- function(
     ),
     ck_route_analyse(resp_tab, w, groups, sm_separator)
   )
+  countries <- rank_tab(overall, "route_country")
+  if (top_countries > 0) {
+    countries <- utils::head(countries, top_countries)
+  }
+  unit_n_overall <- sum(answered)
+
+  shown <- country %in% countries$choice
+  rc_tab <- ck_route_subset(rc_tab, rc_tab$unit %in% countries$choice)
   by_country <- dplyr::bind_rows(
     if (has_location) {
-      ck_route_rank(id, country, location, "route_location", w, groups)
+      ck_route_rank(
+        id[shown],
+        country[shown],
+        location[shown],
+        "route_location",
+        w,
+        list()
+      )
     },
-    ck_route_analyse(rc_tab, w, groups, sm_separator)
+    ck_route_analyse(rc_tab, w, list(), sm_separator)
   )
   by_place <- if (!is.null(rl_tab)) {
-    ck_route_analyse(rl_tab, w, groups, sm_separator)
+    rl_country <- sub("\u001f.*$", "", rl_tab$unit)
+    rl_tab <- ck_route_subset(rl_tab, rl_country %in% countries$choice)
+    ck_route_analyse(rl_tab, w, list(), sm_separator)
   }
 
   # --- 5. Order the sections -----------------------------------------------------
-  # Countries by respondents naming them, places by respondents naming them
-  # within the country; ties alphabetically.
-  rank_tab <- function(res, var) {
-    r <- res[res$variable == var & is.na(res$group_var), , drop = FALSE]
-    r <- r[order(-r$n, r$choice), , drop = FALSE]
-    r[r$n > 0, , drop = FALSE]
-  }
-
-  countries <- rank_tab(overall, "route_country")
-  unit_n_overall <- sum(answered)
 
   sections <- list(
     ck_route_section(
@@ -767,6 +802,21 @@ ck_route_question_label <- function(q, label_row, fallback = NULL) {
     }
   }
   fallback %||% q
+}
+
+
+#' Keep Some Rows of a Collapsed Route Table
+#'
+#' @param tab A list with `id`, `unit` and `vars`, as for [ck_route_analyse()].
+#' @param keep Logical, one element per row.
+#' @return `tab` with only the kept rows.
+#' @keywords internal
+ck_route_subset <- function(tab, keep) {
+  list(
+    id = tab$id[keep],
+    unit = tab$unit[keep],
+    vars = lapply(tab$vars, function(m) m[keep, , drop = FALSE])
+  )
 }
 
 
@@ -970,16 +1020,20 @@ ck_route_section <- function(res, level, country, location, unit_n) {
 
 #' Write a Route Analysis Sheet
 #'
-#' Writes the rows it is given to one sheet, top to bottom: a band per block
-#' (the formatter passes one block per sheet), then its sections in order -
-#' overall, each country (most respondents first) and, under each country, its
-#' top places. Each section lists its tables; each table is followed directly
-#' by its disaggregations, one per grouping variable, with the groups side by
-#' side (percentages first, then counts).
+#' One block per sheet, laid out as MMC's route tables:
+#'
+#' 1. The country ranking: every country, as a share of respondents, overall
+#'    and by each disaggregation.
+#' 2. For each follow-up question, a wide table: `Overall`, then each country
+#'    (most respondents first) followed by its top places, as columns; then,
+#'    two rows below, the same question overall and by each disaggregation.
+#'
+#' Every table is a percentage panel and, one column to the right, the same
+#' table in counts.
 #'
 #' @param wb An `openxlsx` workbook.
 #' @param sheet Sheet name.
-#' @param route The data frame from [run_route_analysis()].
+#' @param route The rows of [run_route_analysis()] for one block.
 #' @param pal The MMC palette.
 #' @param font_name Font used throughout.
 #' @param pct_fmt Excel number format for percentages.
@@ -994,6 +1048,7 @@ ck_write_route_sheet <- function(
   pct_fmt = "0%"
 ) {
   route <- as.data.frame(route, stringsAsFactors = FALSE)
+  def <- ck_route_blocks()[[route$block[1]]]
   openxlsx::addWorksheet(
     wb,
     sheetName = sheet,
@@ -1001,18 +1056,7 @@ ck_write_route_sheet <- function(
     gridLines = FALSE
   )
 
-  dis <- route[!is.na(route$group_var), , drop = FALSE]
-  k_max <- if (nrow(dis) > 0) {
-    max(tapply(
-      dis$group_var_value,
-      paste(dis$block, dis$section, dis$variable, dis$group_var),
-      function(v) length(unique(v))
-    ))
-  } else {
-    1L
-  }
-  n_cols <- max(4L, 1L + 2L * as.integer(k_max))
-
+  # --- styles ------------------------------------------------------------------
   sg <- ck_new_style_grid()
   base <- function(...) {
     ck_style(
@@ -1023,175 +1067,406 @@ ck_write_route_sheet <- function(
       ...
     )
   }
-  head_args <- list(
-    fgFill = pal[["pale_blue"]],
-    textDecoration = "bold",
-    border = "Bottom",
-    borderColour = pal[["navy"]],
-    wrapText = TRUE,
-    valign = "center"
-  )
+  head_style <- function(fill = NULL, bold = TRUE, halign = "center") {
+    args <- list(
+      textDecoration = if (bold) "bold" else NULL,
+      halign = halign,
+      valign = "center",
+      wrapText = TRUE,
+      border = "Bottom",
+      borderColour = pal[["navy"]]
+    )
+    if (!is.null(fill)) {
+      args$fgFill <- fill
+    }
+    do.call(base, args[!vapply(args, is.null, logical(1))])
+  }
   st <- list(
+    sheet_title = ck_style(
+      sg,
+      fontName = font_name,
+      fontSize = 13,
+      fontColour = pal[["navy"]],
+      textDecoration = "bold"
+    ),
     note = base(textDecoration = "italic"),
-    block = ck_band_style(sg, pal, font_name, 13, pal[["navy"]], "left"),
-    unit = ck_band_style(sg, pal, font_name, 11, pal[["teal"]], "left"),
-    place = base(fgFill = pal[["light_blue"]], textDecoration = "bold"),
-    title = base(textDecoration = "bold"),
-    sub = base(textDecoration = "italic"),
-    head_left = do.call(base, head_args),
-    head = do.call(base, c(head_args, list(halign = "center"))),
+    title = ck_style(
+      sg,
+      fontName = font_name,
+      fontSize = 11,
+      fontColour = pal[["navy"]],
+      textDecoration = "bold"
+    ),
+    panel = base(textDecoration = "bold"),
+    band = base(halign = "center"),
+    head_cat = head_style(pal[["pale_blue"]], halign = "left"),
+    head_overall = head_style(pal[["pale_blue"]]),
+    head_country = head_style(pal[["light_blue"]]),
+    head_place = head_style(bold = FALSE),
+    head_group = head_style(pal[["pale_blue"]]),
     label = base(),
     pct = base(numFmt = pct_fmt, halign = "center"),
     num = base(numFmt = "0", halign = "center")
   )
 
-  put_row <- function(values, r) {
+  put <- function(values, r, c) {
     openxlsx::writeData(
       wb,
       sheet,
       x = matrix(values, nrow = 1),
       startRow = r,
-      startCol = 1L,
+      startCol = c,
       colNames = FALSE
     )
   }
-  put_table <- function(df, r) {
-    openxlsx::writeData(
-      wb,
-      sheet,
-      x = df,
-      startRow = r,
-      startCol = 1L,
-      colNames = FALSE
+  max_col <- 1L
+  header_rows <- integer(0)
+
+  # --- one table: a % panel, a gap column, the same in counts -----------------
+  # `columns` has one row per value column: key, header, band, band_id and
+  # kind (overall, country, place, group). `cells` has key, choice, stat, n and
+  # n_total for every cell there is. Returns the next free row.
+  write_table <- function(r, columns, cells, choices) {
+    k <- nrow(columns)
+    bases <- vapply(
+      columns$key,
+      function(key) {
+        b <- cells$n_total[cells$key == key]
+        if (length(b) == 0) 0 else max(b, na.rm = TRUE)
+      },
+      numeric(1)
     )
+    headers <- paste0(columns$header, " (n=", bases, ")")
+    idx <- match(
+      paste(
+        rep(choices, times = k),
+        rep(columns$key, each = length(choices)),
+        sep = "\u001f"
+      ),
+      paste(cells$choice, cells$key, sep = "\u001f")
+    )
+    pct <- matrix(cells$stat[idx], nrow = length(choices))
+    cnt <- matrix(cells$n[idx], nrow = length(choices))
+    # No row for an answer in a column that has respondents: nobody gave it.
+    # No respondents at all: left blank.
+    has_base <- matrix(rep(bases > 0, each = length(choices)), ncol = k)
+    pct[is.na(pct) & has_base] <- 0
+    cnt[is.na(cnt) & has_base] <- 0
+
+    starts <- c(1L, k + 3L)
+    labels <- c("% of respondents", "Number of respondents")
+    for (p in 1:2) {
+      c0 <- starts[p]
+      vcols <- c0 + seq_len(k)
+      put(labels[p], r, c0 + 1L)
+      ck_add_rect(sg, st$panel, r, c0 + 1L)
+
+      runs <- rle(columns$band_id)
+      ends <- cumsum(runs$lengths)
+      firsts <- ends - runs$lengths + 1L
+      for (j in seq_along(firsts)) {
+        put(columns$band[firsts[j]], r + 1L, vcols[firsts[j]])
+        if (runs$lengths[j] > 1) {
+          openxlsx::mergeCells(
+            wb,
+            sheet,
+            cols = vcols[firsts[j]:ends[j]],
+            rows = r + 1L
+          )
+        }
+      }
+      ck_add_rect(sg, st$band, r + 1L, vcols)
+
+      put(c("Category", headers), r + 2L, c0)
+      ck_add_rect(sg, st$head_cat, r + 2L, c0)
+      for (kind in unique(columns$kind)) {
+        ck_add_rect(
+          sg,
+          st[[paste0("head_", kind)]],
+          r + 2L,
+          vcols[columns$kind == kind]
+        )
+      }
+
+      body <- data.frame(choice = choices, stringsAsFactors = FALSE)
+      vals <- if (p == 1) pct else cnt
+      for (j in seq_len(k)) {
+        body[[paste0("v", j)]] <- vals[, j]
+      }
+      openxlsx::writeData(
+        wb,
+        sheet,
+        x = body,
+        startRow = r + 3L,
+        startCol = c0,
+        colNames = FALSE
+      )
+      rows <- r + 2L + seq_along(choices)
+      ck_add_rect(sg, st$label, rows, c0)
+      ck_add_rect(sg, if (p == 1) st$pct else st$num, rows, vcols)
+    }
+    header_rows <<- c(header_rows, r + 2L)
+    max_col <<- max(max_col, 2L * k + 3L)
+    r + 3L + length(choices)
   }
 
+  # Answers in one order for every table of a question: the overall
+  # percentage, largest first, then anything only seen in a country or place.
+  choice_order <- function(cells, overall_key = "overall") {
+    main <- cells[cells$key == overall_key, , drop = FALSE]
+    main <- main[order(-main$stat, -main$n, main$choice), , drop = FALSE]
+    c(main$choice, sort(setdiff(unique(cells$choice), main$choice)))
+  }
+
+  overall <- route[route$level == "overall", , drop = FALSE]
+  group_vars <- unique(stats::na.omit(overall$group_var))
+  group_label <- function(g) gsub("_", " ", g, fixed = TRUE)
+
+  # The disaggregation table of one variable: Overall, then every group of
+  # every disaggregation variable.
+  disaggregated <- function(rows) {
+    main <- rows[is.na(rows$group_var), , drop = FALSE]
+    cols <- data.frame(
+      key = "overall",
+      header = "Overall",
+      band = "Overall",
+      band_id = "overall",
+      kind = "overall",
+      stringsAsFactors = FALSE
+    )
+    cells <- data.frame(
+      key = "overall",
+      choice = main$choice,
+      stat = main$stat,
+      n = main$n,
+      n_total = main$n_total,
+      stringsAsFactors = FALSE
+    )
+    for (g in group_vars) {
+      rg <- rows[!is.na(rows$group_var) & rows$group_var == g, , drop = FALSE]
+      if (nrow(rg) == 0) {
+        next
+      }
+      sizes <- tapply(rg$n_total, rg$group_var_value, max)
+      lv <- names(sort(sizes, decreasing = TRUE))
+      keys <- paste0("g:", g, ":", lv)
+      cols <- rbind(
+        cols,
+        data.frame(
+          key = keys,
+          header = lv,
+          band = group_label(g),
+          band_id = paste0("g:", g),
+          kind = "group",
+          stringsAsFactors = FALSE
+        )
+      )
+      cells <- rbind(
+        cells,
+        data.frame(
+          key = paste0("g:", g, ":", rg$group_var_value),
+          choice = rg$choice,
+          stat = rg$stat,
+          n = rg$n,
+          n_total = rg$n_total,
+          stringsAsFactors = FALSE
+        )
+      )
+    }
+    list(columns = cols, cells = cells)
+  }
+
+  sections <- unique(route[, c("section", "level", "country", "location")])
+  sections <- sections[order(sections$section), , drop = FALSE]
+  country_secs <- sections[sections$level == "country", , drop = FALSE]
+  place_secs <- sections[sections$level == "location", , drop = FALSE]
+  has_places <- nrow(place_secs) > 0 || !is.na(def$location_label)
+
+  ranking <- overall[overall$variable == "route_country", , drop = FALSE]
+  n_countries <- sum(is.na(ranking$group_var) & ranking$n > 0)
+  max_places <- if (nrow(place_secs) > 0) {
+    max(table(place_secs$country))
+  } else {
+    0L
+  }
+
+  # --- sheet heading -------------------------------------------------------------
   row <- 1L
-  put_row(
+  put(def$title, row, 1L)
+  ck_add_rect(sg, st$sheet_title, row, 1L)
+  row <- row + 1L
+  notes <- c(
     paste0(
       "Percentages are of respondents. A respondent counts once per country ",
-      "or place, however many route slots name it; a choice counts as ",
-      "selected there if it was selected in any of those slots."
+      "or place, however many route slots name it, and an answer counts if ",
+      "it was given in any of those slots."
     ),
-    row
+    paste0(
+      "Columns do not add up: a respondent can name several countries and ",
+      "places, and give several answers. n is the number of respondents in ",
+      "each column's base."
+    )
   )
-  ck_add_rect(sg, st$note, row, 1L)
-  row <- row + 2L
+  for (nt in notes) {
+    put(nt, row, 1L)
+    ck_add_rect(sg, st$note, row, 1L)
+    row <- row + 1L
+  }
+  row <- row + 1L
 
-  for (b in unique(route$block)) {
-    rb <- route[route$block == b, , drop = FALSE]
-    put_row(toupper(rb$block_title[1]), row)
-    ck_add_rect(sg, st$block, row, seq_len(n_cols))
-    row <- row + 2L
+  # --- 1. country ranking ---------------------------------------------------------
+  if (nrow(ranking) > 0) {
+    put(paste0(def$country_label, ": all countries"), row, 1L)
+    ck_add_rect(sg, st$title, row, 1L)
+    tab <- disaggregated(ranking)
+    main <- tab$cells[tab$cells$key == "overall", , drop = FALSE]
+    choices <- main$choice[order(-main$n, main$choice)]
+    row <- write_table(row + 1L, tab$columns, tab$cells, choices) + 3L
+  }
 
-    for (s in sort(unique(rb$section))) {
-      rs <- rb[rb$section == s, , drop = FALSE]
-      level <- rs$level[1]
-      unit_label <- switch(
-        level,
-        overall = "Overall",
-        country = rs$country[1],
-        location = paste0(rs$country[1], " > ", rs$location[1])
+  # --- 2. each follow-up question ---------------------------------------------------
+  shown_note <- paste0(
+    if (nrow(country_secs) < n_countries) {
+      paste0(
+        "Showing the top ",
+        nrow(country_secs),
+        " of ",
+        n_countries,
+        " countries"
       )
-      put_row(paste0(unit_label, " (n=", rs$unit_n[1], ")"), row)
-      ck_add_rect(
-        sg,
-        if (level == "location") st$place else st$unit,
+    } else {
+      paste0("All ", n_countries, " countries")
+    },
+    ", by number of respondents",
+    if (max_places > 0) {
+      paste0(
+        ", each followed by up to ",
+        max_places,
+        " of its places, likewise"
+      )
+    },
+    "."
+  )
+
+  variables <- setdiff(
+    unique(overall$variable),
+    c("route_country", "route_location")
+  )
+  for (v in variables) {
+    rv <- route[route$variable == v, , drop = FALSE]
+    put(rv$variable_label[1], row, 1L)
+    ck_add_rect(sg, st$title, row, 1L)
+    row <- row + 1L
+    if (v %in% def$respondent_follow_ups) {
+      put(
+        paste0(
+          "Asked once per respondent: a country column shows the answers of ",
+          "the respondents who transited that country."
+        ),
         row,
-        seq_len(n_cols)
+        1L
       )
-      row <- row + 2L
-
-      for (v in unique(rs$variable)) {
-        rv <- rs[rs$variable == v, , drop = FALSE]
-        main <- rv[is.na(rv$group_var), , drop = FALSE]
-        if (nrow(main) == 0) {
-          next
-        }
-        title <- main$variable_label[1]
-        if (identical(v, "route_location")) {
-          title <- paste(title, rs$country[1])
-        }
-
-        put_row(title, row)
-        ck_add_rect(sg, st$title, row, 1L)
-        row <- row + 1L
-        put_row(c("Category", "%", "n", "n_total"), row)
-        ck_add_rect(sg, st$head_left, row, 1L)
-        ck_add_rect(sg, st$head, row, 2:4)
-        row <- row + 1L
-        put_table(
-          data.frame(
-            choice = main$choice,
-            stat = main$stat,
-            n = main$n,
-            n_total = main$n_total,
-            stringsAsFactors = FALSE
-          ),
-          row
-        )
-        rows <- row + seq_len(nrow(main)) - 1L
-        ck_add_rect(sg, st$label, rows, 1L)
-        ck_add_rect(sg, st$pct, rows, 2L)
-        ck_add_rect(sg, st$num, rows, 3:4)
-        row <- row + nrow(main) + 1L
-
-        for (g in unique(stats::na.omit(rv$group_var))) {
-          rg <- rv[!is.na(rv$group_var) & rv$group_var == g, , drop = FALSE]
-          # Largest group first, judged by its denominator for this question.
-          sizes <- tapply(rg$n_total, rg$group_var_value, max)
-          lv <- names(sort(sizes, decreasing = TRUE))
-          k <- length(lv)
-          key <- function(choice, value) paste(choice, value, sep = "\u001f")
-          idx <- match(
-            key(rep(main$choice, times = k), rep(lv, each = nrow(main))),
-            key(rg$choice, rg$group_var_value)
-          )
-          pct <- matrix(rg$stat[idx], nrow = nrow(main))
-          cnt <- matrix(rg$n[idx], nrow = nrow(main))
-          # A missing cell is a group in which nobody gave that answer.
-          pct[is.na(idx)] <- 0
-          cnt[is.na(cnt)] <- 0
-
-          put_row(paste0("By ", g), row)
-          ck_add_rect(sg, st$sub, row, 1L)
-          row <- row + 1L
-          put_row(
-            c(
-              "Category",
-              paste0(lv, " (n=", sizes[lv], ") %"),
-              paste0(lv, " n")
-            ),
-            row
-          )
-          ck_add_rect(sg, st$head_left, row, 1L)
-          ck_add_rect(sg, st$head, row, 1L + seq_len(2L * k))
-          row <- row + 1L
-
-          tab <- data.frame(choice = main$choice, stringsAsFactors = FALSE)
-          for (j in seq_len(k)) {
-            tab[[paste0("p", j)]] <- pct[, j]
-          }
-          for (j in seq_len(k)) {
-            tab[[paste0("n", j)]] <- cnt[, j]
-          }
-          put_table(tab, row)
-          rows <- row + seq_len(nrow(main)) - 1L
-          ck_add_rect(sg, st$label, rows, 1L)
-          ck_add_rect(sg, st$pct, rows, 1L + seq_len(k))
-          ck_add_rect(sg, st$num, rows, 1L + k + seq_len(k))
-          row <- row + nrow(main) + 1L
-        }
-        row <- row + 1L
-      }
+      ck_add_rect(sg, st$note, row, 1L)
       row <- row + 1L
     }
-    row <- row + 1L
+
+    # Wide table: Overall, then each country and its places.
+    main <- rv[rv$level == "overall" & is.na(rv$group_var), , drop = FALSE]
+    columns <- data.frame(
+      key = "overall",
+      header = "Overall",
+      band = "Overall",
+      band_id = "overall",
+      kind = "overall",
+      stringsAsFactors = FALSE
+    )
+    cells <- data.frame(
+      key = "overall",
+      choice = main$choice,
+      stat = main$stat,
+      n = main$n,
+      n_total = main$n_total,
+      stringsAsFactors = FALSE
+    )
+    for (i in seq_len(nrow(country_secs))) {
+      cc <- country_secs$country[i]
+      ckey <- paste0("c:", cc)
+      columns <- rbind(
+        columns,
+        data.frame(
+          key = ckey,
+          header = cc,
+          band = if (has_places) "Country" else "Countries",
+          band_id = if (has_places) ckey else "countries",
+          kind = "country",
+          stringsAsFactors = FALSE
+        )
+      )
+      rc <- rv[rv$level == "country" & rv$country == cc, , drop = FALSE]
+      cells <- rbind(
+        cells,
+        data.frame(
+          key = rep(ckey, nrow(rc)),
+          choice = rc$choice,
+          stat = rc$stat,
+          n = rc$n,
+          n_total = rc$n_total,
+          stringsAsFactors = FALSE
+        )
+      )
+      pl <- place_secs[place_secs$country == cc, , drop = FALSE]
+      for (p in pl$location) {
+        pkey <- paste0("p:", cc, "\u001f", p)
+        columns <- rbind(
+          columns,
+          data.frame(
+            key = pkey,
+            header = p,
+            band = "Locations",
+            band_id = paste0("p:", cc),
+            kind = "place",
+            stringsAsFactors = FALSE
+          )
+        )
+        rp <- rv[
+          rv$level == "location" & rv$country == cc & rv$location == p,
+          ,
+          drop = FALSE
+        ]
+        cells <- rbind(
+          cells,
+          data.frame(
+            key = rep(pkey, nrow(rp)),
+            choice = rp$choice,
+            stat = rp$stat,
+            n = rp$n,
+            n_total = rp$n_total,
+            stringsAsFactors = FALSE
+          )
+        )
+      }
+    }
+    choices <- choice_order(cells)
+    row <- write_table(row, columns, cells, choices)
+    put(shown_note, row, 1L)
+    ck_add_rect(sg, st$note, row, 1L)
+    row <- row + 3L
+
+    # The same question, overall and by each disaggregation.
+    if (length(group_vars) > 0) {
+      tab <- disaggregated(rv[rv$level == "overall", , drop = FALSE])
+      row <- write_table(row, tab$columns, tab$cells, choices) + 1L
+    }
+    row <- row + 3L
   }
 
   ck_flush_styles(sg, wb, sheet)
-  openxlsx::setColWidths(wb, sheet, cols = 1L, widths = 55)
-  openxlsx::setColWidths(wb, sheet, cols = 2:n_cols, widths = 14)
+  openxlsx::setColWidths(wb, sheet, cols = 1L, widths = 42)
+  if (max_col > 1L) {
+    openxlsx::setColWidths(wb, sheet, cols = 2:max_col, widths = 13)
+  }
+  openxlsx::setRowHeights(wb, sheet, rows = header_rows, heights = 30)
+  openxlsx::freezePane(wb, sheet, firstCol = TRUE)
 
   invisible(NULL)
 }

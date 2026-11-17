@@ -12,7 +12,8 @@ ck_route_block(
   weight_column,
   sm_separator,
   top_n,
-  label_row
+  label_row,
+  top_countries = 0
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ ck_route_block(
 \item{top_n}{Places per country that get a section of their own.}
 
 \item{label_row}{The ONA label row, or \code{NULL}.}
+
+\item{top_countries}{Countries that get a section of their own, most
+respondents first; \code{0} for all.}
 }
 \value{
 The block's rows of the \code{\link[=run_route_analysis]{run_route_analysis()}} result, or \code{NULL}.

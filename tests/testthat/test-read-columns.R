@@ -23,14 +23,14 @@ columns_dataset <- function() {
 
 columns_loa <- function() {
   list(
-    analysis = data.frame(
+    analysis_variables = data.frame(
       analysis_type = c("prop_select_one", "prop_select_multiple", "ratio"),
       analysis_var = c("Q27", "Q78", NA),
       analysis_var_numerator = c(NA, NA, "Q29"),
       analysis_var_denominator = c(NA, NA, "wgt"),
       stringsAsFactors = FALSE
     ),
-    group_analysis = data.frame(
+    disaggregation_variables = data.frame(
       raw_data_name = "Q13",
       new_name = "Country",
       include = TRUE,
@@ -61,7 +61,7 @@ test_that("weight, strata and uuid are kept when the settings ask for them", {
     value = c("wgt", "TRUE"),
     stringsAsFactors = FALSE
   )
-  loa$analysis <- loa$analysis[1, ]
+  loa$analysis_variables <- loa$analysis_variables[1, ]
 
   header <- names(columns_dataset())
   expect_setequal(
@@ -109,10 +109,10 @@ test_that("a filter that selects nothing reads the whole file", {
   utils::write.csv(columns_dataset(), path, row.names = FALSE, na = "")
 
   loa <- columns_loa()
-  loa$analysis$analysis_var <- c("NOPE", "NADA", NA)
-  loa$analysis$analysis_var_numerator <- NA
-  loa$analysis$analysis_var_denominator <- NA
-  loa$group_analysis$raw_data_name <- "NEITHER"
+  loa$analysis_variables$analysis_var <- c("NOPE", "NADA", NA)
+  loa$analysis_variables$analysis_var_numerator <- NA
+  loa$analysis_variables$analysis_var_denominator <- NA
+  loa$disaggregation_variables$raw_data_name <- "NEITHER"
 
   dataset <- read_analysis_dataset(path, loa = loa)
   expect_equal(ncol(dataset$data), ncol(columns_dataset()))
@@ -129,7 +129,7 @@ test_that("a run from a path gives the results a run from the full data gives", 
   writexl::write_xlsx(columns_dataset(), path)
 
   loa <- columns_loa()
-  loa$analysis <- loa$analysis[1:2, 1:2]
+  loa$analysis_variables <- loa$analysis_variables[1:2, 1:2]
 
   from_path <- suppressWarnings(run_analysis_locally(
     path,

@@ -15,7 +15,7 @@ A list with \code{engine}, \code{analyses}, \code{survey}, \code{fast},
 analysis-by-grouping-variable estimations the survey engine will perform.
 }
 \description{
-The \code{level} cell of the \code{analysis} sheet is the largest performance decision
+The \code{level} cell of the \code{analysis_variables} sheet is the largest performance decision
 in the application, and it is made in the workbook rather than in the code.
 A row with a level goes to \code{analysistools::create_analysis()}, which builds a
 survey design and re-subsets it once per level of the grouping variable; a

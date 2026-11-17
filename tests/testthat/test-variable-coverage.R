@@ -35,8 +35,8 @@ test_that("a select_multiple parent counts as present via its children", {
 
 test_that("a missing analysis variable warns and names the consequence", {
   sheets <- fixture_sheets()
-  sheets$analysis <- rbind(
-    sheets$analysis,
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one", analysis_var = "Q999",
       level = NA_real_, sector = "Other", stringsAsFactors = FALSE
@@ -49,7 +49,7 @@ test_that("a missing analysis variable warns and names the consequence", {
   hit <- problems[grepl("Q999", problems$message), , drop = FALSE]
   expect_equal(nrow(hit), 1L)
   expect_equal(hit$severity, "warning")
-  expect_equal(hit$sheet, "analysis")
+  expect_equal(hit$sheet, "analysis_variables")
   expect_equal(hit$row, 5L) # header is row 1, so the fourth data row is row 5
   expect_match(hit$message, "this analysis will be skipped")
 })
@@ -89,7 +89,7 @@ test_that("a ratio's numerator and denominator are checked, and its analysis_var
   # The gap this closes: the ratio branch used to be skipped entirely, so a
   # mistyped numerator went unreported until the pipeline dropped the row.
   sheets <- fixture_sheets()
-  sheets$analysis <- data.frame(
+  sheets$analysis_variables <- data.frame(
     analysis_type = "ratio",
     analysis_var = NA_character_,
     analysis_var_numerator = "Q29",
@@ -98,7 +98,7 @@ test_that("a ratio's numerator and denominator are checked, and its analysis_var
   )
 
   coverage <- loa_variable_coverage(fixture_workbook(sheets), fixture_dataset())
-  from_analysis <- coverage[coverage$sheet == "analysis", , drop = FALSE]
+  from_analysis <- coverage[coverage$sheet == "analysis_variables", , drop = FALSE]
 
   expect_setequal(from_analysis$role, c("ratio_numerator", "ratio_denominator"))
   expect_true(coverage$present[coverage$variable == "Q29"])
@@ -132,15 +132,15 @@ test_that("weight and strata columns from the settings sheet are checked", {
   expect_match(hit$message, "without strata")
 })
 
-test_that("an excluded group_analysis row is not checked for presence", {
+test_that("an excluded disaggregation_variables row is not checked for presence", {
   sheets <- fixture_sheets()
-  sheets$group_analysis <- rbind(
-    sheets$group_analysis,
+  sheets$disaggregation_variables <- rbind(
+    sheets$disaggregation_variables,
     data.frame(
       raw_data_name = "Q404", new_name = "Country", stringsAsFactors = FALSE
     )
   )
-  sheets$group_analysis$include <- c("TRUE", "TRUE", "FALSE")
+  sheets$disaggregation_variables$include <- c("TRUE", "TRUE", "FALSE")
 
   coverage <- loa_variable_coverage(fixture_workbook(sheets), fixture_dataset())
   expect_false("Q404" %in% coverage$variable)
@@ -161,8 +161,8 @@ test_that("a dataset that shares nothing with the workbook is fatal", {
 
 test_that("one missing variable among many does not trigger the whole-file error", {
   sheets <- fixture_sheets()
-  sheets$analysis <- rbind(
-    sheets$analysis,
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one", analysis_var = "Q999",
       level = NA_real_, sector = "Other", stringsAsFactors = FALSE
@@ -180,8 +180,8 @@ test_that("coverage is empty rather than an error when no dataset is loaded", {
 
 test_that("the coverage summary lists each variable once, missing first", {
   sheets <- fixture_sheets()
-  sheets$analysis <- rbind(
-    sheets$analysis,
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one", analysis_var = "Q999",
       level = NA_real_, sector = "Other", stringsAsFactors = FALSE

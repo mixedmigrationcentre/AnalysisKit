@@ -7,7 +7,7 @@
 loa_apply_map_to_analysis(analysis, map)
 }
 \arguments{
-\item{analysis}{The \code{analysis} data frame.}
+\item{analysis}{The \code{analysis_variables} data frame.}
 
 \item{map}{The rename map.}
 }
