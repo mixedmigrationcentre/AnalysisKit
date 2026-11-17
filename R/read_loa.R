@@ -313,7 +313,15 @@ loa_settings_schema <- function() {
     s("max_exclusive_choices", "num"),
 
     # results workbook - read by the exporter, never passed to the pipeline
-    s("include_dataset", "lgl")
+    s("include_dataset", "lgl"),
+
+    # route analysis - read by run_route_analysis(), never passed to the
+    # pipeline
+    s("transit_country", "lgl"),
+    s("places_stop", "lgl"),
+    s("dangerous_location", "lgl"),
+    s("route_gender_var", "chr"),
+    s("route_top_locations", "num")
   )
 }
 
@@ -2220,9 +2228,12 @@ analysis_spec_args <- function(dataset, spec) {
 
   # Only settings the workbook actually supplied are passed, so every unset
   # argument keeps the pipeline's own default. Export-only settings are left
-  # for ak_export_results().
+  # for ak_export_results(), and route settings for run_route_analysis().
   pipeline_settings <- spec$settings[
-    setdiff(names(spec$settings), loa_export_settings())
+    setdiff(
+      names(spec$settings),
+      c(loa_export_settings(), loa_route_settings())
+    )
   ]
   utils::modifyList(args, pipeline_settings)
 }
@@ -2298,8 +2309,24 @@ run_analysis_spec <- function(dataset, spec, pipeline = NULL, ...) {
     pipeline <- get("run_group_analysis_pipeline", mode = "function")
   }
 
-  do.call(
+  results <- do.call(
     pipeline,
     utils::modifyList(analysis_spec_args(dataset, spec), list(...))
   )
+
+  # The route analysis reads the dataset on its own terms - the slots are
+  # reshaped, not analysed as LoA rows - so it runs beside the pipeline and
+  # rides along in its result for ak_export_results().
+  route_blocks <- ck_route_enabled(spec$settings)
+  if (length(route_blocks) > 0 && is.list(results)) {
+    verbose <- list(...)$verbose %||% TRUE
+    results$route_analysis <- run_route_analysis(
+      dataset,
+      spec,
+      blocks = route_blocks,
+      verbose = verbose
+    )
+  }
+
+  results
 }

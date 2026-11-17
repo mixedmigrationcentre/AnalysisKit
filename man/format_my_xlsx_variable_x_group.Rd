@@ -39,6 +39,7 @@ format_my_xlsx_variable_x_group(
   readme_text = NULL,
   dataset_sheet = NULL,
   dataset_sheet_name = "dataset",
+  route_sheet = NULL,
   verbose = TRUE
 )
 }
@@ -183,6 +184,10 @@ sheets. \code{NULL} (the default) leaves it out.}
 
 \item{dataset_sheet_name}{Name of that sheet. Made unique against the other
 sheet names.}
+
+\item{route_sheet}{Optional data frame from \code{\link[=run_route_analysis]{run_route_analysis()}}. When
+given, each route block in it is written to a sheet of its own after the
+result sheets: \code{transit-countries}, \code{places-stop}, \code{dangerous-locations}.}
 
 \item{verbose}{Logical, print progress messages.}
 }

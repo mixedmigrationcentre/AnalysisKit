@@ -68,6 +68,29 @@ ak_problems_display(checks$problems)
 checks$spec$settings$full_sample_base <- FALSE
 # <<< NEW: full sample base ------------------------------------------------ <<<
 
+# >>> NEW: route analysis -------------------------------------------------- >>>
+# Pools 4Mi's repeated country and place questions across every slot, instead
+# of "1st stop", "2nd stop"... Each block set to TRUE gets a sheet of its own
+# in the results workbook. No rows are needed in the analysis sheet.
+#   transit_country     Q47-Q54, with Q72 and QN8          -> transit-countries
+#   places_stop         Q56-Q70: where people stopped, why -> places-stop
+#   dangerous_location  Q98-Q117: incidents, perpetrators  -> dangerous-locations
+# A sheet shows the overall picture, then each country (most respondents
+# first), each followed by its top places. Percentages are of respondents: a
+# respondent counts once per country or place, however many slots name it.
+# Overrides the settings sheet; delete a line to use the sheet instead.
+checks$spec$settings$transit_country <- FALSE
+checks$spec$settings$places_stop <- FALSE
+checks$spec$settings$dangerous_location <- FALSE
+
+# Every route table is disaggregated by this gender variable (its raw name in
+# the dataset) and by every variable in the group_analysis sheet.
+checks$spec$settings$route_gender_var <- "Q27"
+
+# How many places per country get a section of their own, most named first.
+checks$spec$settings$route_top_locations <- 4
+# <<< NEW: route analysis -------------------------------------------------- <<<
+
 # Note the $data: this step wants the data frame itself, not the list that
 # read_analysis_dataset() returned.
 results <- run_analysis_spec(dataset$data, checks$spec, verbose = TRUE)
@@ -91,8 +114,8 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 #
 # ONE CALL INSTEAD OF 4-6, if you would rather not see the stages. It also
 #   keeps a run log, times the run, recovers the results if only the save
-#   fails, and prints the caveat below. It reads full_sample_base from the
-#   settings sheet:
+#   fails, and prints the caveat below. It reads full_sample_base and the
+#   route analysis settings from the settings sheet:
 #     run <- run_analysis_locally(dataset, loa, output_folder = "output")
 #
 # ROW 1 IS THE LABEL ROW. An ONA export puts question text there and the
@@ -112,6 +135,15 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 # [NEW] full_sample_base = TRUE PUTS SKIPPED RESPONDENTS BACK IN THE BASE. A
 #   question that is also a grouping variable is left out of it. Rename the
 #   row with full_sample_label. Say in the publication which base you used.
+#
+# [NEW] THE ROUTE ANALYSIS NEEDS THE ROUTE COLUMNS. Step 3 reads every column,
+#   so the TRUE/FALSE lines in step 5 just work. read_analysis_dataset(path,
+#   loa = loa) reads only the columns the workbook uses: with that, turn the
+#   blocks on in the settings sheet instead, so their columns are read. A
+#   country or place recorded as None, Refused or Don't know is not counted,
+#   and the "other, specify" text is not read, so "Other" is a place of its own.
+#   To run it on its own from a script:
+#     route <- run_route_analysis(dataset$data, checks$spec)
 #
 # THE TWO COMBINATION BLOCKS SPLIT ONE BASE. count_combinations reports the
 #   respondents who selected more than one choice, count_exclusive_combinations

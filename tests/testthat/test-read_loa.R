@@ -534,7 +534,10 @@ test_that("every allow-listed setting maps to a real pipeline argument", {
 
   if (exists("run_group_analysis_pipeline", mode = "function")) {
     formals_pipeline <- names(formals(run_group_analysis_pipeline))
-    pipeline_args <- setdiff(schema$arg, loa_export_settings())
+    pipeline_args <- setdiff(
+      schema$arg,
+      c(loa_export_settings(), loa_route_settings())
+    )
     expect_true(all(pipeline_args %in% formals_pipeline))
   }
 })

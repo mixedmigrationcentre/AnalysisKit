@@ -497,6 +497,36 @@ These keys are read by `ak_export_results()` and are never passed to the pipelin
 |---|---|---|---|
 | `include_dataset` | lgl | `FALSE` | `TRUE` adds the dataset the analysis was run on to the results workbook, as a sheet named `dataset` after the result sheets, written as it is (the ONA label row included). `run_analysis_locally()` then reads every column of a dataset file rather than only the ones the analysis uses. The dataset is personal data: a workbook with this sheet must be handled and shared as such. Refused when the dataset exceeds one Excel sheet (1,048,576 rows or 16,384 columns) |
 
+**Route analysis**
+
+These keys are read by `run_route_analysis()`, which `run_analysis_spec()` calls after
+the pipeline when any block is on. They are never passed to the pipeline. The route
+analysis needs no row in the `analysis` sheet: the question names are fixed 4Mi names,
+and the slots are reshaped in memory (never saved) before they are analysed.
+
+| setting | type | default | notes |
+|---|---|---|---|
+| `transit_country` | lgl | `FALSE` | Transit countries: Q47–Q54 pooled, with Q72 and QN8 (asked once per respondent) analysed overall and within each country |
+| `places_stop` | lgl | `FALSE` | Places stopped: five slots of country / place / reasons — (Q56, Q57, Q58), (Q59, Q60, Q61), (Q62, Q63, Q64), (Q65, Q66, Q67), (Q68, Q69, Q70) |
+| `dangerous_location` | lgl | `FALSE` | Most dangerous locations: five slots of country / place / incidents / perpetrators — (Q98–Q101), (Q102–Q105), (Q106–Q109), (Q110–Q113), (Q114–Q117). Experienced incidents only; the perceived QO questions are not read |
+| `route_gender_var` | chr | `Q27` | The gender variable every route table is disaggregated by, in addition to every variable of `group_analysis`. Its raw name; a `group_analysis` rename is followed. Skipped with a warning when not in the dataset |
+| `route_top_locations` | num | `4` | Places per country that get a section of their own, those with the most respondents first. A whole number of 1 or more |
+
+How the figures are built:
+
+- **Every percentage is of respondents.** A respondent counts once per country, or per
+  place, however many slots name it; a choice counts as selected there if it was selected
+  in any of those slots.
+- Country and place come from the main select_one columns; the `_1` "other, specify" text
+  is not read. A blank slot is dropped, and so is one whose country or place is a
+  non-answer (None, Refused, Don't know, Prefer not to say, Not applicable).
+- The overall section's country table is out of respondents who named at least one
+  country in the block; a respondent-level follow-up (Q72, QN8) keeps its own denominator,
+  everyone asked it.
+- Weights come from `weight_column`. Counts (`n`, `n_total`) are unweighted.
+- A block whose country or place columns are missing from the dataset is skipped with a
+  warning naming them.
+
 ### 7.2 Deliberately not settable
 
 - `verbose` — owned by the app, which routes pipeline messages to the progress UI.
@@ -679,6 +709,16 @@ blocks in the wrong places.
 With `settings/include_dataset = TRUE` the dataset is passed to the formatter as
 `dataset_sheet` and written to a `dataset` sheet, listed in the readme alongside the
 result sheets. It is off by default.
+
+With any route block on (`transit_country`, `places_stop`, `dangerous_location`), the
+pipeline result carries `route_analysis`, which is passed to the formatter as
+`route_sheet`. Each block that is on gets a sheet of its own, after the result sheets
+and listed in the readme: `transit-countries`, `places-stop`, `dangerous-locations`. A
+sheet runs top to bottom: the block's band, then the overall section, then each country
+with the most respondents first, each followed by its top `route_top_locations` places.
+Every table — the country or place ranking and each follow-up question — is followed
+directly by its disaggregations: by `route_gender_var`, then by each `group_analysis`
+variable, groups side by side with percentages first and counts after.
 
 **Filenames** are `analysiskit_<dataset stem>_<YYYYmmdd-HHMMSS>.xlsx`, and an existing file
 is never overwritten — a second run in the same second gets a `_1` suffix. The workbook's
