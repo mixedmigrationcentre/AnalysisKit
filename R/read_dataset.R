@@ -103,7 +103,7 @@ read_analysis_dataset <- function(path, loa = NULL) {
 #' @return A logical vector, one element per name in `header`.
 #' @keywords internal
 loa_dataset_columns <- function(workbook, header) {
-  wb <- if (!is.null(workbook$sheets)) workbook else list(sheets = workbook)
+  wb <- loa_as_workbook(workbook)
   settings <- loa_parse_settings(wb$sheets$settings)$settings
   sm_separator <- settings$sm_separator %||% "/"
 
@@ -117,7 +117,7 @@ loa_dataset_columns <- function(workbook, header) {
     variables <- c(variables, "uuid")
   }
   # The route analysis reads its question blocks and the gender variable,
-  # neither of which the analysis sheet names.
+  # neither of which the analysis_variables sheet names.
   route_blocks <- ck_route_enabled(settings)
   if (length(route_blocks) > 0) {
     variables <- c(

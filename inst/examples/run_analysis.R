@@ -69,26 +69,19 @@ checks$spec$settings$full_sample_base <- FALSE
 # <<< NEW: full sample base ------------------------------------------------ <<<
 
 # >>> NEW: route analysis -------------------------------------------------- >>>
-# Pools 4Mi's repeated country and place questions across every slot, instead
-# of "1st stop", "2nd stop"... Each block set to TRUE gets a sheet of its own
-# in the results workbook. No rows are needed in the analysis sheet.
-#   transit_country     Q47-Q54, with Q72 and QN8          -> transit-countries
-#   places_stop         Q56-Q70: where people stopped, why -> places-stop
-#   dangerous_location  Q98-Q117: incidents, perpetrators  -> dangerous-locations
-# A sheet shows the overall picture, then each country (most respondents
-# first), each followed by its top places. Percentages are of respondents: a
-# respondent counts once per country or place, however many slots name it.
-# Overrides the settings sheet; delete a line to use the sheet instead.
-checks$spec$settings$transit_country <- FALSE
-checks$spec$settings$places_stop <- FALSE
-checks$spec$settings$dangerous_location <- FALSE
-
-# Every route table is disaggregated by this gender variable (its raw name in
-# the dataset) and by every variable in the group_analysis sheet.
-checks$spec$settings$route_gender_var <- "Q27"
-
-# How many places per country get a section of their own, most named first.
-checks$spec$settings$route_top_locations <- 4
+# Each block set to TRUE gets a sheet of its own; no analysis rows needed.
+# Overrides the settings sheet. Details: loa-schema.md, "Route analysis".
+checks$spec$settings <- utils::modifyList(
+  checks$spec$settings,
+  list(
+    transit_country = FALSE, # Q47-Q54, Q72, QN8 -> transit-countries
+    places_stop = FALSE, # Q56-Q70 -> places-stop
+    dangerous_location = FALSE, # Q98-Q117 -> dangerous-locations
+    route_gender_var = "Q27", # breakdown per table, with disaggregation_variables
+    route_top_countries = 10, # countries shown as columns, most named first
+    route_top_locations = 4 # places per country shown as columns
+  )
+)
 # <<< NEW: route analysis -------------------------------------------------- <<<
 
 # Note the $data: this step wants the data frame itself, not the list that
@@ -136,14 +129,8 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 #   question that is also a grouping variable is left out of it. Rename the
 #   row with full_sample_label. Say in the publication which base you used.
 #
-# [NEW] THE ROUTE ANALYSIS NEEDS THE ROUTE COLUMNS. Step 3 reads every column,
-#   so the TRUE/FALSE lines in step 5 just work. read_analysis_dataset(path,
-#   loa = loa) reads only the columns the workbook uses: with that, turn the
-#   blocks on in the settings sheet instead, so their columns are read. A
-#   country or place recorded as None, Refused or Don't know is not counted,
-#   and the "other, specify" text is not read, so "Other" is a place of its own.
-#   To run it on its own from a script:
-#     route <- run_route_analysis(dataset$data, checks$spec)
+# [NEW] READ WITH loa = ? read_analysis_dataset(path, loa = loa) reads only the
+#   columns the workbook uses, so turn route blocks on in the settings sheet.
 #
 # THE TWO COMBINATION BLOCKS SPLIT ONE BASE. count_combinations reports the
 #   respondents who selected more than one choice, count_exclusive_combinations

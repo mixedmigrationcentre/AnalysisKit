@@ -7,7 +7,7 @@
 
 ratio_sheets <- function(analysis) {
   fixture_sheets(
-    analysis = analysis,
+    analysis_variables = analysis,
     count_selections = NULL,
     count_combinations = NULL,
     count_exclusive_combinations = NULL

@@ -2,12 +2,12 @@
 % Please edit documentation in R/read_loa.R
 \name{loa_rename_map}
 \alias{loa_rename_map}
-\title{Build the Rename Map from the \code{group_analysis} Sheet}
+\title{Build the Rename Map from the \code{disaggregation_variables} Sheet}
 \usage{
 loa_rename_map(sheet, dataset = NULL, sm_separator = "/")
 }
 \arguments{
-\item{sheet}{The \code{group_analysis} data frame, or \code{NULL}.}
+\item{sheet}{The \code{disaggregation_variables} data frame, or \code{NULL}.}
 
 \item{dataset}{Optional dataset, used to drop rows whose \code{raw_data_name} is
 absent.}
@@ -19,6 +19,6 @@ A named character vector: names are \code{raw_data_name}, values are
 \code{new_name}. Empty when there is nothing to rename.
 }
 \description{
-Build the Rename Map from the \code{group_analysis} Sheet
+Build the Rename Map from the \code{disaggregation_variables} Sheet
 }
 \keyword{internal}

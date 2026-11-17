@@ -182,7 +182,7 @@ ak_problems_display <- function(problems) {
 #' @export
 ak_sheet_summary <- function(workbook) {
   known <- loa_known_sheets()
-  sheets <- workbook$sheets %||% list()
+  sheets <- loa_as_workbook(workbook)$sheets %||% list()
 
   data.frame(
     Sheet = known,
@@ -196,7 +196,7 @@ ak_sheet_summary <- function(workbook) {
       known,
       function(nm) {
         if (is.null(sheets[[nm]])) {
-          if (nm == "analysis") "Missing - required" else "Not supplied - defaults apply"
+          if (nm == "analysis_variables") "Missing - required" else "Not supplied - defaults apply"
         } else if (nrow(sheets[[nm]]) == 0) {
           "Empty - defaults apply"
         } else {

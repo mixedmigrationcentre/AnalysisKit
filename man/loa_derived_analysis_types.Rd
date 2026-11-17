@@ -11,7 +11,7 @@ A character vector.
 }
 \description{
 These appear in the output, built from the \code{count_selections} and
-\code{count_combinations} sheets. Writing one into the \code{analysis} sheet aborts
+\code{count_combinations} sheets. Writing one into the \code{analysis_variables} sheet aborts
 the run, so it earns its own message.
 }
 \keyword{internal}

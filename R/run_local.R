@@ -188,7 +188,7 @@ with_run_log <- function(expr, echo = TRUE) {
 #'   read, which is what makes a wide export quick to load; the results do not
 #'   depend on it.
 #' @param loa A List of Analysis path, or the list from [read_loa_workbook()].
-#'   A `.csv` carries no sheets and is read as the `analysis` table alone, so a
+#'   A `.csv` carries no sheets and is read as the `analysis_variables` table alone, so a
 #'   configured run needs `.xlsx`.
 #' @param output_folder Folder to write the results workbook into. It must
 #'   already exist and be writable, and both are checked before the analysis

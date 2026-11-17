@@ -38,11 +38,13 @@ settings; \code{\link[=run_analysis_spec]{run_analysis_spec()}} calls this when 
 }
 \details{
 For each block the result has an overall section, then one section per
-country (most respondents first) and, for stops and dangerous locations,
-one per place within the country (the \code{route_top_locations} places with the
-most respondents). Every table is repeated for the gender variable
-(\code{route_gender_var}, default \code{Q27}) and for every grouping variable of the
-\code{group_analysis} sheet.
+country for the \code{route_top_countries} countries with the most respondents
+(default 10; 0 for all) and, for stops and dangerous locations, one per
+place within the country (the \code{route_top_locations} places with the most
+respondents, default 4). The overall section, which also ranks every
+country, is disaggregated by the gender variable (\code{route_gender_var},
+default \code{Q27}) and by every grouping variable of the \code{disaggregation_variables}
+sheet; the country and place sections are not.
 
 Percentages are of respondents. A respondent counts once per country or
 place however many slots name it, and a choice counts as selected there if

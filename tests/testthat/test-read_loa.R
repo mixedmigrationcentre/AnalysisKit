@@ -21,15 +21,15 @@ test_that("an xlsx workbook reads every recognised sheet", {
   expect_setequal(
     names(wb$sheets),
     c(
-      "analysis",
-      "group_analysis",
+      "analysis_variables",
+      "disaggregation_variables",
       "count_selections",
       "count_combinations",
       "count_exclusive_combinations",
       "settings"
     )
   )
-  expect_equal(nrow(wb$sheets$analysis), 3L)
+  expect_equal(nrow(wb$sheets$analysis_variables), 3L)
   expect_equal(wb$unknown_sheets, character(0))
 })
 
@@ -37,7 +37,9 @@ test_that("sheet names are matched case- and separator-insensitively", {
   skip_if_not_installed("writexl")
 
   sheets <- fixture_sheets()
-  names(sheets)[names(sheets) == "group_analysis"] <- "Group Analysis"
+  names(sheets)[
+    names(sheets) == "disaggregation_variables"
+  ] <- "Disaggregation Variables"
   names(sheets)[names(sheets) == "count_selections"] <- "Count-Selections"
 
   wb <- read_loa_workbook(write_fixture_xlsx(
@@ -45,9 +47,93 @@ test_that("sheet names are matched case- and separator-insensitively", {
     tempfile(fileext = ".xlsx")
   ))
 
-  expect_true("group_analysis" %in% names(wb$sheets))
+  expect_true("disaggregation_variables" %in% names(wb$sheets))
   expect_true("count_selections" %in% names(wb$sheets))
   expect_equal(wb$unknown_sheets, character(0))
+})
+
+test_that("a workbook still using the former sheet names reads as before", {
+  skip_if_not_installed("writexl")
+
+  # analysis and group_analysis were renamed; workbooks made before then must
+  # not turn into "unknown sheet" errors.
+  sheets <- fixture_sheets()
+  names(sheets)[names(sheets) == "analysis_variables"] <- "analysis"
+  names(sheets)[names(sheets) == "disaggregation_variables"] <- "Group Analysis"
+
+  wb <- read_loa_workbook(write_fixture_xlsx(
+    sheets,
+    tempfile(fileext = ".xlsx")
+  ))
+  expect_true(all(
+    c("analysis_variables", "disaggregation_variables") %in% names(wb$sheets)
+  ))
+  expect_equal(wb$unknown_sheets, character(0))
+  expect_false(loa_has_errors(validate_loa(wb, fixture_dataset())))
+
+  # The same from a list built by hand, which is what the app's tests do.
+  by_hand <- fixture_sheets()
+  names(by_hand)[names(by_hand) == "analysis_variables"] <- "analysis"
+  names(by_hand)[names(by_hand) == "disaggregation_variables"] <-
+    "group_analysis"
+  spec <- build_analysis_spec(by_hand, fixture_dataset())
+  expect_false(loa_has_errors(spec$problems))
+  expect_identical(
+    spec$rename_map,
+    build_analysis_spec(fixture_sheets(), fixture_dataset())$rename_map
+  )
+})
+
+test_that("a sheet under both its former and its current name is an error", {
+  skip_if_not_installed("writexl")
+
+  sheets <- fixture_sheets()
+  sheets$analysis <- sheets$analysis_variables
+
+  from_file <- read_loa_workbook(write_fixture_xlsx(
+    sheets,
+    tempfile(fileext = ".xlsx")
+  ))
+  expect_setequal(
+    from_file$duplicate_sheets,
+    c("analysis_variables", "analysis")
+  )
+
+  for (wb in list(from_file, fixture_workbook(sheets))) {
+    problems <- errors_of(validate_loa(wb))
+    expect_match(problems$message, "read as the same sheet", all = FALSE)
+  }
+})
+
+test_that("exclude_choices is optional but still read when a user adds it", {
+  skip_if_not_installed("writexl")
+
+  # The template no longer ships the sheet; the feature stays.
+  template <- system.file(
+    "extdata",
+    "loa_template.xlsx",
+    package = "analysiskit"
+  )
+  skip_if(!nzchar(template), "not testing an installed package")
+  tabs <- loa_normalise_sheet_name(readxl::excel_sheets(template))
+  expect_true(all(
+    c("analysis_variables", "disaggregation_variables", "settings") %in% tabs
+  ))
+  expect_false(any(
+    c("analysis", "group_analysis", "exclude_choices") %in% tabs
+  ))
+
+  sheets <- fixture_sheets()
+  sheets$exclude_choices <- data.frame(
+    choice_label = "Don't know",
+    stringsAsFactors = FALSE
+  )
+  wb <- read_loa_workbook(write_fixture_xlsx(
+    sheets,
+    tempfile(fileext = ".xlsx")
+  ))
+  expect_equal(wb$unknown_sheets, character(0))
+  expect_true("exclude_choices" %in% names(wb$sheets))
 })
 
 test_that("readme and underscore sheets are ignored, anything else is recorded", {
@@ -59,7 +145,7 @@ test_that("readme and underscore sheets are ignored, anything else is recorded",
     stringsAsFactors = FALSE
   )
   sheets$`_scratch` <- data.frame(x = 1L)
-  sheets$grouping <- data.frame(x = 1L) # a plausible typo for group_analysis
+  sheets$grouping <- data.frame(x = 1L) # a plausible typo for disaggregation_variables
 
   wb <- read_loa_workbook(write_fixture_xlsx(
     sheets,
@@ -73,11 +159,11 @@ test_that("readme and underscore sheets are ignored, anything else is recorded",
 
 test_that("a csv is read as the analysis sheet alone and says so", {
   path <- tempfile(fileext = ".csv")
-  utils::write.csv(fixture_sheets()$analysis, path, row.names = FALSE)
+  utils::write.csv(fixture_sheets()$analysis_variables, path, row.names = FALSE)
 
   wb <- read_loa_workbook(path)
   expect_equal(wb$format, "CSV")
-  expect_equal(names(wb$sheets), "analysis")
+  expect_equal(names(wb$sheets), "analysis_variables")
 
   problems <- validate_loa(wb)
   expect_false(loa_has_errors(problems))
@@ -105,11 +191,13 @@ test_that("trailing blank rows left by Excel are dropped", {
 })
 
 test_that("an empty analysis sheet is fatal, and a missing one more so", {
-  problems <- validate_loa(fixture_workbook(fixture_sheets(analysis = NULL)))
+  problems <- validate_loa(fixture_workbook(fixture_sheets(
+    analysis_variables = NULL
+  )))
   expect_true(loa_has_errors(problems))
   expect_match(
     errors_of(problems)$message[1],
-    "must contain an 'analysis' sheet"
+    "must contain an 'analysis_variables' sheet"
   )
 
   empty <- data.frame(
@@ -118,7 +206,7 @@ test_that("an empty analysis sheet is fatal, and a missing one more so", {
     stringsAsFactors = FALSE
   )
   expect_false(loa_has_errors(validate_loa(fixture_workbook(fixture_sheets(
-    analysis = empty
+    analysis_variables = empty
   )))))
 })
 
@@ -129,7 +217,7 @@ test_that("an empty analysis sheet is fatal, and a missing one more so", {
 
 test_that("an unsupported analysis_type is rejected", {
   sheets <- fixture_sheets()
-  sheets$analysis$analysis_type[2] <- "prop_select_mutliple"
+  sheets$analysis_variables$analysis_type[2] <- "prop_select_mutliple"
 
   problems <- validate_loa(fixture_workbook(sheets))
   expect_true(loa_has_errors(problems))
@@ -138,7 +226,7 @@ test_that("an unsupported analysis_type is rejected", {
 
 test_that("a derived analysis_type points at the sheet that produces it", {
   sheets <- fixture_sheets()
-  sheets$analysis$analysis_type[2] <- "count_select_multiple"
+  sheets$analysis_variables$analysis_type[2] <- "count_select_multiple"
 
   problems <- validate_loa(fixture_workbook(sheets))
   msg <- errors_of(problems)$message[1]
@@ -148,7 +236,7 @@ test_that("a derived analysis_type points at the sheet that produces it", {
 
 test_that("a ratio without a numerator and denominator is rejected", {
   sheets <- fixture_sheets()
-  sheets$analysis <- data.frame(
+  sheets$analysis_variables <- data.frame(
     analysis_type = "ratio",
     analysis_var = NA_character_,
     stringsAsFactors = FALSE
@@ -160,7 +248,7 @@ test_that("a ratio without a numerator and denominator is rejected", {
 
 test_that("a ratio with both variables is accepted", {
   sheets <- fixture_sheets()
-  sheets$analysis <- data.frame(
+  sheets$analysis_variables <- data.frame(
     analysis_type = "ratio",
     analysis_var = NA_character_,
     analysis_var_numerator = "Q29",
@@ -173,8 +261,8 @@ test_that("a ratio with both variables is accepted", {
 
 test_that("an analysis variable absent from the dataset warns rather than blocks", {
   sheets <- fixture_sheets()
-  sheets$analysis <- rbind(
-    sheets$analysis,
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one",
       analysis_var = "Q999",
@@ -199,7 +287,10 @@ test_that("a select_multiple parent counts as present via its child columns", {
 
 test_that("a repeated analysis warns that only the first survives", {
   sheets <- fixture_sheets()
-  sheets$analysis <- rbind(sheets$analysis, sheets$analysis[1, , drop = FALSE])
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
+    sheets$analysis_variables[1, , drop = FALSE]
+  )
 
   problems <- validate_loa(fixture_workbook(sheets))
   expect_false(loa_has_errors(problems))
@@ -264,8 +355,8 @@ test_that("Overall is implicit and rejected when written out", {
   expect_equal(length(spec$group_variables), 3L)
 
   sheets <- fixture_sheets()
-  sheets$group_analysis <- rbind(
-    sheets$group_analysis,
+  sheets$disaggregation_variables <- rbind(
+    sheets$disaggregation_variables,
     data.frame(
       raw_data_name = "Q29",
       new_name = "overall",
@@ -278,8 +369,8 @@ test_that("Overall is implicit and rejected when written out", {
 
 test_that("a grouping variable missing from the dataset warns and is dropped", {
   sheets <- fixture_sheets()
-  sheets$group_analysis <- rbind(
-    sheets$group_analysis,
+  sheets$disaggregation_variables <- rbind(
+    sheets$disaggregation_variables,
     data.frame(
       raw_data_name = "Q404",
       new_name = "Country",
@@ -297,7 +388,7 @@ test_that("a grouping variable missing from the dataset warns and is dropped", {
 
 test_that("renaming onto a name the dataset already uses is fatal", {
   sheets <- fixture_sheets()
-  sheets$group_analysis$new_name[1] <- "Q31"
+  sheets$disaggregation_variables$new_name[1] <- "Q31"
 
   problems <- validate_loa(fixture_workbook(sheets), fixture_dataset())
   expect_match(
@@ -309,7 +400,7 @@ test_that("renaming onto a name the dataset already uses is fatal", {
 
 test_that("duplicate raw names and duplicate output names are both fatal", {
   sheets <- fixture_sheets()
-  sheets$group_analysis <- data.frame(
+  sheets$disaggregation_variables <- data.frame(
     raw_data_name = c("Q27", "Q27"),
     new_name = c("Gender", "Sex"),
     stringsAsFactors = FALSE
@@ -323,7 +414,7 @@ test_that("duplicate raw names and duplicate output names are both fatal", {
     all = FALSE
   )
 
-  sheets$group_analysis <- data.frame(
+  sheets$disaggregation_variables <- data.frame(
     raw_data_name = c("Q27", "Q31"),
     new_name = c("Gender", "Gender"),
     stringsAsFactors = FALSE
@@ -340,7 +431,7 @@ test_that("duplicate raw names and duplicate output names are both fatal", {
 
 test_that("include = FALSE parks a row without deleting it", {
   sheets <- fixture_sheets()
-  sheets$group_analysis$include <- c("TRUE", "no")
+  sheets$disaggregation_variables$include <- c("TRUE", "no")
 
   spec <- build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
   expect_equal(spec$group_variables, c("Overall", "Respondent_Gender"))
@@ -348,7 +439,7 @@ test_that("include = FALSE parks a row without deleting it", {
 
 test_that("an unreadable include value is reported rather than guessed", {
   sheets <- fixture_sheets()
-  sheets$group_analysis$include <- c("TRUE", "maybe")
+  sheets$disaggregation_variables$include <- c("TRUE", "maybe")
 
   problems <- validate_loa(fixture_workbook(sheets), fixture_dataset())
   expect_match(
@@ -379,7 +470,7 @@ test_that("a grouping name contained in another is fatal, in either row order", 
     c("Region_of_origin", "Region")
   )) {
     sheets <- fixture_sheets()
-    sheets$group_analysis <- data.frame(
+    sheets$disaggregation_variables <- data.frame(
       raw_data_name = c("Q27", "Q31"),
       new_name = order,
       stringsAsFactors = FALSE
@@ -640,7 +731,7 @@ test_that("delegation is skipped while the workbook still has fatal problems", {
   # names an unsupported type *and* count_selections names a single select: only
   # the first should be reported.
   sheets <- fixture_sheets()
-  sheets$analysis$analysis_type[1] <- "nonsense"
+  sheets$analysis_variables$analysis_type[1] <- "nonsense"
   sheets$count_selections <- data.frame(
     analysis_var = "Q27",
     stringsAsFactors = FALSE
@@ -732,7 +823,7 @@ test_that("the label row is still on top of the dataset handed to the pipeline",
 
 test_that("run_analysis_spec refuses to run a workbook with fatal problems", {
   sheets <- fixture_sheets()
-  sheets$analysis$analysis_type[1] <- "nonsense"
+  sheets$analysis_variables$analysis_type[1] <- "nonsense"
   spec <- build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
 
   expect_error(
@@ -765,8 +856,8 @@ test_that("run_analysis_spec runs, and lets the caller override the spec", {
 
 test_that("a warning-only workbook still runs", {
   sheets <- fixture_sheets()
-  sheets$analysis <- rbind(
-    sheets$analysis,
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one",
       analysis_var = "Q999",

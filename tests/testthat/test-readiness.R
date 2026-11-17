@@ -4,7 +4,7 @@
 problems_with <- function(...) {
   severities <- c(...)
   data.frame(
-    sheet = rep("analysis", length(severities)),
+    sheet = rep("analysis_variables", length(severities)),
     row = seq_along(severities) + 1L,
     severity = severities,
     message = paste("problem", seq_along(severities)),
@@ -160,18 +160,18 @@ test_that("the sheet summary distinguishes missing, empty and read", {
   summary <- ak_sheet_summary(fixture_workbook(sheets))
 
   expect_equal(summary$Sheet, loa_known_sheets())
-  expect_equal(summary$Status[summary$Sheet == "analysis"], "Read")
+  expect_equal(summary$Status[summary$Sheet == "analysis_variables"], "Read")
   expect_equal(summary$Status[summary$Sheet == "count_selections"], "Empty - defaults apply")
   expect_equal(
     summary$Status[summary$Sheet == "exclude_choices"],
     "Not supplied - defaults apply"
   )
-  expect_equal(summary$Rows[summary$Sheet == "analysis"], 3L)
+  expect_equal(summary$Rows[summary$Sheet == "analysis_variables"], 3L)
 })
 
 test_that("a missing analysis sheet is called required, not optional", {
-  summary <- ak_sheet_summary(fixture_workbook(fixture_sheets(analysis = NULL)))
-  expect_equal(summary$Status[summary$Sheet == "analysis"], "Missing - required")
+  summary <- ak_sheet_summary(fixture_workbook(fixture_sheets(analysis_variables = NULL)))
+  expect_equal(summary$Status[summary$Sheet == "analysis_variables"], "Missing - required")
 })
 
 

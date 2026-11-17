@@ -57,19 +57,25 @@ test_that("the install hints match the spec each package needs", {
     ak_package_roster = function() {
       rbind(
         data.frame(
-          package = "absent.from.cran", need = "optional",
-          repo = NA_character_, purpose = "a CRAN package that is not here",
+          package = "absent.from.cran",
+          need = "optional",
+          repo = NA_character_,
+          purpose = "a CRAN package that is not here",
           stringsAsFactors = FALSE
         ),
         data.frame(
-          package = "absent.from.github", need = "optional",
+          package = "absent.from.github",
+          need = "optional",
           repo = "an-org/absent.from.github",
           purpose = "a GitHub-only package that is not here",
           stringsAsFactors = FALSE
         ),
         data.frame(
-          package = "stats", need = "required", repo = NA_character_,
-          purpose = "present everywhere", stringsAsFactors = FALSE
+          package = "stats",
+          need = "required",
+          repo = NA_character_,
+          purpose = "present everywhere",
+          stringsAsFactors = FALSE
         )
       )
     }
@@ -80,7 +86,11 @@ test_that("the install hints match the spec each package needs", {
 
   # A GitHub-only package must not be sent to CRAN, where it is not.
   expect_match(hint[["absent.from.github"]], "install_github")
-  expect_match(hint[["absent.from.github"]], "an-org/absent.from.github", fixed = TRUE)
+  expect_match(
+    hint[["absent.from.github"]],
+    "an-org/absent.from.github",
+    fixed = TRUE
+  )
 
   expect_match(hint[["absent.from.cran"]], "^install\\.packages")
   expect_false(grepl("install_github", hint[["absent.from.cran"]]))
@@ -141,8 +151,11 @@ test_that("load_packages does nothing and says so when all is present", {
   local_mocked_bindings(
     ak_package_roster = function() {
       data.frame(
-        package = "stats", need = "required", repo = NA_character_,
-        purpose = "a test", stringsAsFactors = FALSE
+        package = "stats",
+        need = "required",
+        repo = NA_character_,
+        purpose = "a test",
+        stringsAsFactors = FALSE
       )
     }
   )
@@ -159,7 +172,10 @@ test_that("optional = FALSE narrows to the required packages", {
 
 test_that("the example script ships, parses, and calls only real functions", {
   path <- system.file("examples", "run_analysis.R", package = "analysiskit")
-  skip_if(!nzchar(path) || !file.exists(path), "not testing an installed package")
+  skip_if(
+    !nzchar(path) || !file.exists(path),
+    "not testing an installed package"
+  )
 
   code <- parse(path)
   expect_gt(length(code), 0L)
@@ -171,15 +187,18 @@ test_that("the example script ships, parses, and calls only real functions", {
   named <- intersect(used, exports)
 
   # One per step, in the order the script runs them.
-  expect_true(all(c(
-    "load_packages",           # 1. packages
-    "setup_project_folders",   # 2. project folders
-    "read_analysis_dataset",   # 3. read the files
-    "read_loa_workbook",       #    "
-    "check_analysis_inputs",   # 4. check the List of Analysis
-    "run_analysis_spec",       # 5. run the analysis pipeline
-    "ak_export_results"        # 6. create the output
-  ) %in% named))
+  expect_true(all(
+    c(
+      "load_packages", # 1. packages
+      "setup_project_folders", # 2. project folders
+      "read_analysis_dataset", # 3. read the files
+      "read_loa_workbook", #    "
+      "check_analysis_inputs", # 4. check the List of Analysis
+      "run_analysis_spec", # 5. run the analysis pipeline
+      "ak_export_results" # 6. create the output
+    ) %in%
+      named
+  ))
 
   # The "run once" caveat on setup_project_folders() is the one instruction a
   # reader most needs to see, so it is pinned rather than left to drift.
@@ -189,13 +208,19 @@ test_that("the example script ships, parses, and calls only real functions", {
 
 test_that("the example script keeps its six steps, in order", {
   path <- system.file("examples", "run_analysis.R", package = "analysiskit")
-  skip_if(!nzchar(path) || !file.exists(path), "not testing an installed package")
+  skip_if(
+    !nzchar(path) || !file.exists(path),
+    "not testing an installed package"
+  )
 
   text <- paste(readLines(path, warn = FALSE), collapse = "\n")
 
   steps <- c(
-    "1. packages", "2. project folders", "3. read the files",
-    "4. check the List of Analysis", "5. run the analysis pipeline",
+    "1. packages",
+    "2. project folders",
+    "3. read the files",
+    "4. check the List of Analysis",
+    "5. run the analysis pipeline",
     "6. create the output"
   )
   at <- vapply(
@@ -207,20 +232,24 @@ test_that("the example script keeps its six steps, in order", {
     integer(1)
   )
 
-  expect_false(any(is.na(at)))       # every step is there
-  expect_identical(at, sort(at))     # and in this order
+  expect_false(any(is.na(at))) # every step is there
+  expect_identical(at, sort(at)) # and in this order
 })
 
 test_that("the example script stays short enough to read at a glance", {
   path <- system.file("examples", "run_analysis.R", package = "analysiskit")
-  skip_if(!nzchar(path) || !file.exists(path), "not testing an installed package")
+  skip_if(
+    !nzchar(path) || !file.exists(path),
+    "not testing an installed package"
+  )
 
   # A requirement, not an accident. An earlier version spelled out every stage
   # and ran to 380 lines, which was too much to take in - the whole point of
   # this file is that it reads straight down in one screenful. Pinned so it
-  # cannot creep back.
+  # cannot creep back. (130 lines became 150 when the route analysis settings
+  # were added: one expression, but a line per setting so each can be read.)
   expect_lt(length(parse(path)), 20L)
-  expect_lt(length(readLines(path, warn = FALSE)), 130L)
+  expect_lt(length(readLines(path, warn = FALSE)), 150L)
 })
 
 
@@ -234,7 +263,9 @@ test_that("the install step is handed the right specs, once", {
     ak_package_roster = function() {
       rbind(
         data.frame(
-          package = "stats", need = "required", repo = NA_character_,
+          package = "stats",
+          need = "required",
+          repo = NA_character_,
           purpose = "installed already, so must not be offered for install",
           stringsAsFactors = FALSE
         ),
@@ -245,7 +276,8 @@ test_that("the install step is handed the right specs, once", {
         # was installed, because then nothing was missing and the install step
         # was never reached.
         data.frame(
-          package = "absent.by.construction", need = "optional",
+          package = "absent.by.construction",
+          need = "optional",
           repo = "an-org/absent.by.construction",
           purpose = "always missing, and GitHub-only",
           stringsAsFactors = FALSE
@@ -269,8 +301,11 @@ test_that("nothing is installed when nothing is missing", {
     },
     ak_package_roster = function() {
       data.frame(
-        package = "stats", need = "required", repo = NA_character_,
-        purpose = "a test", stringsAsFactors = FALSE
+        package = "stats",
+        need = "required",
+        repo = NA_character_,
+        purpose = "a test",
+        stringsAsFactors = FALSE
       )
     }
   )
@@ -291,8 +326,10 @@ test_that("run_analysis_spec explains itself when handed the reader's list", {
   spec <- build_analysis_spec(fixture_workbook(), dataset)
 
   as_read <- list(
-    data = dataset, extension = "XLSX",
-    filename = "export.xlsx", size = 1
+    data = dataset,
+    extension = "XLSX",
+    filename = "export.xlsx",
+    size = 1
   )
 
   expect_error(
@@ -300,7 +337,9 @@ test_that("run_analysis_spec explains itself when handed the reader's list", {
     "pass its data frame instead"
   )
   expect_error(
-    run_analysis_spec("not a dataset at all", spec, pipeline = function(...) NULL),
+    run_analysis_spec("not a dataset at all", spec, pipeline = function(...) {
+      NULL
+    }),
     "must be a data frame"
   )
 

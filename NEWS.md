@@ -13,13 +13,15 @@
 
   Each block that is turned on gets a sheet of its own in the results
   workbook: `transit-countries`, `places-stop` and `dangerous-locations`. A
-  sheet shows the overall picture, then each country with the most
-  respondents first, each followed by its top places
-  (`route_top_locations`, default 4). Every table is disaggregated by gender
-  (`route_gender_var`, default `Q27`) and by every `group_analysis` variable,
-  directly beneath it. Percentages are of respondents: a respondent counts
+  sheet opens with the ranking of every country, then has one wide table per
+  follow-up question: `Overall`, then each country with the most respondents
+  first (`route_top_countries`, default 10; 0 for all), each followed by its
+  top places (`route_top_locations`, default 4), as columns, with the same
+  table in counts alongside. Beneath each, the question is disaggregated by
+  gender (`route_gender_var`, default `Q27`) and by every `disaggregation_variables`
+  variable. Percentages are of respondents: a respondent counts
   once per country or place, however many slots name it. The question names
-  are fixed, so no `analysis` rows are needed; the slots are reshaped in
+  are fixed, so no `analysis_variables` rows are needed; the slots are reshaped in
   memory and never saved. The new `run_route_analysis()` runs the same
   analysis from a script.
 
@@ -42,6 +44,17 @@
   `level` stay on the survey engine.
 * A dataset read from a file with a List of Analysis now reads only the
   columns the analysis uses.
+
+## Breaking changes
+
+* Two List of Analysis sheets are renamed: `analysis` is now
+  `analysis_variables`, and `group_analysis` is now
+  `disaggregation_variables`. Workbooks using the former names still read
+  as before; one carrying both names for the same sheet is an error. Messages
+  and the sheet summary use the new names, and the reader's `sheets` list is
+  keyed by them.
+* The template no longer ships an `exclude_choices` sheet. The feature is
+  unchanged: add the sheet when a run needs it.
 
 ## Minor changes
 

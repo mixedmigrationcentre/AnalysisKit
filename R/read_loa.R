@@ -107,14 +107,64 @@ loa_as_number <- function(x) {
 #' Normalise a Sheet Name for Matching
 #'
 #' Lower case, trimmed, with spaces and hyphens collapsed to underscores, so
-#' `"Group Analysis"` and `"group-analysis"` both resolve to `group_analysis`.
+#' `"Disaggregation Variables"` and `"disaggregation-variables"` both resolve
+#' to `disaggregation_variables`. The sheets' former names, `analysis` and
+#' `group_analysis`, resolve to their current ones (see
+#' [loa_sheet_aliases()]), so a workbook made before the rename still reads.
 #'
 #' @param x Character vector of sheet names.
 #' @return A character vector.
 #' @keywords internal
 loa_normalise_sheet_name <- function(x) {
   x <- tolower(trimws(as.character(x)))
-  gsub("[[:space:]-]+", "_", x)
+  x <- gsub("[[:space:]-]+", "_", x)
+  aliases <- loa_sheet_aliases()
+  old <- x %in% names(aliases)
+  x[old] <- aliases[x[old]]
+  unname(x)
+}
+
+
+#' Former Sheet Names and the Names They Now Read As
+#'
+#' @return A named character vector: names are the former (normalised) sheet
+#'   names, values the current ones.
+#' @keywords internal
+loa_sheet_aliases <- function() {
+  c(
+    analysis = "analysis_variables",
+    group_analysis = "disaggregation_variables"
+  )
+}
+
+
+#' Take a Workbook or a Bare List of Sheets, With Current Sheet Names
+#'
+#' Accepts the list from [read_loa_workbook()] or a bare named list of sheets,
+#' and renames any sheet still under a former name (see [loa_sheet_aliases()]),
+#' so every check reads the same names. When two sheets read as one (`analysis`
+#' and `analysis_variables`, say), the first is kept and both are recorded in
+#' `duplicate_sheets` for [validate_loa()] to report.
+#'
+#' @param workbook The list from [read_loa_workbook()], or a bare named list of
+#'   sheets.
+#' @return A list with at least `sheets`.
+#' @keywords internal
+loa_as_workbook <- function(workbook) {
+  wb <- if (!is.null(workbook$sheets)) workbook else list(sheets = workbook)
+  if (length(wb$sheets) > 0 && !is.null(names(wb$sheets))) {
+    written <- names(wb$sheets)
+    normalised <- loa_normalise_sheet_name(written)
+    repeated <- duplicated(normalised)
+    if (any(repeated)) {
+      wb$duplicate_sheets <- unique(c(
+        wb$duplicate_sheets,
+        written[normalised %in% normalised[repeated]]
+      ))
+    }
+    wb$sheets <- stats::setNames(wb$sheets[!repeated], normalised[!repeated])
+  }
+  wb
 }
 
 
@@ -172,8 +222,8 @@ loa_has_errors <- function(problems) {
 #' @export
 loa_known_sheets <- function() {
   c(
-    "analysis",
-    "group_analysis",
+    "analysis_variables",
+    "disaggregation_variables",
     "count_selections",
     "count_combinations",
     "count_exclusive_combinations",
@@ -208,7 +258,7 @@ loa_known_analysis_types <- function() {
 #' Analysis Types the Pipeline Produces Rather Than Accepts
 #'
 #' These appear in the output, built from the `count_selections` and
-#' `count_combinations` sheets. Writing one into the `analysis` sheet aborts
+#' `count_combinations` sheets. Writing one into the `analysis_variables` sheet aborts
 #' the run, so it earns its own message.
 #'
 #' @return A character vector.
@@ -321,6 +371,7 @@ loa_settings_schema <- function() {
     s("places_stop", "lgl"),
     s("dangerous_location", "lgl"),
     s("route_gender_var", "chr"),
+    s("route_top_countries", "num"),
     s("route_top_locations", "num")
   )
 }
@@ -370,10 +421,10 @@ loa_default_selection_labels <- function() {
 #'
 #' Configuration sheets are read as text so their types are decided by this
 #' file rather than by whatever \pkg{readxl} guessed from the first few rows.
-#' The `analysis` sheet keeps its guessed types, so a numeric `level` column
+#' The `analysis_variables` sheet keeps its guessed types, so a numeric `level` column
 #' stays numeric.
 #'
-#' A `.csv` upload carries no sheets: it is read as the `analysis` table alone,
+#' A `.csv` upload carries no sheets: it is read as the `analysis_variables` table alone,
 #' and `format` is `"CSV"` so the caller can say so.
 #'
 #' @param path Path to a `.xlsx` or `.csv` file.
@@ -405,10 +456,10 @@ read_loa_workbook <- function(path, filename = NULL) {
     )
 
     return(list(
-      sheets = list(analysis = analysis),
+      sheets = list(analysis_variables = analysis),
       format = "CSV",
       filename = filename,
-      sheet_names = "analysis",
+      sheet_names = "analysis_variables",
       unknown_sheets = character(0),
       ignored_sheets = character(0)
     ))
@@ -427,12 +478,15 @@ read_loa_workbook <- function(path, filename = NULL) {
   ignored <- loa_is_ignored_sheet(normalised)
   known <- normalised %in% loa_known_sheets()
   unknown <- !known & !ignored
+  # Two sheets that read as one, such as `analysis` beside
+  # `analysis_variables`: the first is read, and validate_loa() says so.
+  repeated <- known & duplicated(normalised)
 
   sheets <- list()
-  for (i in which(known)) {
+  for (i in which(known & !repeated)) {
     # Configuration sheets are read as text; the analysis table is not, so that
     # `level` arrives numeric.
-    col_types <- if (normalised[i] == "analysis") NULL else "text"
+    col_types <- if (normalised[i] == "analysis_variables") NULL else "text"
 
     df <- as.data.frame(
       readxl::read_excel(path, sheet = sheet_names[i], col_types = col_types),
@@ -455,7 +509,10 @@ read_loa_workbook <- function(path, filename = NULL) {
     filename = filename,
     sheet_names = sheet_names,
     unknown_sheets = sheet_names[unknown],
-    ignored_sheets = sheet_names[ignored]
+    ignored_sheets = sheet_names[ignored],
+    duplicate_sheets = sheet_names[
+      known & normalised %in% normalised[repeated]
+    ]
   )
 }
 
@@ -648,9 +705,9 @@ loa_parse_settings <- function(sheet) {
 # 4. Renaming
 # -----------------------------------------------------------------------------
 
-#' Build the Rename Map from the `group_analysis` Sheet
+#' Build the Rename Map from the `disaggregation_variables` Sheet
 #'
-#' @param sheet The `group_analysis` data frame, or `NULL`.
+#' @param sheet The `disaggregation_variables` data frame, or `NULL`.
 #' @param dataset Optional dataset, used to drop rows whose `raw_data_name` is
 #'   absent.
 #' @param sm_separator Select_multiple separator.
@@ -929,7 +986,7 @@ loa_group_tag_clashes <- function(
 #'   one row per reference.
 #' @export
 loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
-  wb <- if (!is.null(workbook$sheets)) workbook else list(sheets = workbook)
+  wb <- loa_as_workbook(workbook)
   sheets <- wb$sheets
 
   empty <- data.frame(
@@ -966,8 +1023,8 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
     )
   }
 
-  # --- analysis --------------------------------------------------------------
-  a <- sheets$analysis
+  # --- analysis_variables --------------------------------------------------------------
+  a <- sheets$analysis_variables
   if (!is.null(a) && nrow(a) > 0) {
     rows <- seq_len(nrow(a)) + 1L
 
@@ -980,24 +1037,24 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
     if ("analysis_var" %in% names(a)) {
       v <- loa_trim(a$analysis_var)
       v[is_ratio] <- NA_character_ # a ratio names its variables elsewhere
-      ref(v, "analysis_var", "analysis", rows)
+      ref(v, "analysis_var", "analysis_variables", rows)
     }
 
     for (cc in c("analysis_var_numerator", "analysis_var_denominator")) {
       if (cc %in% names(a)) {
         v <- loa_trim(a[[cc]])
         v[!is_ratio] <- NA_character_
-        ref(v, sub("^analysis_var_", "ratio_", cc), "analysis", rows)
+        ref(v, sub("^analysis_var_", "ratio_", cc), "analysis_variables", rows)
       }
     }
 
     if ("group_var" %in% names(a)) {
-      ref(loa_trim(a$group_var), "group_var", "analysis", rows)
+      ref(loa_trim(a$group_var), "group_var", "analysis_variables", rows)
     }
   }
 
-  # --- group_analysis --------------------------------------------------------
-  ga <- sheets$group_analysis
+  # --- disaggregation_variables --------------------------------------------------------
+  ga <- sheets$disaggregation_variables
   if (!is.null(ga) && nrow(ga) > 0 && "raw_data_name" %in% names(ga)) {
     inc <- if ("include" %in% names(ga)) {
       loa_as_logical(ga$include)
@@ -1007,7 +1064,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(ga$raw_data_name)
     v[!inc] <- NA_character_
-    ref(v, "group_var", "group_analysis", seq_len(nrow(ga)) + 1L)
+    ref(v, "group_var", "disaggregation_variables", seq_len(nrow(ga)) + 1L)
   }
 
   # --- count_selections ------------------------------------------------------
@@ -1157,13 +1214,13 @@ loa_coverage_problems <- function(coverage) {
   ]
   if (nrow(analysable) > 0 && !any(analysable$present)) {
     found[[length(found) + 1]] <- loa_problem(
-      "analysis",
+      "analysis_variables",
       NA,
       "error",
       paste0(
         "None of the ",
         length(unique(analysable$variable)),
-        " variable(s) requested in the analysis sheet are in this dataset. ",
+        " variable(s) requested in the analysis_variables sheet are in this dataset. ",
         "Check that the List of Analysis and the dataset belong to the same ",
         "round: the column names look unrelated."
       )
@@ -1282,7 +1339,7 @@ loa_delegate_check <- function(fn, args, sheet) {
 #' @return A data frame with `sheet`, `row`, `severity` and `message`.
 #' @export
 validate_loa <- function(workbook, dataset = NULL) {
-  wb <- if (!is.null(workbook$sheets)) workbook else list(sheets = workbook)
+  wb <- loa_as_workbook(workbook)
   sheets <- wb$sheets
 
   found <- list()
@@ -1308,6 +1365,22 @@ validate_loa <- function(workbook, dataset = NULL) {
     )
   }
 
+  dup <- wb$duplicate_sheets %||% character(0)
+  if (length(dup) > 0) {
+    problem(
+      "workbook",
+      NA,
+      "error",
+      paste0(
+        "Sheets ",
+        paste0("'", dup, "'", collapse = ", "),
+        " are read as the same sheet (analysis is the former name of ",
+        "analysis_variables, group_analysis of disaggregation_variables). ",
+        "Keep one of them and delete or rename the other."
+      )
+    )
+  }
+
   if (identical(wb$format, "CSV")) {
     problem(
       "workbook",
@@ -1322,12 +1395,12 @@ validate_loa <- function(workbook, dataset = NULL) {
     )
   }
 
-  if (is.null(sheets$analysis)) {
+  if (is.null(sheets$analysis_variables)) {
     problem(
       "workbook",
       NA,
       "error",
-      "The List of Analysis must contain an 'analysis' sheet."
+      "The List of Analysis must contain an 'analysis_variables' sheet."
     )
     return(loa_collect(found))
   }
@@ -1347,18 +1420,18 @@ validate_loa <- function(workbook, dataset = NULL) {
     data_rows <- dataset[-1, , drop = FALSE]
   }
 
-  # --- 2. analysis -----------------------------------------------------------
-  analysis <- sheets$analysis
+  # --- 2. analysis_variables -----------------------------------------------------------
+  analysis <- sheets$analysis_variables
   required <- c("analysis_type", "analysis_var")
   absent <- setdiff(required, names(analysis))
 
   if (length(absent) > 0) {
     problem(
-      "analysis",
+      "analysis_variables",
       NA,
       "error",
       paste0(
-        "The analysis sheet is missing required column(s): ",
+        "The analysis_variables sheet is missing required column(s): ",
         paste(absent, collapse = ", "),
         "."
       )
@@ -1371,13 +1444,18 @@ validate_loa <- function(workbook, dataset = NULL) {
       excel_row <- i + 1L
 
       if (is.na(a_type[i])) {
-        problem("analysis", excel_row, "error", "analysis_type is empty.")
+        problem(
+          "analysis_variables",
+          excel_row,
+          "error",
+          "analysis_type is empty."
+        )
         next
       }
 
       if (a_type[i] %in% loa_derived_analysis_types()) {
         problem(
-          "analysis",
+          "analysis_variables",
           excel_row,
           "error",
           paste0(
@@ -1399,7 +1477,7 @@ validate_loa <- function(workbook, dataset = NULL) {
 
       if (!a_type[i] %in% loa_known_analysis_types()) {
         problem(
-          "analysis",
+          "analysis_variables",
           excel_row,
           "error",
           paste0(
@@ -1431,7 +1509,7 @@ validate_loa <- function(workbook, dataset = NULL) {
       if (a_type[i] == "ratio") {
         if (!all(filled)) {
           problem(
-            "analysis",
+            "analysis_variables",
             excel_row,
             "error",
             paste0(
@@ -1447,7 +1525,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         # vanish from one disaggregation block and no other.
         if (!is.na(a_var[i])) {
           problem(
-            "analysis",
+            "analysis_variables",
             excel_row,
             "warning",
             paste0(
@@ -1460,7 +1538,12 @@ validate_loa <- function(workbook, dataset = NULL) {
         }
       } else {
         if (is.na(a_var[i])) {
-          problem("analysis", excel_row, "error", "analysis_var is empty.")
+          problem(
+            "analysis_variables",
+            excel_row,
+            "error",
+            "analysis_var is empty."
+          )
         }
 
         # Only a ratio reads these. A value here on any other row is ignored,
@@ -1468,7 +1551,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         # left analysis_type behind.
         if (any(filled)) {
           problem(
-            "analysis",
+            "analysis_variables",
             excel_row,
             "warning",
             paste0(
@@ -1505,7 +1588,7 @@ validate_loa <- function(workbook, dataset = NULL) {
       ))
       for (i in which(dup)) {
         problem(
-          "analysis",
+          "analysis_variables",
           i + 1L,
           "warning",
           paste0(
@@ -1520,8 +1603,8 @@ validate_loa <- function(workbook, dataset = NULL) {
     }
   }
 
-  # --- 3. group_analysis -----------------------------------------------------
-  ga <- sheets$group_analysis
+  # --- 3. disaggregation_variables -----------------------------------------------------
+  ga <- sheets$disaggregation_variables
   rename_map <- stats::setNames(character(0), character(0))
 
   if (!is.null(ga) && nrow(ga) > 0) {
@@ -1530,11 +1613,11 @@ validate_loa <- function(workbook, dataset = NULL) {
 
     if (length(absent) > 0) {
       problem(
-        "group_analysis",
+        "disaggregation_variables",
         NA,
         "error",
         paste0(
-          "The group_analysis sheet is missing required column(s): ",
+          "The disaggregation_variables sheet is missing required column(s): ",
           paste(absent, collapse = ", "),
           "."
         )
@@ -1549,7 +1632,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         # than guessed, since guessing wrong silently drops a disaggregation.
         for (i in which(!is.na(loa_trim(ga$include)) & is.na(inc))) {
           problem(
-            "group_analysis",
+            "disaggregation_variables",
             i + 1L,
             "error",
             paste0(
@@ -1572,7 +1655,7 @@ validate_loa <- function(workbook, dataset = NULL) {
 
         if (is.na(raw[i]) || is.na(new[i])) {
           problem(
-            "group_analysis",
+            "disaggregation_variables",
             excel_row,
             "error",
             "Both raw_data_name and new_name are required."
@@ -1581,7 +1664,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         }
         if (tolower(new[i]) == "overall") {
           problem(
-            "group_analysis",
+            "disaggregation_variables",
             excel_row,
             "error",
             paste0(
@@ -1592,7 +1675,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         }
         if (i > 1 && raw[i] %in% raw[seq_len(i - 1L)][inc[seq_len(i - 1L)]]) {
           problem(
-            "group_analysis",
+            "disaggregation_variables",
             excel_row,
             "error",
             paste0(
@@ -1605,7 +1688,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         }
         if (i > 1 && new[i] %in% new[seq_len(i - 1L)][inc[seq_len(i - 1L)]]) {
           problem(
-            "group_analysis",
+            "disaggregation_variables",
             excel_row,
             "error",
             paste0(
@@ -1623,7 +1706,7 @@ validate_loa <- function(workbook, dataset = NULL) {
           # reported once and in one voice.
           if (new[i] %in% names(dataset) && new[i] != raw[i]) {
             problem(
-              "group_analysis",
+              "disaggregation_variables",
               excel_row,
               "error",
               paste0(
@@ -1652,7 +1735,7 @@ validate_loa <- function(workbook, dataset = NULL) {
       for (g in unique(clashes$group_variable)) {
         hit <- clashes[clashes$group_variable == g, , drop = FALSE]
         problem(
-          "group_analysis",
+          "disaggregation_variables",
           NA,
           "error",
           paste0(
@@ -1847,7 +1930,10 @@ validate_loa <- function(workbook, dataset = NULL) {
   # Run against the renamed dataset, because that is what the pipeline sees.
   if (!is.null(dataset) && !loa_has_errors(loa_collect(found))) {
     renamed <- apply_rename_map(data_rows, rename_map, sm_separator)
-    renamed_loa <- loa_apply_map_to_analysis(sheets$analysis, rename_map)
+    renamed_loa <- loa_apply_map_to_analysis(
+      sheets$analysis_variables,
+      rename_map
+    )
 
     if (length(count_selections) > 0) {
       add(loa_delegate_check(
@@ -2007,7 +2093,7 @@ loa_exclude_choices <- function(sheet) {
 
 
 #' Apply the Rename Map to the Variable Columns of the analysis Sheet
-#' @param analysis The `analysis` data frame.
+#' @param analysis The `analysis_variables` data frame.
 #' @param map The rename map.
 #' @return `analysis` with its variable columns rewritten.
 #' @keywords internal
@@ -2049,14 +2135,18 @@ loa_apply_map_to_analysis <- function(analysis, map) {
 #'   `exclude_choices`, `settings` and `problems`.
 #' @export
 build_analysis_spec <- function(workbook, dataset = NULL) {
-  wb <- if (!is.null(workbook$sheets)) workbook else list(sheets = workbook)
+  wb <- loa_as_workbook(workbook)
   sheets <- wb$sheets
 
   problems <- validate_loa(wb, dataset)
   parsed <- loa_parse_settings(sheets$settings)
   sm_separator <- parsed$settings$sm_separator %||% "/"
 
-  rename_map <- loa_rename_map(sheets$group_analysis, dataset, sm_separator)
+  rename_map <- loa_rename_map(
+    sheets$disaggregation_variables,
+    dataset,
+    sm_separator
+  )
 
   combinations <- loa_combination_list(sheets$count_combinations)
   if (length(combinations) > 0) {
@@ -2088,7 +2178,7 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
   }
 
   spec <- list(
-    loa = loa_apply_map_to_analysis(sheets$analysis, rename_map),
+    loa = loa_apply_map_to_analysis(sheets$analysis_variables, rename_map),
     group_variables = c("Overall", unname(rename_map)),
     rename_map = rename_map,
     count_selections = count_selections,
@@ -2106,7 +2196,7 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
 
 #' Which Estimation Engine Each Analysis Will Use
 #'
-#' The `level` cell of the `analysis` sheet is the largest performance decision
+#' The `level` cell of the `analysis_variables` sheet is the largest performance decision
 #' in the application, and it is made in the workbook rather than in the code.
 #' A row with a level goes to `analysistools::create_analysis()`, which builds a
 #' survey design and re-subsets it once per level of the grouping variable; a

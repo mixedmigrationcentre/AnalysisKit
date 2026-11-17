@@ -37,7 +37,7 @@ test_that("it is passed to the pipeline, and only when it is asked for", {
 
 test_that("the derived analysis_type is rejected in the analysis sheet, with a pointer", {
   sheets <- fixture_sheets()
-  sheets$analysis$analysis_type[2] <- "exclusive_combination_select_multiple"
+  sheets$analysis_variables$analysis_type[2] <- "exclusive_combination_select_multiple"
 
   problems <- validate_loa(fixture_workbook(sheets), fixture_dataset())
   message <- problems$message[problems$severity == "error"][1]

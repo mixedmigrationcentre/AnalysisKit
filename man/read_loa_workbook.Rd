@@ -26,9 +26,9 @@ problem.
 \details{
 Configuration sheets are read as text so their types are decided by this
 file rather than by whatever \pkg{readxl} guessed from the first few rows.
-The \code{analysis} sheet keeps its guessed types, so a numeric \code{level} column
+The \code{analysis_variables} sheet keeps its guessed types, so a numeric \code{level} column
 stays numeric.
 
-A \code{.csv} upload carries no sheets: it is read as the \code{analysis} table alone,
+A \code{.csv} upload carries no sheets: it is read as the \code{analysis_variables} table alone,
 and \code{format} is \code{"CSV"} so the caller can say so.
 }

@@ -11,12 +11,12 @@ files: the dataset and the LoA.
 
 ## 1. Overview
 
-The LoA is an `.xlsx` workbook of up to seven sheets. Only `analysis` is required.
+The LoA is an `.xlsx` workbook of up to seven sheets. Only `analysis_variables` is required.
 
 | Sheet | Required | Drives |
 |---|---|---|
-| `analysis` | yes | the `loa` argument |
-| `group_analysis` | no | `group_variables`, plus a variable-renaming map |
+| `analysis_variables` | yes | the `loa` argument |
+| `disaggregation_variables` | no | `group_variables`, plus a variable-renaming map |
 | `count_selections` | no | `count_selections` |
 | `count_combinations` | no | `count_combinations` |
 | `count_exclusive_combinations` | no | `count_exclusive_combinations` |
@@ -26,13 +26,22 @@ The LoA is an `.xlsx` workbook of up to seven sheets. Only `analysis` is require
 A missing or empty optional sheet means "not requested": the reader passes the
 pipeline's own default (usually `NULL`), never a guessed value.
 
-**CSV uploads carry no sheets.** A `.csv` LoA is read as the `analysis` sheet alone; the
+**CSV uploads carry no sheets.** A `.csv` LoA is read as the `analysis_variables` sheet alone; the
 other five are unavailable and their defaults apply. Configured runs therefore require
 `.xlsx`. The app should say so rather than silently running an under-configured analysis.
 
 Sheet names are matched case-insensitively after trimming and after collapsing spaces and
-hyphens to underscores, so `Group Analysis` and `group_analysis` both resolve. An
-unrecognised sheet name is a fatal error, not a silent skip — a typo in a sheet name would
+hyphens to underscores, so `Disaggregation Variables` and `disaggregation_variables` both resolve.
+
+**Former names.** `analysis_variables` was called `analysis`, and `disaggregation_variables`
+was called `group_analysis`. A workbook that still uses the former names reads exactly as
+before. A workbook carrying both names for the same sheet is a fatal error, since the
+reader cannot tell which one is meant.
+
+**`exclude_choices` is not in the template.** The sheet is still read; add it (with the
+columns in §6) only when a run needs choices taken out of the denominator.
+
+An unrecognised sheet name is a fatal error, not a silent skip — a typo in a sheet name would
 otherwise look exactly like "I chose not to configure that".
 
 Two exceptions are ignored rather than rejected, so a workbook can carry its own notes:
@@ -40,7 +49,7 @@ a sheet named `readme` or `notes`, and any sheet whose name begins with `_`.
 
 ---
 
-## 2. Sheet `analysis`
+## 2. Sheet `analysis_variables`
 
 The existing LoA table, unchanged. This is the sheet the current pipeline already consumes.
 
@@ -55,7 +64,7 @@ The existing LoA table, unchanged. This is the sheet the current pipeline alread
 
 | Column | Notes |
 |---|---|
-| `group_var` | per-row grouping; normally left empty, since `group_analysis` handles disaggregation |
+| `group_var` | per-row grouping; normally left empty, since `disaggregation_variables` handles disaggregation |
 | `level` | empty = no confidence interval (fast engine). `0.95` or `95` = interval (survey engine, when `settings/value_columns` reports `stat_low` or `stat_upp`; see below) |
 | `analysis_var_numerator` | required when `analysis_type` is `ratio`, ignored on every other row |
 | `analysis_var_denominator` | required when `analysis_type` is `ratio`, ignored on every other row |
@@ -142,12 +151,12 @@ plain number format, not the percentage format.
 **`count_select_multiple` and `combination_select_multiple` are not valid `analysis_type`
 values here.** They are produced by the pipeline from the `count_selections` and
 `count_combinations` sheets and appear only in the output. Writing either into the
-`analysis` sheet aborts the run (`run_group_analysis_pipeline()` rejects unknown types
+`analysis_variables` sheet aborts the run (`run_group_analysis_pipeline()` rejects unknown types
 outright, because `create_analysis()` would otherwise drop them silently).
 
 ---
 
-## 3. Sheet `group_analysis`
+## 3. Sheet `disaggregation_variables`
 
 Declares the disaggregations, and renames the raw dataset columns into names that read
 properly in the output.
@@ -181,7 +190,7 @@ variable:
   analysis. The reader renames both;
 - the label row, since it travels as row 1 of the same data frame and its names are the
   lookup keys for `ck_build_label_lookup()`;
-- in the `analysis` sheet: `analysis_var`, `analysis_var_numerator`,
+- in the `analysis_variables` sheet: `analysis_var`, `analysis_var_numerator`,
   `analysis_var_denominator`, `group_var`;
 - in the `count_selections` and `count_combinations` sheets: `analysis_var`;
 - in `settings`: `weight_column`, `strata_column`.
@@ -444,7 +453,7 @@ fixed set.
 | setting | type | default | notes |
 |---|---|---|---|
 | `value_columns` | chr[] | `stat,n,n_total` | add `n_w,n_w_total` when weighting; `stat_low,stat_upp` for intervals |
-| `extra_columns` | chr[] | *(none)* | `analysis`-sheet columns to carry into the output, e.g. `sector` |
+| `extra_columns` | chr[] | *(none)* | `analysis_variables`-sheet columns to carry into the output, e.g. `sector` |
 | `missing_group_label` | chr | `Missing` | column label for respondents missing on a grouping variable |
 | `use_group_prefix` | lgl | `TRUE` | **leave `TRUE`.** `FALSE` gives `stat_<value>`, which collides when two grouping variables share a value |
 | `summary_value_label` | chr | *(none)* | written into `analysis_var_value` for mean/median/ratio rows |
@@ -501,7 +510,7 @@ These keys are read by `ak_export_results()` and are never passed to the pipelin
 
 These keys are read by `run_route_analysis()`, which `run_analysis_spec()` calls after
 the pipeline when any block is on. They are never passed to the pipeline. The route
-analysis needs no row in the `analysis` sheet: the question names are fixed 4Mi names,
+analysis needs no row in the `analysis_variables` sheet: the question names are fixed 4Mi names,
 and the slots are reshaped in memory (never saved) before they are analysed.
 
 | setting | type | default | notes |
@@ -509,8 +518,9 @@ and the slots are reshaped in memory (never saved) before they are analysed.
 | `transit_country` | lgl | `FALSE` | Transit countries: Q47–Q54 pooled, with Q72 and QN8 (asked once per respondent) analysed overall and within each country |
 | `places_stop` | lgl | `FALSE` | Places stopped: five slots of country / place / reasons — (Q56, Q57, Q58), (Q59, Q60, Q61), (Q62, Q63, Q64), (Q65, Q66, Q67), (Q68, Q69, Q70) |
 | `dangerous_location` | lgl | `FALSE` | Most dangerous locations: five slots of country / place / incidents / perpetrators — (Q98–Q101), (Q102–Q105), (Q106–Q109), (Q110–Q113), (Q114–Q117). Experienced incidents only; the perceived QO questions are not read |
-| `route_gender_var` | chr | `Q27` | The gender variable every route table is disaggregated by, in addition to every variable of `group_analysis`. Its raw name; a `group_analysis` rename is followed. Skipped with a warning when not in the dataset |
-| `route_top_locations` | num | `4` | Places per country that get a section of their own, those with the most respondents first. A whole number of 1 or more |
+| `route_gender_var` | chr | `Q27` | The gender variable the overall route tables are disaggregated by, in addition to every variable of `disaggregation_variables`. Its raw name; a `disaggregation_variables` rename is followed. Skipped with a warning when not in the dataset |
+| `route_top_countries` | num | `10` | Countries that get columns in the wide tables, those with the most respondents first. `0` shows every country. The country ranking at the top of each sheet always lists every country |
+| `route_top_locations` | num | `4` | Places per country that get columns in the wide tables, those with the most respondents first. A whole number of 1 or more |
 
 How the figures are built:
 
@@ -544,7 +554,7 @@ The reader produces one object; nothing downstream re-reads the workbook.
 
 ```r
 analysis_spec <- list(
-  loa                = <data.frame>,   # analysis sheet, post-rename
+  loa                = <data.frame>,   # analysis_variables sheet, post-rename
   group_variables    = <character>,    # c("Overall", ...)
   rename_map         = <named chr>,    # names are raw_data_name, values new_name
   count_selections   = <character>,
@@ -628,9 +638,9 @@ names, where it is named, and whether the uploaded dataset has it.
 
 | role | named in |
 |---|---|
-| `analysis_var` | `analysis` sheet |
-| `ratio_numerator`, `ratio_denominator` | `analysis` sheet, ratio rows |
-| `group_var` | `group_analysis` sheet, and any per-row `group_var` in `analysis` |
+| `analysis_var` | `analysis_variables` sheet |
+| `ratio_numerator`, `ratio_denominator` | `analysis_variables` sheet, ratio rows |
+| `group_var` | `disaggregation_variables` sheet, and any per-row `group_var` in `analysis_variables` |
 | `count_selections` | `count_selections` sheet |
 | `count_combinations` | `count_combinations` sheet |
 | `weight_column`, `strata_column` | `settings` sheet |
@@ -714,11 +724,26 @@ With any route block on (`transit_country`, `places_stop`, `dangerous_location`)
 pipeline result carries `route_analysis`, which is passed to the formatter as
 `route_sheet`. Each block that is on gets a sheet of its own, after the result sheets
 and listed in the readme: `transit-countries`, `places-stop`, `dangerous-locations`. A
-sheet runs top to bottom: the block's band, then the overall section, then each country
-with the most respondents first, each followed by its top `route_top_locations` places.
-Every table — the country or place ranking and each follow-up question — is followed
-directly by its disaggregations: by `route_gender_var`, then by each `group_analysis`
-variable, groups side by side with percentages first and counts after.
+sheet runs top to bottom:
+
+1. **The country ranking** — every country, as a share of the respondents who named one:
+   `Overall`, then each `route_gender_var` group and each group of every
+   `disaggregation_variables` variable, as columns.
+2. **One wide table per follow-up question** — the answers as rows; as columns
+   `Overall`, then the top `route_top_countries` countries (most respondents first, header
+   filled light blue), each followed by its top `route_top_locations` places. A band row
+   above the headers reads `Overall`, `Country`, `Locations` (transit countries, which
+   have no places, share one `Countries` band). Each header carries its column's base
+   for that question, `(n=…)`. A note underneath says how many countries are shown.
+3. **The same question, overall and disaggregated**, two rows below: `Overall`, then the
+   groups of `route_gender_var` and of every `disaggregation_variables` variable, one band per
+   variable.
+
+Every table is a `% of respondents` panel and, one column to the right, the same table in
+counts (`Number of respondents`). Answers keep one order in every table of a question:
+the overall percentage, largest first. A column with respondents but no row for an
+answer shows 0; a column with no respondents for the question is left blank. Countries
+and places are only columns of the wide tables; they are not disaggregated.
 
 **Filenames** are `analysiskit_<dataset stem>_<YYYYmmdd-HHMMSS>.xlsx`, and an existing file
 is never overwritten — a second run in the same second gets a `_1` suffix. The workbook's
