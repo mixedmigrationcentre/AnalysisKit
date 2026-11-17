@@ -227,12 +227,54 @@ route_workbook_dataset <- function() {
 spec_with_route <- function(...) {
   values <- c(...)
   sheets <- fixture_sheets()
-  sheets$settings <- rbind(
-    sheets$settings,
-    data.frame(setting = names(values), value = unname(values))
+  sheets$route_analysis <- data.frame(
+    setting = names(values),
+    value = unname(values)
   )
   build_analysis_spec(fixture_workbook(sheets), route_workbook_dataset())
 }
+
+test_that("route settings belong in the route_analysis sheet, and only there", {
+  # A route key in settings, or a settings key in route_analysis, names the
+  # sheet it belongs in rather than reading as an unknown setting.
+  sheets <- fixture_sheets()
+  sheets$settings <- rbind(
+    sheets$settings,
+    data.frame(setting = "places_stop", value = "TRUE")
+  )
+  problems <- validate_loa(fixture_workbook(sheets))
+  misplaced <- problems[problems$severity == "error", , drop = FALSE]
+  expect_equal(misplaced$sheet, "settings")
+  expect_match(misplaced$message, "belongs in the route_analysis sheet")
+
+  sheets <- fixture_sheets()
+  sheets$route_analysis <- data.frame(
+    setting = c("places_stop", "sm_separator"),
+    value = c("TRUE", "/")
+  )
+  problems <- validate_loa(fixture_workbook(sheets))
+  misplaced <- problems[problems$severity == "error", , drop = FALSE]
+  expect_equal(misplaced$sheet, "route_analysis")
+  expect_equal(misplaced$row, 3L)
+  expect_match(misplaced$message, "belongs in the settings sheet")
+
+  # The template ships the sheet with every block off.
+  template <- system.file(
+    "extdata",
+    "loa_template.xlsx",
+    package = "analysiskit"
+  )
+  skip_if(!nzchar(template), "not testing an installed package")
+  wb <- read_loa_workbook(template)
+  expect_false(loa_has_errors(validate_loa(wb)))
+  settings <- loa_read_settings(wb$sheets)$settings
+  expect_setequal(
+    intersect(names(settings), loa_route_settings()),
+    loa_route_settings()
+  )
+  expect_length(ck_route_enabled(settings), 0)
+  expect_false(any(loa_route_settings() %in% wb$sheets$settings$setting))
+})
 
 test_that("route settings are typed and never reach the pipeline", {
   spec <- spec_with_route(
@@ -338,7 +380,7 @@ test_that("each route block is written to a sheet of its own", {
     transit_country = "TRUE"
   )
   sheets <- readxl::excel_sheets(path)
-  route_sheets <- c("transit-countries", "places-stop", "dangerous-locations")
+  route_sheets <- c("Transit Countries", "Places Stop", "Dangerous Locations")
   expect_true(all(route_sheets %in% sheets))
   # In the blocks' order, after the result sheets.
   expect_equal(sheets[sheets %in% route_sheets], route_sheets)
@@ -347,11 +389,11 @@ test_that("each route block is written to a sheet of its own", {
   text_of <- function(sheet) book[[sheet]]$value[book[[sheet]]$type == "text"]
 
   # Each sheet carries its own block and no other.
-  expect_true("Transit countries" %in% text_of("transit-countries"))
-  expect_false("Places stopped" %in% text_of("transit-countries"))
-  expect_true("Places stopped" %in% text_of("places-stop"))
-  expect_false("Most dangerous locations" %in% text_of("places-stop"))
-  expect_true("Most dangerous locations" %in% text_of("dangerous-locations"))
+  expect_true("Transit countries" %in% text_of("Transit Countries"))
+  expect_false("Places stopped" %in% text_of("Transit Countries"))
+  expect_true("Places stopped" %in% text_of("Places Stop"))
+  expect_false("Most dangerous locations" %in% text_of("Places Stop"))
+  expect_true("Most dangerous locations" %in% text_of("Dangerous Locations"))
 
   readme <- unlist(readxl::read_excel(path, "readme", col_names = FALSE))
   for (s in route_sheets) {
@@ -370,7 +412,7 @@ test_that("a follow-up question is one wide table: Overall, countries, places", 
   skip_if_not_installed("readxl")
 
   stops <- ak_snapshot_workbook(export_route_run(places_stop = "TRUE"))[[
-    "places-stop"
+    "Places Stop"
   ]]
   text <- stops$type == "text"
 
@@ -426,7 +468,7 @@ test_that("transit countries have one Countries band and no places", {
   skip_if_not_installed("readxl")
 
   transit <- ak_snapshot_workbook(export_route_run(transit_country = "TRUE"))[[
-    "transit-countries"
+    "Transit Countries"
   ]]
   text <- transit$type == "text"
   head_row <- transit$row[text & transit$value == "Mali (n=2)"][1]
@@ -475,8 +517,8 @@ test_that("only the blocks turned on get a sheet", {
   skip_if_not_installed("readxl")
 
   sheets <- readxl::excel_sheets(export_route_run(dangerous_location = "TRUE"))
-  expect_true("dangerous-locations" %in% sheets)
-  expect_false(any(c("transit-countries", "places-stop") %in% sheets))
+  expect_true("Dangerous Locations" %in% sheets)
+  expect_false(any(c("Transit Countries", "Places Stop") %in% sheets))
 })
 
 test_that("the dataset reader keeps the route columns when a block is on", {
@@ -489,10 +531,7 @@ test_that("the dataset reader keeps the route columns when a block is on", {
   off <- read_analysis_dataset(path, loa = sheets)
   expect_false("Q56" %in% names(off$data))
 
-  sheets$settings <- rbind(
-    sheets$settings,
-    data.frame(setting = "places_stop", value = "TRUE")
-  )
+  sheets$route_analysis <- data.frame(setting = "places_stop", value = "TRUE")
   on <- read_analysis_dataset(path, loa = sheets)
   expect_true(all(
     c("Q56", "Q57", "Q58/Work", "Q58/Rest/sleep") %in% names(on$data)

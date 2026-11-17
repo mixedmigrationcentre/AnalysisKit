@@ -68,7 +68,7 @@ read_analysis_dataset <- function(path, loa = NULL) {
   columns <- NULL
   if (!is.null(loa)) {
     workbook <- as_loa_workbook(loa)
-    settings <- loa_parse_settings(workbook$sheets$settings)$settings
+    settings <- loa_read_settings(loa_as_workbook(workbook)$sheets)$settings
     # A workbook that puts the dataset in the results needs all of it, not
     # only the columns the analysis reads.
     if (!isTRUE(settings$include_dataset)) {
@@ -104,7 +104,7 @@ read_analysis_dataset <- function(path, loa = NULL) {
 #' @keywords internal
 loa_dataset_columns <- function(workbook, header) {
   wb <- loa_as_workbook(workbook)
-  settings <- loa_parse_settings(wb$sheets$settings)$settings
+  settings <- loa_read_settings(wb$sheets)$settings
   sm_separator <- settings$sm_separator %||% "/"
 
   probe <- as.data.frame(

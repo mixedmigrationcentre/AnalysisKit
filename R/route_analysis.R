@@ -28,7 +28,7 @@ ck_route_blocks <- function() {
   list(
     transit_country = list(
       title = "Transit countries",
-      sheet = "transit-countries",
+      sheet = "Transit Countries",
       country_label = "Countries transited",
       location_label = NA_character_,
       slots = data.frame(
@@ -48,7 +48,7 @@ ck_route_blocks <- function() {
     ),
     places_stop = list(
       title = "Places stopped",
-      sheet = "places-stop",
+      sheet = "Places Stop",
       country_label = "Countries stopped in",
       location_label = "Places stopped in",
       slots = data.frame(
@@ -66,7 +66,7 @@ ck_route_blocks <- function() {
     ),
     dangerous_location = list(
       title = "Most dangerous locations",
-      sheet = "dangerous-locations",
+      sheet = "Dangerous Locations",
       country_label = "Most dangerous countries",
       location_label = "Most dangerous locations in",
       slots = data.frame(
