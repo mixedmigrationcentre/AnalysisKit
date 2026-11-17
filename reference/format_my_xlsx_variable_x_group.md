@@ -45,6 +45,7 @@ format_my_xlsx_variable_x_group(
   readme_text = NULL,
   dataset_sheet = NULL,
   dataset_sheet_name = "dataset",
+  route_sheet = NULL,
   verbose = TRUE
 )
 ```
@@ -263,6 +264,14 @@ format_my_xlsx_variable_x_group(
 - dataset_sheet_name:
 
   Name of that sheet. Made unique against the other sheet names.
+
+- route_sheet:
+
+  Optional data frame from
+  [`run_route_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.md).
+  When given, each route block in it is written to a sheet of its own
+  after the result sheets: `transit-countries`, `places-stop`,
+  `dangerous-locations`.
 
 - verbose:
 

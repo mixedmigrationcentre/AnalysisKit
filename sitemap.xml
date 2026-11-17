@@ -5,6 +5,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/LICENSE.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/authors.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/index.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/news/index.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/add_empty_rows_between_groups.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ak_can_run.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ak_check_folder.html</loc></url>
@@ -91,6 +92,21 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_require_pkg.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_res_df.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_resolve_choices.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_analyse.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_block.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_blocks.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_columns.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_empty.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_enabled.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_expand.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_merge_columns.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_place.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_pool.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_question_label.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_rank.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_section.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_sm.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_route_text.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_row_ref.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_safe_sheet_name.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_sample_composition.html</loc></url>
@@ -112,6 +128,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_group_sheet.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_question_cells.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_readme_sheet.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_write_route_sheet.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/ck_wtab.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/copy_loa_template.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/dataset_columns.html</loc></url>
@@ -146,6 +163,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_problem.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_rename_map.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_rename_values.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_route_settings.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_settings_schema.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_trim.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/loa_unquote.html</loc></url>
@@ -160,6 +178,7 @@
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_locally.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/run_analysis_spec.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.html</loc></url>
+<url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/setup_project_folders.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/validate_loa.html</loc></url>
 <url><loc>https://mixedmigrationcentre.github.io/analysiskit/reference/with_run_log.html</loc></url>

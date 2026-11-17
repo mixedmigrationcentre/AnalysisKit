@@ -203,6 +203,9 @@
 - [`run_group_analysis_pipeline()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_group_analysis_pipeline.md)
   : Run a Grouped Analysis Pipeline on an ONA Export
 
+- [`run_route_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.md)
+  : Run the Route Analysis
+
 - [`setup_project_folders()`](https://mixedmigrationcentre.github.io/analysiskit/reference/setup_project_folders.md)
   : Set Up Project Folder Structure
 

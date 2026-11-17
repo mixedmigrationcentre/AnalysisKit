@@ -4,8 +4,9 @@ Every column the analysis can read: the variables
 [`loa_variable_coverage()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_variable_coverage.md)
 finds in the workbook (analysis variables, ratio numerators and
 denominators, grouping variables, the derived-count questions, weight
-and strata), the select_multiple children of each, and `uuid` when
-`recreate_sm_parents` is on.
+and strata), the select_multiple children of each, `uuid` when
+`recreate_sm_parents` is on, and the route analysis's question blocks
+and gender variable when a route block is turned on.
 
 ## Usage
 
