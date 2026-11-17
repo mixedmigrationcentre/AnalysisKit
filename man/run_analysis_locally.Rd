@@ -75,7 +75,7 @@ returned either way.
 \dontrun{
 # The usual case
 run <- run_analysis_locally(
-  dataset       = "data/mmr_analysis_data_25_26.xlsx",
+  dataset       = "data/data.xlsx",
   loa           = "resources/loa_template.xlsx",
   output_folder = "output"
 )
