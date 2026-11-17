@@ -1397,6 +1397,9 @@ ck_sample_composition <- function(dat, blocks, block_group, sample_base) {
 #'   sheets. `NULL` (the default) leaves it out.
 #' @param dataset_sheet_name Name of that sheet. Made unique against the other
 #'   sheet names.
+#' @param route_sheet Optional data frame from [run_route_analysis()]. When
+#'   given, each route block in it is written to a sheet of its own after the
+#'   result sheets: `transit-countries`, `places-stop`, `dangerous-locations`.
 #' @param verbose Logical, print progress messages.
 #'
 #' @return An `openxlsx` workbook if `file_path` is NULL, otherwise the file is
@@ -1439,6 +1442,7 @@ format_my_xlsx_variable_x_group <- function(
   readme_text = NULL,
   dataset_sheet = NULL,
   dataset_sheet_name = "dataset",
+  route_sheet = NULL,
   verbose = TRUE
 ) {
   t_start <- Sys.time()
@@ -1908,6 +1912,38 @@ format_my_xlsx_variable_x_group <- function(
     )
     sheet_names <- c(sheet_names, dataset_name)
     sheet_content <- c(sheet_content, "The dataset the analysis was run on")
+  }
+
+  # --- 6c. Route analysis -----------------------------------------------------
+  # One sheet per route block, in the blocks' own order.
+  if (!is.null(route_sheet) && NROW(route_sheet) > 0) {
+    route_defs <- ck_route_blocks()
+    for (b in intersect(names(route_defs), unique(route_sheet$block))) {
+      def <- route_defs[[b]]
+      route_name <- ck_safe_sheet_name(
+        def$sheet,
+        taken = c(readme_sheet_name, sheet_names)
+      )
+      say("--> writing sheet %s: route analysis", route_name)
+      ck_write_route_sheet(
+        wb = wb,
+        sheet = route_name,
+        route = route_sheet[route_sheet$block == b, , drop = FALSE],
+        pal = pal,
+        font_name = font_name,
+        pct_fmt = pct_fmt
+      )
+      sheet_names <- c(sheet_names, route_name)
+      sheet_content <- c(
+        sheet_content,
+        paste0(
+          "Route analysis, ",
+          tolower(def$title),
+          ": countries and places pooled across every route slot, as % of ",
+          "respondents"
+        )
+      )
+    }
   }
 
   # --- 7. Readme --------------------------------------------------------------

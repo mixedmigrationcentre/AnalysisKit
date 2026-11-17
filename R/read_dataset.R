@@ -93,8 +93,9 @@ read_analysis_dataset <- function(path, loa = NULL) {
 #' Every column the analysis can read: the variables
 #' [loa_variable_coverage()] finds in the workbook (analysis variables, ratio
 #' numerators and denominators, grouping variables, the derived-count
-#' questions, weight and strata), the select_multiple children of each, and
-#' `uuid` when `recreate_sm_parents` is on.
+#' questions, weight and strata), the select_multiple children of each,
+#' `uuid` when `recreate_sm_parents` is on, and the route analysis's question
+#' blocks and gender variable when a route block is turned on.
 #'
 #' @param workbook The list from [read_loa_workbook()], or a bare named list of
 #'   sheets.
@@ -114,6 +115,16 @@ loa_dataset_columns <- function(workbook, header) {
   variables <- unique(loa_variable_coverage(wb, probe, sm_separator)$variable)
   if (isTRUE(settings$recreate_sm_parents)) {
     variables <- c(variables, "uuid")
+  }
+  # The route analysis reads its question blocks and the gender variable,
+  # neither of which the analysis sheet names.
+  route_blocks <- ck_route_enabled(settings)
+  if (length(route_blocks) > 0) {
+    variables <- c(
+      variables,
+      ck_route_columns(route_blocks),
+      settings$route_gender_var %||% "Q27"
+    )
   }
   variables <- variables[!is.na(variables) & nzchar(variables)]
 

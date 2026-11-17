@@ -19,7 +19,8 @@ A logical vector, one element per name in \code{header}.
 Every column the analysis can read: the variables
 \code{\link[=loa_variable_coverage]{loa_variable_coverage()}} finds in the workbook (analysis variables, ratio
 numerators and denominators, grouping variables, the derived-count
-questions, weight and strata), the select_multiple children of each, and
-\code{uuid} when \code{recreate_sm_parents} is on.
+questions, weight and strata), the select_multiple children of each,
+\code{uuid} when \code{recreate_sm_parents} is on, and the route analysis's question
+blocks and gender variable when a route block is turned on.
 }
 \keyword{internal}

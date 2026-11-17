@@ -67,6 +67,7 @@ export(read_uploaded_dataset)
 export(run_analysis_locally)
 export(run_analysis_spec)
 export(run_group_analysis_pipeline)
+export(run_route_analysis)
 export(setup_project_folders)
 export(validate_loa)
 importFrom(dplyr,

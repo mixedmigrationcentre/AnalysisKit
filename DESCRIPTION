@@ -1,6 +1,6 @@
 Package: analysiskit
 Title: Run MMC 4Mi Analyses Locally from a Dataset and a List of Analysis
-Version: 2026.09.1
+Version: 2026.11.1
 Authors@R: c(
     person("Abubakar", "Athman", , "abubakar.athman@mixedmigration.org", role = c("aut", "cre")),
     person("Mixed Migration Centre", role = c("cph", "fnd"))

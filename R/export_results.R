@@ -387,6 +387,10 @@ ak_export_results <- function(
   if (include_dataset) {
     args$dataset_sheet <- dataset
   }
+  # Likewise the route analysis, present only when a route block was turned on.
+  if (is.list(results) && NROW(results$route_analysis) > 0) {
+    args$route_sheet <- results$route_analysis
+  }
 
   do.call(formatter, args)
 
