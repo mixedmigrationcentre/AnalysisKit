@@ -18,12 +18,77 @@ test_that("countries are pooled across slots and counted per respondent", {
 
   mali <- route_cell(res, "places_stop", "route_country", "Mali")
   niger <- route_cell(res, "places_stop", "route_country", "Niger")
-  # r1, r2 and r3 named a stop; r4 did not, so is out of the denominator.
+  # Full sample by default: all four respondents, r4 included though it
+  # named no stop.
   expect_equal(mali$n, 2)
-  expect_equal(mali$n_total, 3)
+  expect_equal(mali$n_total, 4)
+  expect_equal(mali$base, "full_sample")
   expect_equal(niger$n, 2)
   # "None" names no place.
   expect_false("None" %in% res$choice)
+
+  # Switched off: out of r1, r2 and r3, who named a stop.
+  off <- run_route(places_stop = TRUE, route_full_sample_base = FALSE)
+  mali <- route_cell(off, "places_stop", "route_country", "Mali")
+  expect_equal(c(mali$n, mali$n_total), c(2, 3))
+  expect_equal(mali$base, "answered")
+})
+
+test_that("the full sample covers the ranking and Q72, nothing else", {
+  res <- run_route(transit_country = TRUE, places_stop = TRUE)
+
+  # Every block's ranking is out of all four, overall and by gender.
+  ranking <- res[res$variable == "route_country", ]
+  expect_true(all(ranking$base == "full_sample"))
+  expect_true(all(ranking$n_total[is.na(ranking$group_var)] == 4))
+  female <- route_cell(
+    res,
+    "places_stop",
+    "route_country",
+    "Niger",
+    group_var = "Q27",
+    group_var_value = "Female"
+  )
+  # r1 and r3, of the two women.
+  expect_equal(c(female$n, female$n_total), c(2, 2))
+
+  # QN8 is asked only of some, and stays out of those who answered.
+  qn8 <- route_cell(res, "transit_country", "QN8", "Economic reasons")
+  expect_equal(c(qn8$n, qn8$n_total), c(1, 1))
+  expect_equal(qn8$base, "answered")
+
+  # Stop reasons keep their base, as do the places within a country.
+  work <- route_cell(res, "places_stop", "stop_reason", "Work")
+  expect_true(all(work$base == "answered"))
+  expect_true(all(res$base[res$variable == "route_location"] == "answered"))
+})
+
+test_that("a blank Q72 stays in the base, as its own row", {
+  dataset <- fixture_route_dataset()
+  # r4 (row 5, after the label row) did not answer Q72.
+  dataset[5, c("Q72", "Q72/Cheapest", "Q72/Safest")] <- NA
+  res <- run_route(transit_country = TRUE, dataset = dataset)
+
+  cheapest <- route_cell(res, "transit_country", "Q72", "Cheapest")
+  expect_equal(c(cheapest$n, cheapest$n_total), c(2, 4))
+  none <- route_cell(res, "transit_country", "Q72", "Not asked / no response")
+  expect_equal(c(none$n, none$n_total), c(1, 4))
+  expect_equal(none$base, "full_sample")
+
+  # Switched off, r4 leaves the base and there is no such row.
+  off <- run_route(
+    transit_country = TRUE,
+    route_full_sample_base = FALSE,
+    dataset = dataset
+  )
+  cheapest <- route_cell(off, "transit_country", "Q72", "Cheapest")
+  expect_equal(c(cheapest$n, cheapest$n_total), c(2, 3))
+  expect_false("Not asked / no response" %in% off$choice)
+
+  expect_error(
+    run_route(transit_country = TRUE, route_full_sample_base = "yes"),
+    "TRUE or FALSE"
+  )
 })
 
 test_that("a reason given at two stops in one country counts once there", {
@@ -92,7 +157,8 @@ test_that("places are ranked within their country and cut to the top N", {
       "location Niger Agadez"
     )
   )
-  expect_equal(sections$unit_n, c(3, 2, 2, 1, 2, 2))
+  # The overall unit is the full sample: all four respondents.
+  expect_equal(sections$unit_n, c(4, 2, 2, 1, 2, 2))
 
   top1 <- run_route(places_stop = TRUE, route_top_locations = 1)
   expect_false("Bamako" %in% top1$location)
@@ -159,8 +225,8 @@ test_that("respondent-level follow-ups keep their own denominator", {
 test_that("weights change the percentages but not the counts", {
   res <- run_route(places_stop = TRUE, weight_column = "weight")
   mali <- route_cell(res, "places_stop", "route_country", "Mali")
-  # r1 (1) and r2 (3) of r1, r2, r3 (1 + 3 + 1).
-  expect_equal(mali$stat, 4 / 5)
+  # r1 (1) and r2 (3) of everyone (1 + 3 + 1 + 1).
+  expect_equal(mali$stat, 4 / 6)
   expect_equal(mali$n, 2)
 })
 

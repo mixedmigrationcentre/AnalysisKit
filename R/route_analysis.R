@@ -18,8 +18,10 @@
 #' The exact 4Mi question names behind each route block. One row of `slots`
 #' per repeat of the block; `follow_ups` name the select_multiple questions
 #' asked about each slot, and `respondent_follow_ups` the select_multiple
-#' questions asked once per respondent about the route as a whole. `sheet` is
-#' the name of the results sheet the block is written to.
+#' questions asked once per respondent about the route as a whole;
+#' `respondent_full_sample` are those of them asked of everyone, which
+#' `route_full_sample_base` reports out of the full sample. `sheet` is the
+#' name of the results sheet the block is written to.
 #'
 #' @return A named list, one element per block, in the order the blocks are
 #'   written: `transit_country`, `places_stop`, `dangerous_location`.
@@ -44,7 +46,11 @@ ck_route_blocks <- function() {
           "What motivated you to continue onwards, rather than remain in any ",
           "of the countries you passed through so far?"
         )
-      )
+      ),
+      # Asked of everyone, so out of the full sample under
+      # route_full_sample_base. QN8 is not: it was skipped for anyone whose
+      # first transit country was None or Refused.
+      respondent_full_sample = "Q72"
     ),
     places_stop = list(
       title = "Places stopped",
@@ -62,7 +68,8 @@ ck_route_blocks <- function() {
         stop_reason = "Why did you stop in this city/place?"
       ),
       respondent_follow_ups = character(0),
-      respondent_follow_up_labels = character(0)
+      respondent_follow_up_labels = character(0),
+      respondent_full_sample = character(0)
     ),
     dangerous_location = list(
       title = "Most dangerous locations",
@@ -82,7 +89,8 @@ ck_route_blocks <- function() {
         perpetrator = "Who were the main perpetrators?"
       ),
       respondent_follow_ups = character(0),
-      respondent_follow_up_labels = character(0)
+      respondent_follow_up_labels = character(0),
+      respondent_full_sample = character(0)
     )
   )
 }
@@ -100,9 +108,16 @@ loa_route_settings <- function() {
     names(ck_route_blocks()),
     "route_gender_var",
     "route_top_countries",
-    "route_top_locations"
+    "route_top_locations",
+    "route_full_sample_base"
   )
 }
+
+
+#' The Label of the Not-Asked Row in a Full-Sample Route Question
+#' @return A single string.
+#' @keywords internal
+ck_route_no_response_label <- function() "Not asked / no response"
 
 
 #' Which Route Blocks a Specification Asks For
@@ -151,6 +166,15 @@ ck_route_columns <- function(blocks) {
 #' place however many slots name it, and a choice counts as selected there if
 #' it was selected in any of those slots. Weights come from `weight_column`.
 #'
+#' **The base.** With `route_full_sample_base` `TRUE` (the default; blank or
+#' absent counts as `TRUE`), the questions asked of everyone are out of the
+#' full sample: the country ranking of every block is out of all respondents,
+#' whether or not they named a country (None, Refused and the like are still
+#' not listed), and Q72 is out of all respondents, with anyone who did not
+#' answer as a `Not asked / no response` row. Every other question - QN8, the
+#' reasons for stopping, the incidents, the perpetrators - is out of the
+#' respondents asked it. `FALSE` puts the ranking and Q72 on that footing too.
+#'
 #' @param dataset The dataset, with the ONA label row still on top (as for
 #'   [run_analysis_spec()]).
 #' @param spec An `analysis_spec` from [build_analysis_spec()].
@@ -160,8 +184,9 @@ ck_route_columns <- function(blocks) {
 #'   `section` (writing order), `level` (`overall`, `country`, `location`),
 #'   `country`, `location`, `unit_n`, `variable`, `variable_label`,
 #'   `group_var` (`NA` for the undisaggregated table), `group_var_value`,
-#'   `choice`, `stat`, `n`, `n_total`, `n_w` and `n_w_total`. `NULL` when no
-#'   block is enabled or none could run.
+#'   `choice`, `stat`, `n`, `n_total`, `n_w`, `n_w_total` and `base`
+#'   (`"full_sample"` or `"answered"`). `NULL` when no block is enabled or
+#'   none could run.
 #' @export
 run_route_analysis <- function(
   dataset,
@@ -246,6 +271,14 @@ run_route_analysis <- function(
     weight_column <- NULL
   }
 
+  # Blank or absent means TRUE: the full sample is the default.
+  full_sample <- settings$route_full_sample_base %||% TRUE
+  if (
+    length(full_sample) != 1 || is.na(full_sample) || !is.logical(full_sample)
+  ) {
+    stop("route_full_sample_base must be TRUE or FALSE.", call. = FALSE)
+  }
+
   out <- list()
   for (b in blocks) {
     def <- ck_route_blocks()[[b]]
@@ -253,6 +286,7 @@ run_route_analysis <- function(
       data = data,
       def = def,
       block = b,
+      full_sample = full_sample,
       group_vars = group_vars,
       weight_column = weight_column,
       sm_separator = sm_separator,
@@ -404,9 +438,21 @@ ck_route_pool <- function(x, key) {
 #' @param variable The variable name to report.
 #' @param w Respondent weights.
 #' @param groups Named list of respondent-level disaggregation values.
+#' @param base_id The respondents of the denominator, for a ranking with a
+#'   single unit (`"Overall"`); `NULL` (the default) for those who named at
+#'   least one value. The full sample passes every respondent, so those who
+#'   named nothing, or only None or Refused, stay in the base.
 #' @return Rows in the shape of [ck_route_analyse()].
 #' @keywords internal
-ck_route_rank <- function(id, unit, value, variable, w, groups) {
+ck_route_rank <- function(
+  id,
+  unit,
+  value,
+  variable,
+  w,
+  groups,
+  base_id = NULL
+) {
   ok <- !is.na(value)
   if (!any(ok)) {
     return(ck_route_empty())
@@ -414,7 +460,12 @@ ck_route_rank <- function(id, unit, value, variable, w, groups) {
   sep <- "\u001f"
   trip <- data.frame(id = id[ok], unit = unit[ok], value = value[ok])
   trip <- trip[!duplicated(paste(trip$id, trip$unit, trip$value, sep = sep)), ]
-  den <- trip[!duplicated(paste(trip$id, trip$unit, sep = sep)), ]
+  den <- if (is.null(base_id)) {
+    trip[!duplicated(paste(trip$id, trip$unit, sep = sep)), ]
+  } else {
+    stopifnot(length(unique(trip$unit)) == 1)
+    data.frame(id = base_id, unit = trip$unit[1], value = NA_character_)
+  }
 
   one <- function(g_name, g_vals) {
     gv_den <- if (is.null(g_vals)) NULL else g_vals[den$id]
@@ -478,6 +529,9 @@ ck_route_rank <- function(id, unit, value, variable, w, groups) {
 #' @param top_countries Countries that get a section of their own, most
 #'   respondents first; `0` for all.
 #' @param label_row The ONA label row, or `NULL`.
+#' @param full_sample Logical. Report the country ranking and the
+#'   `respondent_full_sample` questions out of every respondent (see
+#'   [run_route_analysis()]). Default `TRUE`.
 #' @return The block's rows of the [run_route_analysis()] result, or `NULL`.
 #' @keywords internal
 ck_route_block <- function(
@@ -489,8 +543,14 @@ ck_route_block <- function(
   sm_separator,
   top_n,
   label_row,
-  top_countries = 0
+  top_countries = 0,
+  full_sample = TRUE
 ) {
+  full_sample_vars <- if (isTRUE(full_sample)) {
+    c("route_country", def$respondent_full_sample)
+  } else {
+    character(0)
+  }
   slots <- def$slots
   has_location <- "location" %in% names(slots)
 
@@ -582,6 +642,21 @@ ck_route_block <- function(
         " has no select_multiple columns in the dataset and is left out."
       )
       next
+    }
+    # Asked of everyone: anyone who did not answer stays in the base, as
+    # not selecting any choice, and is counted in a row of their own.
+    if (q %in% full_sample_vars) {
+      not_asked <- rowSums(!is.na(m)) == 0
+      m[is.na(m)] <- 0
+      if (any(not_asked)) {
+        nr <- ck_route_no_response_label()
+        if (nr %in% colnames(m)) {
+          m[, nr] <- pmax(m[, nr], as.numeric(not_asked))
+        } else {
+          m <- cbind(m, stats::setNames(as.numeric(not_asked), NULL))
+          colnames(m)[ncol(m)] <- nr
+        }
+      }
     }
     resp_fu[[q]] <- m
   }
@@ -675,7 +750,8 @@ ck_route_block <- function(
       country,
       "route_country",
       w,
-      groups
+      groups,
+      base_id = if ("route_country" %in% full_sample_vars) seq_len(n_resp)
     ),
     ck_route_analyse(resp_tab, w, groups, sm_separator)
   )
@@ -683,7 +759,11 @@ ck_route_block <- function(
   if (top_countries > 0) {
     countries <- utils::head(countries, top_countries)
   }
-  unit_n_overall <- sum(answered)
+  unit_n_overall <- if ("route_country" %in% full_sample_vars) {
+    n_resp
+  } else {
+    sum(answered)
+  }
 
   shown <- country %in% countries$choice
   rc_tab <- ck_route_subset(rc_tab, rc_tab$unit %in% countries$choice)
@@ -764,6 +844,16 @@ ck_route_block <- function(
   out$variable_label[is.na(out$variable_label)] <- out$variable[is.na(
     out$variable_label
   )]
+  # The places within a country are always out of those naming the country;
+  # only the overall ranking and the asked-of-everyone questions take the full
+  # sample.
+  out$base <- ifelse(
+    out$variable %in%
+      full_sample_vars &
+      (out$variable != "route_country" | out$level == "overall"),
+    "full_sample",
+    "answered"
+  )
 
   out[, c(
     "block",
@@ -782,7 +872,8 @@ ck_route_block <- function(
     "n",
     "n_total",
     "n_w",
-    "n_w_total"
+    "n_w_total",
+    "base"
   )]
 }
 
@@ -1215,7 +1306,18 @@ ck_write_route_sheet <- function(
   choice_order <- function(cells, overall_key = "overall") {
     main <- cells[cells$key == overall_key, , drop = FALSE]
     main <- main[order(-main$stat, -main$n, main$choice), , drop = FALSE]
-    c(main$choice, sort(setdiff(unique(cells$choice), main$choice)))
+    out <- c(main$choice, sort(setdiff(unique(cells$choice), main$choice)))
+    # The not-asked row of a full-sample question goes last.
+    nr <- ck_route_no_response_label()
+    c(setdiff(out, nr), intersect(out, nr))
+  }
+  is_full <- function(rows) {
+    "base" %in% names(rows) && any(rows$base == "full_sample", na.rm = TRUE)
+  }
+  base_note <- function(text, r) {
+    put(text, r, 1L)
+    ck_add_rect(sg, st$note, r, 1L)
+    r + 1L
   }
 
   overall <- route[route$level == "overall", , drop = FALSE]
@@ -1318,6 +1420,18 @@ ck_write_route_sheet <- function(
   if (nrow(ranking) > 0) {
     put(paste0(def$country_label, ": all countries"), row, 1L)
     ck_add_rect(sg, st$title, row, 1L)
+    row <- base_note(
+      if (is_full(ranking)) {
+        paste0(
+          "Out of all respondents, whether or not they named a country. ",
+          "None, Refused and the like are not listed."
+        )
+      } else {
+        "Out of the respondents who named at least one country."
+      },
+      row + 1L
+    ) -
+      1L
     tab <- disaggregated(ranking)
     main <- tab$cells[tab$cells$key == "overall", , drop = FALSE]
     choices <- main$choice[order(-main$n, main$choice)]
@@ -1358,16 +1472,23 @@ ck_write_route_sheet <- function(
     ck_add_rect(sg, st$title, row, 1L)
     row <- row + 1L
     if (v %in% def$respondent_follow_ups) {
-      put(
+      row <- base_note(
         paste0(
           "Asked once per respondent: a country column shows the answers of ",
-          "the respondents who transited that country."
+          "the respondents who transited that country. ",
+          if (is_full(rv)) {
+            paste0(
+              "Out of all respondents: anyone who did not answer is counted ",
+              "in the '",
+              ck_route_no_response_label(),
+              "' row."
+            )
+          } else {
+            "Out of the respondents who answered."
+          }
         ),
-        row,
-        1L
+        row
       )
-      ck_add_rect(sg, st$note, row, 1L)
-      row <- row + 1L
     }
 
     # Wide table: Overall, then each country and its places.

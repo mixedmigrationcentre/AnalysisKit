@@ -533,6 +533,7 @@ and the slots are reshaped in memory (never saved) before they are analysed.
 | `route_gender_var` | chr | `Q27` | The gender variable the overall route tables are disaggregated by, in addition to every variable of `disaggregation_variables`. Its raw name; a `disaggregation_variables` rename is followed. Skipped with a warning when not in the dataset |
 | `route_top_countries` | num | `10` | Countries that get columns in the wide tables, those with the most respondents first. `0` shows every country. The country ranking at the top of each sheet always lists every country |
 | `route_top_locations` | num | `4` | Places per country that get columns in the wide tables, those with the most respondents first. A whole number of 1 or more |
+| `route_full_sample_base` | lgl | `TRUE` | `TRUE` (or blank) reports the questions everyone is asked out of the full sample: each country ranking, and Q72. Every other route question stays out of those asked it. See "How the figures are built" |
 
 How the figures are built:
 
@@ -542,9 +543,22 @@ How the figures are built:
 - Country and place come from the main select_one columns; the `_1` "other, specify" text
   is not read. A blank slot is dropped, and so is one whose country or place is a
   non-answer (None, Refused, Don't know, Prefer not to say, Not applicable).
-- The overall section's country table is out of respondents who named at least one
-  country in the block; a respondent-level follow-up (Q72, QN8) keeps its own denominator,
-  everyone asked it.
+- **The base, under `route_full_sample_base`** (default `TRUE`). The questions every
+  respondent is asked are out of the full sample:
+
+  | Block | Out of all respondents | Out of those asked |
+  |---|---|---|
+  | Transit countries | countries transited (ranking); why this route (Q72) | what motivated you to continue onwards (QN8), not asked after None or Refused |
+  | Places stopped | countries stopped in (ranking) | why you stopped (Q58…Q70) |
+  | Most dangerous locations | most dangerous countries (ranking) | incidents (Q100…Q116); perpetrators (Q101…Q117) |
+
+  A ranking out of all respondents still lists only real countries: None, Refused and the
+  like are left out of the rows but their respondents stay in the base. A Q72 blank counts
+  as selecting nothing and is reported as a `Not asked / no response` row, last. The places
+  within a country are always out of the respondents who named that country. `FALSE`
+  puts the rankings out of the respondents who named at least one country, and Q72 out of
+  those who answered it. Each table in the sheet says which base it uses, and the results
+  carry it in a `base` column (`full_sample` or `answered`).
 - Weights come from `weight_column`. Counts (`n`, `n_total`) are unweighted.
 - A block whose country or place columns are missing from the dataset is skipped with a
   warning naming them.

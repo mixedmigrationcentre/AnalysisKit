@@ -26,8 +26,9 @@ A data frame, one row per cell, with \code{block}, \code{block_title},
 \code{section} (writing order), \code{level} (\code{overall}, \code{country}, \code{location}),
 \code{country}, \code{location}, \code{unit_n}, \code{variable}, \code{variable_label},
 \code{group_var} (\code{NA} for the undisaggregated table), \code{group_var_value},
-\code{choice}, \code{stat}, \code{n}, \code{n_total}, \code{n_w} and \code{n_w_total}. \code{NULL} when no
-block is enabled or none could run.
+\code{choice}, \code{stat}, \code{n}, \code{n_total}, \code{n_w}, \code{n_w_total} and \code{base}
+(\code{"full_sample"} or \code{"answered"}). \code{NULL} when no block is enabled or
+none could run.
 }
 \description{
 Pools the repeated country and place questions of 4Mi - transit countries
@@ -49,4 +50,13 @@ sheet; the country and place sections are not.
 Percentages are of respondents. A respondent counts once per country or
 place however many slots name it, and a choice counts as selected there if
 it was selected in any of those slots. Weights come from \code{weight_column}.
+
+\strong{The base.} With \code{route_full_sample_base} \code{TRUE} (the default; blank or
+absent counts as \code{TRUE}), the questions asked of everyone are out of the
+full sample: the country ranking of every block is out of all respondents,
+whether or not they named a country (None, Refused and the like are still
+not listed), and Q72 is out of all respondents, with anyone who did not
+answer as a \verb{Not asked / no response} row. Every other question - QN8, the
+reasons for stopping, the incidents, the perpetrators - is out of the
+respondents asked it. \code{FALSE} puts the ranking and Q72 on that footing too.
 }
