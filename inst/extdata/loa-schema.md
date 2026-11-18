@@ -512,7 +512,8 @@ These keys are read by `ak_export_results()` and are never passed to the pipelin
 These keys go in their own sheet, `route_analysis`, with the same two columns as
 `settings` (`setting`, `value`). Each key is accepted only in its own sheet: a route key
 in `settings`, or a `settings` key in `route_analysis`, is a fatal error that names the
-sheet it belongs in. Leaving the sheet out leaves every block off.
+sheet it belongs in. Leaving the sheet out leaves every block off. Any other column, such as
+the template's `description`, is for the reader of the workbook and is ignored.
 
 These keys are read by `run_route_analysis()`, which `run_analysis_spec()` calls after
 the pipeline when any block is on. They are never passed to the pipeline. The route
