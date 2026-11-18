@@ -274,6 +274,11 @@ test_that("route settings belong in the route_analysis sheet, and only there", {
   )
   expect_length(ck_route_enabled(settings), 0)
   expect_false(any(loa_route_settings() %in% wb$sheets$settings$setting))
+  # Each row carries a description for whoever fills it in; the reader
+  # ignores the column.
+  route <- wb$sheets$route_analysis
+  expect_true("description" %in% names(route))
+  expect_false(anyNA(route$description))
 })
 
 test_that("route settings are typed and never reach the pipeline", {
