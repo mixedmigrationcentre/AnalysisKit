@@ -7,7 +7,7 @@ full 4Mi round would mean a column for every place in every country.
 ## Usage
 
 ``` r
-ck_route_rank(id, unit, value, variable, w, groups)
+ck_route_rank(id, unit, value, variable, w, groups, base_id = NULL)
 ```
 
 ## Arguments
@@ -36,6 +36,13 @@ ck_route_rank(id, unit, value, variable, w, groups)
 - groups:
 
   Named list of respondent-level disaggregation values.
+
+- base_id:
+
+  The respondents of the denominator, for a ranking with a single unit
+  (`"Overall"`); `NULL` (the default) for those who named at least one
+  value. The full sample passes every respondent, so those who named
+  nothing, or only None or Refused, stay in the base.
 
 ## Value
 

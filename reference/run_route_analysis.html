@@ -86,8 +86,9 @@ settings; <code><a href="run_analysis_spec.html">run_analysis_spec()</a></code> 
 <code>section</code> (writing order), <code>level</code> (<code>overall</code>, <code>country</code>, <code>location</code>),
 <code>country</code>, <code>location</code>, <code>unit_n</code>, <code>variable</code>, <code>variable_label</code>,
 <code>group_var</code> (<code>NA</code> for the undisaggregated table), <code>group_var_value</code>,
-<code>choice</code>, <code>stat</code>, <code>n</code>, <code>n_total</code>, <code>n_w</code> and <code>n_w_total</code>. <code>NULL</code> when no
-block is enabled or none could run.</p>
+<code>choice</code>, <code>stat</code>, <code>n</code>, <code>n_total</code>, <code>n_w</code>, <code>n_w_total</code> and <code>base</code>
+(<code>"full_sample"</code> or <code>"answered"</code>). <code>NULL</code> when no block is enabled or
+none could run.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -102,6 +103,14 @@ sheet; the country and place sections are not.</p>
 <p>Percentages are of respondents. A respondent counts once per country or
 place however many slots name it, and a choice counts as selected there if
 it was selected in any of those slots. Weights come from <code>weight_column</code>.</p>
+<p><strong>The base.</strong> With <code>route_full_sample_base</code> <code>TRUE</code> (the default; blank or
+absent counts as <code>TRUE</code>), the questions asked of everyone are out of the
+full sample: the country ranking of every block is out of all respondents,
+whether or not they named a country (None, Refused and the like are still
+not listed), and Q72 is out of all respondents, with anyone who did not
+answer as a <code>Not asked / no response</code> row. Every other question - QN8, the
+reasons for stopping, the incidents, the perpetrators - is out of the
+respondents asked it. <code>FALSE</code> puts the ranking and Q72 on that footing too.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

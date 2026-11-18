@@ -45,8 +45,8 @@ A data frame, one row per cell, with `block`, `block_title`, `section`
 (writing order), `level` (`overall`, `country`, `location`), `country`,
 `location`, `unit_n`, `variable`, `variable_label`, `group_var` (`NA`
 for the undisaggregated table), `group_var_value`, `choice`, `stat`,
-`n`, `n_total`, `n_w` and `n_w_total`. `NULL` when no block is enabled
-or none could run.
+`n`, `n_total`, `n_w`, `n_w_total` and `base` (`"full_sample"` or
+`"answered"`). `NULL` when no block is enabled or none could run.
 
 ## Details
 
@@ -64,3 +64,13 @@ Percentages are of respondents. A respondent counts once per country or
 place however many slots name it, and a choice counts as selected there
 if it was selected in any of those slots. Weights come from
 `weight_column`.
+
+**The base.** With `route_full_sample_base` `TRUE` (the default; blank
+or absent counts as `TRUE`), the questions asked of everyone are out of
+the full sample: the country ranking of every block is out of all
+respondents, whether or not they named a country (None, Refused and the
+like are still not listed), and Q72 is out of all respondents, with
+anyone who did not answer as a `Not asked / no response` row. Every
+other question - QN8, the reasons for stopping, the incidents, the
+perpetrators - is out of the respondents asked it. `FALSE` puts the
+ranking and Q72 on that footing too.

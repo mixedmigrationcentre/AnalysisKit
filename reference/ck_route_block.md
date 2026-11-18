@@ -14,7 +14,8 @@ ck_route_block(
   sm_separator,
   top_n,
   label_row,
-  top_countries = 0
+  top_countries = 0,
+  full_sample = TRUE
 )
 ```
 
@@ -57,6 +58,13 @@ ck_route_block(
 
   Countries that get a section of their own, most respondents first; `0`
   for all.
+
+- full_sample:
+
+  Logical. Report the country ranking and the `respondent_full_sample`
+  questions out of every respondent (see
+  [`run_route_analysis()`](https://mixedmigrationcentre.github.io/analysiskit/reference/run_route_analysis.md)).
+  Default `TRUE`.
 
 ## Value
 

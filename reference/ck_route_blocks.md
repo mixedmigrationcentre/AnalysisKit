@@ -3,8 +3,10 @@
 The exact 4Mi question names behind each route block. One row of `slots`
 per repeat of the block; `follow_ups` name the select_multiple questions
 asked about each slot, and `respondent_follow_ups` the select_multiple
-questions asked once per respondent about the route as a whole. `sheet`
-is the name of the results sheet the block is written to.
+questions asked once per respondent about the route as a whole;
+`respondent_full_sample` are those of them asked of everyone, which
+`route_full_sample_base` reports out of the full sample. `sheet` is the
+name of the results sheet the block is written to.
 
 ## Usage
 
