@@ -35,7 +35,9 @@ ck_full_sample_base(
 - label:
 
   Row label for respondents with no answer, in select_one and
-  select_multiple questions. Default `"Not asked / no response"`.
+  select_multiple questions: one for every row, or one per row of `loa`
+  (the first row naming a variable decides its label). Default
+  `"Not asked / no response"`.
 
 - sm_separator:
 
@@ -48,8 +50,8 @@ ck_full_sample_base(
 ## Value
 
 A list with `dataset`, `filled` (one row per variable: `analysis_var`,
-`analysis_type`, `n_filled`) and `filled_vars` (the variables that were
-filled).
+`analysis_type`, `n_filled`, `label`), `filled_vars` (the variables that
+were filled) and `filled_labels` (their labels, in the same order).
 
 ## Details
 

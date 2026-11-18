@@ -76,7 +76,9 @@ This puts those respondents back in the base:</p>
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
 <dd><p>Row label for respondents with no answer, in select_one and
-select_multiple questions. Default <code>"Not asked / no response"</code>.</p></dd>
+select_multiple questions: one for every row, or one per row of <code>loa</code>
+(the first row naming a variable decides its label). Default
+<code>"Not asked / no response"</code>.</p></dd>
 
 
 <dt id="arg-sm-separator">sm_separator<a class="anchor" aria-label="anchor" href="#arg-sm-separator"></a></dt>
@@ -90,8 +92,9 @@ select_multiple questions. Default <code>"Not asked / no response"</code>.</p></
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with <code>dataset</code>, <code>filled</code> (one row per variable:
-<code>analysis_var</code>, <code>analysis_type</code>, <code>n_filled</code>) and
-<code>filled_vars</code> (the variables that were filled).</p>
+<code>analysis_var</code>, <code>analysis_type</code>, <code>n_filled</code>,
+<code>label</code>), <code>filled_vars</code> (the variables that were filled) and
+<code>filled_labels</code> (their labels, in the same order).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

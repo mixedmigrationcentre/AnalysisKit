@@ -25,7 +25,8 @@ ck_no_response_last(results_long, vars, label)
 
 - label:
 
-  The row label used for them.
+  The row label used for them: one for all, or one per element of
+  `vars`.
 
 ## Value
 

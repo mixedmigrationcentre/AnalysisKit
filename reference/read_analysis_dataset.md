@@ -78,11 +78,11 @@ utils::write.csv(
 
 dataset <- read_analysis_dataset(path)
 dataset_overview(dataset)
-#>          Measure               Value
-#> 1      File name file183ce1b1fdf.csv
-#> 2      File type                 CSV
-#> 3      File size            45 bytes
-#> 4           Rows                   3
-#> 5        Columns                   1
-#> 6 Duplicate rows                   0
+#>          Measure                Value
+#> 1      File name file184e4f1304d9.csv
+#> 2      File type                  CSV
+#> 3      File size             45 bytes
+#> 4           Rows                    3
+#> 5        Columns                    1
+#> 6 Duplicate rows                    0
 ```
