@@ -13,7 +13,8 @@ ck_route_block(
   sm_separator,
   top_n,
   label_row,
-  top_countries = 0
+  top_countries = 0,
+  full_sample = TRUE
 )
 }
 \arguments{
@@ -35,6 +36,10 @@ ck_route_block(
 
 \item{top_countries}{Countries that get a section of their own, most
 respondents first; \code{0} for all.}
+
+\item{full_sample}{Logical. Report the country ranking and the
+\code{respondent_full_sample} questions out of every respondent (see
+\code{\link[=run_route_analysis]{run_route_analysis()}}). Default \code{TRUE}.}
 }
 \value{
 The block's rows of the \code{\link[=run_route_analysis]{run_route_analysis()}} result, or \code{NULL}.

@@ -4,7 +4,7 @@
 \alias{ck_route_rank}
 \title{Rank the Countries or Places Respondents Named}
 \usage{
-ck_route_rank(id, unit, value, variable, w, groups)
+ck_route_rank(id, unit, value, variable, w, groups, base_id = NULL)
 }
 \arguments{
 \item{id}{The respondent of each slot.}
@@ -20,6 +20,11 @@ numerator and denominator.}
 \item{w}{Respondent weights.}
 
 \item{groups}{Named list of respondent-level disaggregation values.}
+
+\item{base_id}{The respondents of the denominator, for a ranking with a
+single unit (\code{"Overall"}); \code{NULL} (the default) for those who named at
+least one value. The full sample passes every respondent, so those who
+named nothing, or only None or Refused, stay in the base.}
 }
 \value{
 Rows in the shape of \code{\link[=ck_route_analyse]{ck_route_analyse()}}.

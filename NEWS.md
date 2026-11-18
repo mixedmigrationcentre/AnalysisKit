@@ -25,6 +25,12 @@
   memory and never saved. The new `run_route_analysis()` runs the same
   analysis from a script.
 
+  `route_full_sample_base` (default `TRUE`) puts the questions every
+  respondent is asked out of the full sample: the country ranking of each
+  block (None and Refused still not listed) and Q72, whose blanks become a
+  `Not asked / no response` row. QN8, the reasons for stopping, the
+  incidents and the perpetrators stay out of those asked.
+
 * **`include_dataset`.** A new setting that adds the dataset the analysis was
   run on to the results workbook, as a `dataset` sheet. Off by default; the
   dataset is personal data, so a workbook with this sheet must be handled as

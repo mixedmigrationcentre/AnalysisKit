@@ -380,7 +380,8 @@ loa_settings_schema <- function() {
     r("dangerous_location", "lgl"),
     r("route_gender_var", "chr"),
     r("route_top_countries", "num"),
-    r("route_top_locations", "num")
+    r("route_top_locations", "num"),
+    r("route_full_sample_base", "lgl")
   )
 }
 

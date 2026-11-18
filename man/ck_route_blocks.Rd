@@ -14,7 +14,9 @@ written: \code{transit_country}, \code{places_stop}, \code{dangerous_location}.
 The exact 4Mi question names behind each route block. One row of \code{slots}
 per repeat of the block; \code{follow_ups} name the select_multiple questions
 asked about each slot, and \code{respondent_follow_ups} the select_multiple
-questions asked once per respondent about the route as a whole. \code{sheet} is
-the name of the results sheet the block is written to.
+questions asked once per respondent about the route as a whole;
+\code{respondent_full_sample} are those of them asked of everyone, which
+\code{route_full_sample_base} reports out of the full sample. \code{sheet} is the
+name of the results sheet the block is written to.
 }
 \keyword{internal}
