@@ -71,6 +71,9 @@ The existing LoA table, unchanged. This is the sheet the current pipeline alread
 | `analysis_var_denominator` | required when `analysis_type` is `ratio`, ignored on every other row |
 | `numerator_NA_to_0` | ratio only. Blank or absent = `FALSE` |
 | `filter_denominator_0` | ratio only. Blank or absent = `FALSE` |
+| `full_sample_base` | proportions only. `TRUE` counts respondents with no answer (for example, skipped by skip logic) in this question's denominator, so it is out of the full sample or full group. A blank select_one is reported as its own row, `full_sample_label`, so the question adds to 100%. In a select_multiple a blank counts as "not selected" for every choice, and the not-asked share is added as a `full_sample_label` row of its own, last, overall and in every disaggregation. Blank or absent = `FALSE`: out of those who answered. No effect on means, medians and ratios (a warning says so). `exclude_choices` still removes respondents from the base. A variable that is also a grouping variable is left as it is. The base belongs to the variable, so a question listed in two rows uses it in both if either says `TRUE` (a warning says so) |
+| `full_sample_label` | the row label for those not asked, on a `full_sample_base` row. Blank = `Not asked / no response` |
+| `description` | in the template, the header explains `full_sample_base` and `full_sample_label` and the rows are empty. A free column like any other: ignored by the reader |
 | *(any other column)* | metadata such as `sector` or `indicator`, carried to the output by naming it in `settings/extra_columns` |
 
 > **`level` is the one cell that decides how long a run takes.** A row with a
@@ -446,8 +449,10 @@ fixed set.
 | setting | type | default | notes |
 |---|---|---|---|
 | `exclude_ignore_case` | lgl | `TRUE` | applies to the `exclude_choices` sheet |
-| `full_sample_base` | lgl | `FALSE` | `TRUE` counts respondents with no answer (for example, skipped by skip logic) in the denominator, so proportions are out of the full sample or full group. A blank select_one is reported as its own row, `full_sample_label`, so the question adds to 100%. In a select_multiple a blank counts as "not selected" for every choice, and the not-asked share is added as a `full_sample_label` row of its own, last, overall and in every disaggregation. Means, medians and ratios are unchanged. `exclude_choices` still removes respondents from the base. A variable that is also a grouping variable is left as it is |
-| `full_sample_label` | chr | `Not asked / no response` | row label for the not-asked row of select_one and select_multiple questions when `full_sample_base` is `TRUE` |
+
+`full_sample_base` and `full_sample_label` are no longer settings: they are columns of
+`analysis_variables` (§2), so each question chooses its own base. Either key in this sheet
+is a fatal error that says where it went.
 
 **Output shape**
 

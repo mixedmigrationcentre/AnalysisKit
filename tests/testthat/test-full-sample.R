@@ -253,14 +253,113 @@ test_that("the survey engine gets the same full base", {
 })
 
 
-test_that("the settings sheet accepts both keys", {
+test_that("full_sample_base in the loa picks the questions, row by row", {
+  loa <- skip_loa()
+  loa$full_sample_base <- c(NA, "TRUE", NA, NA)
+  res <- run_skip(loa = loa)
+
+  # Q2 is out of everyone, with the default label last...
+  q2 <- rows_for(res, "Q2")
+  expect_true(all(q2$n_total == 10))
+  expect_equal(q2$analysis_var_value[nrow(q2)], "Not asked / no response")
+  # ...while Q3, left blank, is still out of those who answered.
+  q3 <- rows_for(res, "Q3")
+  expect_true(all(q3$n_total == 6))
+  expect_false("Not asked / no response" %in% q3$analysis_var_value)
+  expect_equal(res$full_sample_filled$analysis_var, "Q2")
+})
+
+test_that("each row can name its own label, and a blank label is the default", {
+  loa <- skip_loa()
+  loa$full_sample_base <- c(NA, TRUE, TRUE, NA)
+  loa$full_sample_label <- c(NA, "Skipped", NA, NA)
+  res <- run_skip(loa = loa)
+
+  expect_true("Skipped" %in% rows_for(res, "Q2")$analysis_var_value)
+  q3 <- rows_for(res, "Q3")
+  expect_equal(q3$analysis_var_value[nrow(q3)], "Not asked / no response")
+  expect_true(all(q3$n_total == 10))
+})
+
+test_that("FALSE, blank and TRUE on a mean all leave the base alone", {
+  loa <- skip_loa()
+  loa$full_sample_base <- c("FALSE", "", NA, "TRUE")
+  res <- run_skip(loa = loa)
+
+  expect_null(res$full_sample_filled)
+  expect_true(all(rows_for(res, "Q2")$n_total == 6))
+  expect_equal(rows_for(res, "Q4")$n_total, 6)
+})
+
+test_that("an unreadable full_sample_base stops the pipeline and names the row", {
+  loa <- skip_loa()
+  loa$full_sample_base <- c(NA, "perhaps", NA, NA)
+  expect_error(run_skip(loa = loa), "TRUE, FALSE or blank.*row[(]s[)] 2")
+})
+
+test_that("the workbook sets it per row; the settings sheet no longer does", {
+  sheets <- fixture_sheets()
+  sheets$analysis_variables$full_sample_base <- c("TRUE", NA, NA)
+  sheets$analysis_variables$full_sample_label <- c("Skipped", NA, NA)
+  spec <- build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
+  expect_false(loa_has_errors(spec$problems))
+  expect_identical(spec$loa$full_sample_label[1], "Skipped")
+
+  # Moved, so the old keys explain where they went.
   parsed <- loa_parse_settings(data.frame(
     setting = c("full_sample_base", "full_sample_label"),
     value = c("TRUE", "Skipped"),
     stringsAsFactors = FALSE
   ))
+  expect_equal(sum(parsed$problems$severity == "error"), 2L)
+  expect_match(parsed$problems$message, "column of the analysis_variables")
+  expect_false("full_sample_base" %in% loa_settings_schema()$setting)
+})
 
-  expect_false(loa_has_errors(parsed$problems))
-  expect_identical(parsed$settings$full_sample_base, TRUE)
-  expect_identical(parsed$settings$full_sample_label, "Skipped")
+test_that("the validator checks the full_sample columns", {
+  sheets <- fixture_sheets()
+  # Rows: Q27 prop_select_one, Q78 prop_select_multiple, Q29 mean.
+  sheets$analysis_variables$full_sample_base <- c("maybe", NA, "TRUE")
+  sheets$analysis_variables$full_sample_label <- c(NA, "Skipped", NA)
+  problems <- validate_loa(fixture_workbook(sheets))
+
+  bad <- problems[problems$severity == "error", ]
+  expect_equal(bad$row, 2L)
+  expect_match(bad$message, "TRUE, FALSE or blank")
+
+  warn <- problems[problems$severity == "warning", ]
+  expect_true(any(warn$row == 4L & grepl("no effect", warn$message)))
+  expect_true(any(warn$row == 3L & grepl("label is not used", warn$message)))
+
+  # The same question on and off in two rows is flagged.
+  sheets <- fixture_sheets()
+  sheets$analysis_variables <- rbind(
+    sheets$analysis_variables,
+    sheets$analysis_variables[1, ]
+  )
+  sheets$analysis_variables$group_var <- c(NA, NA, NA, "Q31")
+  sheets$analysis_variables$full_sample_base <- c("TRUE", NA, NA, NA)
+  problems <- validate_loa(fixture_workbook(sheets))
+  expect_true(any(grepl("in another row", problems$message)))
+})
+
+
+test_that("the shipped template has the columns blank, explained in a header", {
+  template <- system.file("extdata", "loa_template.xlsx", package = "analysiskit")
+  skip_if(!nzchar(template), "not testing an installed package")
+  wb <- read_loa_workbook(template)
+  an <- wb$sheets$analysis_variables
+  expect_true(all(c("full_sample_base", "full_sample_label") %in% names(an)))
+  expect_true(all(is.na(an$full_sample_base)))
+  expect_true(all(is.na(an$full_sample_label)))
+
+  # The description column explains both in its header and stays empty.
+  desc <- grep("^description", names(an), value = TRUE)
+  expect_length(desc, 1L)
+  expect_match(desc, "full_sample_base.*full_sample_label")
+  expect_true(all(is.na(an[[desc]])))
+
+  expect_false(any(
+    c("full_sample_base", "full_sample_label") %in% wb$sheets$settings$setting
+  ))
 })

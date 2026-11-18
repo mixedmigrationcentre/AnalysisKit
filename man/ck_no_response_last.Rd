@@ -11,7 +11,8 @@ ck_no_response_last(results_long, vars, label)
 
 \item{vars}{The select_one and select_multiple variables that were filled.}
 
-\item{label}{The row label used for them.}
+\item{label}{The row label used for them: one for all, or one per element
+of \code{vars}.}
 }
 \value{
 \code{results_long}, reordered.

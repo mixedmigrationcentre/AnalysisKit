@@ -30,11 +30,15 @@
   dataset is personal data, so a workbook with this sheet must be handled as
   such.
 
-* **`full_sample_base` and `full_sample_label`.** New settings that keep
-  respondents who were not asked a question (for example, skipped by skip
-  logic) in the denominator, so proportions are out of the full sample or
-  group. The not-asked share is reported as its own row,
-  `Not asked / no response` by default.
+* **`full_sample_base` and `full_sample_label`.** New columns of the
+  `analysis_variables` sheet that keep respondents who were not asked a
+  question (for example, skipped by skip logic) in the denominator, so that
+  question is out of the full sample or group. Set per row: `TRUE` turns it
+  on for that question, blank or `FALSE` leaves it out of those who answered.
+  The not-asked share is reported as its own row, `full_sample_label`, or
+  `Not asked / no response` when that is blank. Proportions only. A
+  `description` column, ignored by the reader, explains both in its header
+  in the template.
 
 ## Performance
 
