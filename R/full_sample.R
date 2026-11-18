@@ -32,12 +32,15 @@
 #' @param loa The list of analyses, used to find the variables to act on.
 #' @param group_variables Grouping variables; these are never filled.
 #' @param label Row label for respondents with no answer, in select_one and
-#'   select_multiple questions. Default \code{"Not asked / no response"}.
+#'   select_multiple questions: one for every row, or one per row of `loa`
+#'   (the first row naming a variable decides its label). Default
+#'   \code{"Not asked / no response"}.
 #' @param sm_separator Separator between parent and choice. Default \code{"/"}.
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return A list with \code{dataset}, \code{filled} (one row per variable:
-#'   \code{analysis_var}, \code{analysis_type}, \code{n_filled}) and
-#'   \code{filled_vars} (the variables that were filled).
+#'   \code{analysis_var}, \code{analysis_type}, \code{n_filled},
+#'   \code{label}), \code{filled_vars} (the variables that were filled) and
+#'   \code{filled_labels} (their labels, in the same order).
 #' @keywords internal
 ck_full_sample_base <- function(
   dataset,
@@ -48,13 +51,19 @@ ck_full_sample_base <- function(
   verbose = TRUE
 ) {
   label <- trimws(as.character(label))
-  if (length(label) != 1 || is.na(label) || label == "") {
+  if (
+    !length(label) %in% c(1L, nrow(loa)) ||
+      anyNA(label) ||
+      any(label == "")
+  ) {
     stop(
-      "full_sample_label must be a single, non-empty piece of text, ",
+      "full_sample_label must be a non-empty piece of text, ",
       "for example \"Not asked / no response\".",
       call. = FALSE
     )
   }
+  row_label <- rep_len(label, nrow(loa))
+  label_of <- function(v) row_label[match(v, loa$analysis_var)]
 
   loa_vars <- function(type) {
     v <- unique(loa$analysis_var[
@@ -70,11 +79,12 @@ ck_full_sample_base <- function(
   group_cols <- group_cols[!is.na(group_cols)]
 
   log_rows <- list()
-  add_log <- function(var, type, n) {
+  add_log <- function(var, type, n, lab) {
     log_rows[[length(log_rows) + 1]] <<- data.frame(
       analysis_var = var,
       analysis_type = type,
       n_filled = n,
+      label = lab,
       stringsAsFactors = FALSE
     )
   }
@@ -94,6 +104,7 @@ ck_full_sample_base <- function(
   }
 
   for (v in so_vars) {
+    label <- label_of(v)
     x <- dataset[[v]]
     values <- trimws(as.character(x))
     blank <- is.na(values) | values == "" | values == "NA"
@@ -110,11 +121,12 @@ ck_full_sample_base <- function(
       x[blank] <- label
       dataset[[v]] <- x
     }
-    add_log(v, "prop_select_one", sum(blank))
+    add_log(v, "prop_select_one", sum(blank), label)
   }
 
   # --- select_multiple -------------------------------------------------------
   for (p in setdiff(loa_vars("prop_select_multiple"), group_cols)) {
+    label <- label_of(p)
     children <- names(ck_sm_child_suffixes(p, names(dataset), sm_separator))
     if (length(children) == 0) {
       next
@@ -173,7 +185,7 @@ ck_full_sample_base <- function(
       n_blank <- max(n_blank, sum(not_asked))
     }
 
-    if (n_blank > 0) add_log(p, "prop_select_multiple", n_blank)
+    if (n_blank > 0) add_log(p, "prop_select_multiple", n_blank, label)
   }
 
   filled <- if (length(log_rows) > 0) {
@@ -183,6 +195,7 @@ ck_full_sample_base <- function(
       analysis_var = character(0),
       analysis_type = character(0),
       n_filled = integer(0),
+      label = character(0),
       stringsAsFactors = FALSE
     )
   }
@@ -190,17 +203,76 @@ ck_full_sample_base <- function(
   ck_note(
     "full sample base: blanks counted in the denominator for ",
     nrow(filled),
-    " variable(s); blanks reported as '",
-    label,
-    "'",
+    " variable(s); blanks reported as ",
+    paste0("'", unique(row_label), "'", collapse = ", "),
     verbose = verbose
   )
 
   list(
     dataset = dataset,
     filled = filled,
-    filled_vars = filled$analysis_var
+    filled_vars = filled$analysis_var,
+    filled_labels = filled$label
   )
+}
+
+
+#' Which Analysis Rows Use the Full-Sample Base, and With What Label
+#'
+#' The `full_sample_base` and `full_sample_label` columns of the list of
+#' analyses decide it row by row. A blank `full_sample_base` cell takes the
+#' pipeline argument `full_sample_base` (`FALSE` unless a caller set it), and a
+#' blank `full_sample_label` cell takes `full_sample_label`. Only
+#' `prop_select_one` and `prop_select_multiple` rows are affected; a mean,
+#' median or ratio is left as it is whatever the cell says.
+#'
+#' @param loa The list of analyses.
+#' @param full_sample_base Logical. The value for a row that leaves the cell
+#'   blank (or every row, when the column is absent).
+#' @param full_sample_label The label for a row that leaves the cell blank.
+#' @return A list with `rows` (logical, one per `loa` row) and `label`
+#'   (character, one per `loa` row).
+#' @keywords internal
+ck_full_sample_rows <- function(
+  loa,
+  full_sample_base = FALSE,
+  full_sample_label = "Not asked / no response"
+) {
+  n <- nrow(loa)
+  default <- isTRUE(full_sample_base)
+
+  rows <- rep(default, n)
+  if ("full_sample_base" %in% names(loa)) {
+    raw <- toupper(trimws(as.character(loa$full_sample_base)))
+    blank <- is.na(raw) | raw == "" | raw == "NA"
+    yes <- raw %in% c("TRUE", "T", "YES", "Y", "1")
+    no <- raw %in% c("FALSE", "F", "NO", "N", "0")
+    bad <- !blank & !yes & !no
+    if (any(bad)) {
+      stop(
+        "full_sample_base must be TRUE, FALSE or blank. Found '",
+        paste(unique(loa$full_sample_base[bad]), collapse = "', '"),
+        "' in row(s) ",
+        paste(which(bad), collapse = ", "),
+        " of the list of analyses.",
+        call. = FALSE
+      )
+    }
+    rows[yes] <- TRUE
+    rows[no] <- FALSE
+  }
+
+  label <- rep(trimws(as.character(full_sample_label))[1], n)
+  if ("full_sample_label" %in% names(loa)) {
+    cell <- trimws(as.character(loa$full_sample_label))
+    given <- !is.na(cell) & cell != "" & cell != "NA"
+    label[given] <- cell[given]
+  }
+
+  type <- tolower(trimws(as.character(loa$analysis_type)))
+  rows <- rows & type %in% c("prop_select_one", "prop_select_multiple")
+
+  list(rows = rows, label = label)
 }
 
 
@@ -214,13 +286,15 @@ ck_full_sample_base <- function(
 #'
 #' @param results_long Long results.
 #' @param vars The select_one and select_multiple variables that were filled.
-#' @param label The row label used for them.
+#' @param label The row label used for them: one for all, or one per element
+#'   of \code{vars}.
 #' @return \code{results_long}, reordered.
 #' @keywords internal
 ck_no_response_last <- function(results_long, vars, label) {
   if (length(vars) == 0 || nrow(results_long) == 0) {
     return(results_long)
   }
+  label_of <- stats::setNames(rep_len(as.character(label), length(vars)), vars)
 
   type <- tolower(as.character(results_long$analysis_type))
   var <- as.character(results_long$analysis_var)
@@ -230,7 +304,7 @@ ck_no_response_last <- function(results_long, vars, label) {
     c("prop_select_one", "prop_select_multiple") &
     var %in% vars &
     !is.na(value) &
-    value == label
+    value == unname(label_of[var])
   if (!any(is_label)) {
     return(results_long)
   }

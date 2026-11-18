@@ -325,8 +325,6 @@ loa_settings_schema <- function() {
 
     # denominator
     s("exclude_ignore_case", "lgl"),
-    s("full_sample_base", "lgl"),
-    s("full_sample_label", "chr"),
 
     # output shape
     s("value_columns", "chr[]"),
@@ -634,6 +632,23 @@ loa_parse_settings <- function(sheet, sheet_name = "settings") {
           " sheet, not the ",
           sheet_name,
           " sheet. Move the row there."
+        )
+      )
+      next
+    }
+    # Former settings that are now columns of the analysis_variables sheet,
+    # so each question can choose for itself.
+    if (k %in% c("full_sample_base", "full_sample_label")) {
+      add(
+        excel_row,
+        "error",
+        paste0(
+          "'",
+          k,
+          "' is no longer a setting: it is a column of the ",
+          "analysis_variables sheet, so each question can use the full-sample ",
+          "base or not. Delete this row and set the column on the rows that ",
+          "need it."
         )
       )
       next
@@ -1649,6 +1664,74 @@ validate_loa <- function(workbook, dataset = NULL) {
             " of ",
             a_var[i],
             "). Only the first will appear in the output."
+          )
+        )
+      }
+    }
+
+    # full_sample_base / full_sample_label: per row, blank means FALSE and
+    # the default label.
+    if ("full_sample_base" %in% names(analysis)) {
+      raw <- loa_trim(as.character(analysis$full_sample_base))
+      fs <- loa_as_logical(raw)
+      prop <- tolower(a_type) %in% c("prop_select_one", "prop_select_multiple")
+      for (i in which(!is.na(raw) & is.na(fs))) {
+        problem(
+          "analysis_variables",
+          i + 1L,
+          "error",
+          paste0(
+            "full_sample_base must be TRUE, FALSE or blank. Found '",
+            raw[i],
+            "'."
+          )
+        )
+      }
+      for (i in which(fs %in% TRUE & !prop)) {
+        problem(
+          "analysis_variables",
+          i + 1L,
+          "warning",
+          paste0(
+            "full_sample_base is TRUE on a ",
+            a_type[i],
+            " row, where it has no effect: only proportions ",
+            "(prop_select_one, prop_select_multiple) count blanks in the base."
+          )
+        )
+      }
+      # The base is applied to the variable, so it cannot differ by row.
+      on <- unique(a_var[fs %in% TRUE & prop])
+      mixed <- which(prop & !(fs %in% TRUE) & a_var %in% on)
+      for (i in mixed) {
+        problem(
+          "analysis_variables",
+          i + 1L,
+          "warning",
+          paste0(
+            a_var[i],
+            " uses the full-sample base in another row, so it is counted out ",
+            "of the full sample here too. Set full_sample_base the same on ",
+            "every row of it."
+          )
+        )
+      }
+    }
+    if ("full_sample_label" %in% names(analysis)) {
+      label <- loa_trim(as.character(analysis$full_sample_label))
+      fs_on <- if ("full_sample_base" %in% names(analysis)) {
+        loa_as_logical(analysis$full_sample_base) %in% TRUE
+      } else {
+        rep(FALSE, nrow(analysis))
+      }
+      for (i in which(!is.na(label) & !fs_on)) {
+        problem(
+          "analysis_variables",
+          i + 1L,
+          "warning",
+          paste0(
+            "full_sample_label is set but full_sample_base is not TRUE on ",
+            "this row, so the label is not used."
           )
         )
       }

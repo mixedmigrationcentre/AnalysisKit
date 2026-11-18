@@ -43,7 +43,6 @@
 # * sm_separator defaults to "/" (ONA export style).
 # =============================================================================
 
-
 # -----------------------------------------------------------------------------
 # 0. Utilities
 # -----------------------------------------------------------------------------
@@ -61,7 +60,12 @@ ck_require_pkg <- function(pkg, repo = NULL) {
       paste0("remotes::install_github('", repo, "')")
     }
     stop(
-      paste0("Package '", pkg, "' is required for this function. Install with: ", hint),
+      paste0(
+        "Package '",
+        pkg,
+        "' is required for this function. Install with: ",
+        hint
+      ),
       call. = FALSE
     )
   }
@@ -78,7 +82,9 @@ ck_require_pkg <- function(pkg, repo = NULL) {
 #' @param verbose Logical. If \code{FALSE} nothing is emitted.
 #' @keywords internal
 ck_note <- function(..., verbose = TRUE) {
-  if (isTRUE(verbose)) message(paste0("--> ", ...))
+  if (isTRUE(verbose)) {
+    message(paste0("--> ", ...))
+  }
   invisible(NULL)
 }
 
@@ -138,15 +144,24 @@ ck_hidden_level <- function() "\001ck_other_block"
 ck_analysis_type_labels <- function() {
   data.frame(
     analysis_type = c(
-      "prop_select_one", "prop_select_multiple", "count_select_multiple",
-      "combination_select_multiple", "exclusive_combination_select_multiple",
-      "mean", "median", "ratio"
+      "prop_select_one",
+      "prop_select_multiple",
+      "count_select_multiple",
+      "combination_select_multiple",
+      "exclusive_combination_select_multiple",
+      "mean",
+      "median",
+      "ratio"
     ),
     label_analysis_type = c(
-      "Proportion (single choice)", "Proportion (multiple choice)",
-      "Number of choices selected", "Combination of choices selected",
+      "Proportion (single choice)",
+      "Proportion (multiple choice)",
+      "Number of choices selected",
+      "Combination of choices selected",
       "Single choice selected",
-      "Mean", "Median", "Ratio"
+      "Mean",
+      "Median",
+      "Ratio"
     ),
     stringsAsFactors = FALSE
   )
@@ -274,8 +289,10 @@ ck_common_prefix <- function(x) {
 
   # substr() is vectorised over x, so one character position per iteration is
   # enough - no need to split every string into characters first.
-  while (shared < max_shared &&
-         length(unique(substr(x, shared + 1L, shared + 1L))) == 1L) {
+  while (
+    shared < max_shared &&
+      length(unique(substr(x, shared + 1L, shared + 1L))) == 1L
+  ) {
     shared <- shared + 1L
   }
 
@@ -293,7 +310,11 @@ ck_common_prefix <- function(x) {
 #' @param sm_separator Select_multiple separator. Default \code{"/"}.
 #' @return The derived parent label, or \code{NA}.
 #' @keywords internal
-ck_parent_label_from_children <- function(parent, label_lookup, sm_separator = "/") {
+ck_parent_label_from_children <- function(
+  parent,
+  label_lookup,
+  sm_separator = "/"
+) {
   if (length(label_lookup) == 0 || is.na(parent)) {
     return(NA_character_)
   }
@@ -314,7 +335,11 @@ ck_parent_label_from_children <- function(parent, label_lookup, sm_separator = "
   positions <- gregexpr(sm_separator, shared_prefix, fixed = TRUE)[[1]]
 
   if (positions[1] != -1) {
-    parent_label <- trimws(substr(shared_prefix, 1, positions[length(positions)] - 1))
+    parent_label <- trimws(substr(
+      shared_prefix,
+      1,
+      positions[length(positions)] - 1
+    ))
   } else {
     # The label row may use a different delimiter from the column names (columns
     # split on "." but labels written with "/"). Only trust the shared prefix
@@ -323,12 +348,17 @@ ck_parent_label_from_children <- function(parent, label_lookup, sm_separator = "
     if (!stringr::str_detect(shared_prefix, "[/.:|>\\-]\\s*$")) {
       return(NA_character_)
     }
-    parent_label <- trimws(stringr::str_remove(shared_prefix, "[\\s/.:|>\\-]+$"))
+    parent_label <- trimws(stringr::str_remove(
+      shared_prefix,
+      "[\\s/.:|>\\-]+$"
+    ))
   }
 
   # When the label row only repeats the column names, the shared prefix
   # collapses back to the parent code itself, which is not a label.
-  if (is.na(parent_label) || parent_label == "" || identical(parent_label, parent)) {
+  if (
+    is.na(parent_label) || parent_label == "" || identical(parent_label, parent)
+  ) {
     return(NA_character_)
   }
 
@@ -365,10 +395,12 @@ ck_ratio_key_separator <- function() " %/% "
 #' @return A single label, or \code{NA_character_} when either half is
 #'   unlabelled or the value is not a ratio key.
 #' @keywords internal
-ck_ratio_label <- function(analysis_var,
-                           label_lookup,
-                           sm_separator = "/",
-                           joiner = " per ") {
+ck_ratio_label <- function(
+  analysis_var,
+  label_lookup,
+  sm_separator = "/",
+  joiner = " per "
+) {
   if (length(label_lookup) == 0 || is.na(analysis_var)) {
     return(NA_character_)
   }
@@ -382,7 +414,9 @@ ck_ratio_label <- function(analysis_var,
     parts,
     function(p) {
       lab <- unname(label_lookup[p])
-      if (is.na(lab)) lab <- ck_parent_label_from_children(p, label_lookup, sm_separator)
+      if (is.na(lab)) {
+        lab <- ck_parent_label_from_children(p, label_lookup, sm_separator)
+      }
       lab
     },
     character(1),
@@ -407,7 +441,9 @@ ck_ratio_label <- function(analysis_var,
 #' @return A logical vector with no \code{NA}.
 #' @keywords internal
 ck_loa_flag <- function(x) {
-  if (is.null(x)) return(logical(0))
+  if (is.null(x)) {
+    return(logical(0))
+  }
 
   if (is.logical(x)) {
     x[is.na(x)] <- FALSE
@@ -437,10 +473,12 @@ ck_loa_flag <- function(x) {
 #'   \code{TRUE}.
 #' @return \code{results_table} with \code{label_analysis_var} added.
 #' @export
-ck_relabel_questions <- function(results_table,
-                                 label_lookup,
-                                 sm_separator = "/",
-                                 label_choices = TRUE) {
+ck_relabel_questions <- function(
+  results_table,
+  label_lookup,
+  sm_separator = "/",
+  label_choices = TRUE
+) {
   if (!"analysis_var" %in% names(results_table)) {
     stop("results_table must contain an analysis_var column.")
   }
@@ -475,7 +513,11 @@ ck_relabel_questions <- function(results_table,
 
   if (isTRUE(label_choices) && "analysis_var_value" %in% names(results_table)) {
     var_value <- as.character(results_table$analysis_var_value)
-    child_label <- unname(label_lookup[paste0(analysis_var, sm_separator, var_value)])
+    child_label <- unname(label_lookup[paste0(
+      analysis_var,
+      sm_separator,
+      var_value
+    )])
 
     # Strip a repeated prefix - first the parent code ("QN9/Detention" ->
     # "Detention"), then the parent question label ("Which countries did you
@@ -502,12 +544,16 @@ ck_relabel_questions <- function(results_table,
     }
 
     child_label <- strip_prefix(
-      child_label, paste0(analysis_var, sm_separator), tidy = FALSE
+      child_label,
+      paste0(analysis_var, sm_separator),
+      tidy = FALSE
     )
     child_label <- strip_prefix(child_label, question_label, tidy = TRUE)
 
     results_table$analysis_var_value <- ifelse(
-      is.na(child_label) | child_label == "", var_value, child_label
+      is.na(child_label) | child_label == "",
+      var_value,
+      child_label
     )
   }
 
@@ -568,7 +614,9 @@ ck_coerce_numeric <- function(dataset, vars, verbose = TRUE) {
   vars <- intersect(unique(vars[!is.na(vars)]), names(dataset))
 
   for (v in vars) {
-    if (is.numeric(dataset[[v]])) next
+    if (is.numeric(dataset[[v]])) {
+      next
+    }
 
     old_chr <- trimws(as.character(dataset[[v]]))
     new <- suppressWarnings(as.numeric(old_chr))
@@ -576,7 +624,10 @@ ck_coerce_numeric <- function(dataset, vars, verbose = TRUE) {
 
     if (lost > 0) {
       ck_note(
-        "'", v, "': ", lost,
+        "'",
+        v,
+        "': ",
+        lost,
         " non-numeric value(s) became NA when coercing to numeric",
         verbose = verbose
       )
@@ -627,13 +678,15 @@ ck_coerce_numeric <- function(dataset, vars, verbose = TRUE) {
 #'   \code{selected} (logical matrix), \code{columns}, \code{suffixes} and
 #'   \code{styles}.
 #' @export
-ck_sm_selection_matrix <- function(dataset,
-                                   parent,
-                                   sm_separator = "/",
-                                   sm_child_style = c("auto", "label", "dummy"),
-                                   exclude_choices = NULL,
-                                   ignore_case = TRUE,
-                                   cache = NULL) {
+ck_sm_selection_matrix <- function(
+  dataset,
+  parent,
+  sm_separator = "/",
+  sm_child_style = c("auto", "label", "dummy"),
+  exclude_choices = NULL,
+  ignore_case = TRUE,
+  cache = NULL
+) {
   sm_child_style <- match.arg(sm_child_style)
 
   # Everything that changes the answer goes into the key. A NULL result is
@@ -642,7 +695,10 @@ ck_sm_selection_matrix <- function(dataset,
   key <- NULL
   if (is.environment(cache)) {
     key <- paste(
-      parent, sm_separator, sm_child_style, isTRUE(ignore_case),
+      parent,
+      sm_separator,
+      sm_child_style,
+      isTRUE(ignore_case),
       paste(sort(unique(as.character(exclude_choices))), collapse = "\r"),
       sep = "\n"
     )
@@ -651,12 +707,16 @@ ck_sm_selection_matrix <- function(dataset,
   }
 
   keep <- function(value) {
-    if (!is.null(key)) assign(key, list(value), envir = cache)
+    if (!is.null(key)) {
+      assign(key, list(value), envir = cache)
+    }
     value
   }
 
   suffixes <- ck_sm_child_suffixes(parent, names(dataset), sm_separator)
-  if (length(suffixes) == 0) return(keep(NULL))
+  if (length(suffixes) == 0) {
+    return(keep(NULL))
+  }
 
   if (length(exclude_choices) > 0) {
     norm <- function(z) {
@@ -672,7 +732,8 @@ ck_sm_selection_matrix <- function(dataset,
 
   selected <- matrix(
     FALSE,
-    nrow = nrow(dataset), ncol = length(cols),
+    nrow = nrow(dataset),
+    ncol = length(cols),
     dimnames = list(NULL, cols)
   )
   styles <- character(length(cols))
@@ -719,10 +780,12 @@ ck_sm_selection_matrix <- function(dataset,
 #' @param sm_separator Separator between parent and choice. Default \code{"/"}.
 #' @return The validated variable names, invisibly. Errors otherwise.
 #' @export
-ck_check_count_selections <- function(count_selections,
-                                      dataset,
-                                      loa = NULL,
-                                      sm_separator = "/") {
+ck_check_count_selections <- function(
+  count_selections,
+  dataset,
+  loa = NULL,
+  sm_separator = "/"
+) {
   if (length(count_selections) == 0) {
     return(invisible(character(0)))
   }
@@ -731,9 +794,12 @@ ck_check_count_selections <- function(count_selections,
   vars <- vars[!is.na(vars) & vars != ""]
 
   declared <- character(0)
-  if (!is.null(loa) && all(c("analysis_type", "analysis_var") %in% names(loa))) {
+  if (
+    !is.null(loa) && all(c("analysis_type", "analysis_var") %in% names(loa))
+  ) {
     keep <- !is.na(loa$analysis_type) &
-      tolower(loa$analysis_type) %in% c("prop_select_one", "mean", "median", "ratio")
+      tolower(loa$analysis_type) %in%
+        c("prop_select_one", "mean", "median", "ratio")
     declared <- stats::setNames(
       tolower(as.character(loa$analysis_type))[keep],
       as.character(loa$analysis_var)[keep]
@@ -744,20 +810,35 @@ ck_check_count_selections <- function(count_selections,
 
   for (v in vars) {
     if (v %in% names(declared)) {
-      problems <- c(problems, paste0(
-        "'", v, "' is declared as ", declared[[v]],
-        " in the LOA, which is not a select_multiple"
-      ))
-    } else if (length(ck_sm_child_suffixes(v, names(dataset), sm_separator)) == 0) {
-      problems <- c(problems, paste0(
-        "'", v, "' has no '", v, sm_separator,
-        "...' child columns in the export, so it is not a select_multiple",
-        if (v %in% names(dataset)) {
-          " (it looks like a single select or a plain variable)"
-        } else {
-          " (and the column itself is absent)"
-        }
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          v,
+          "' is declared as ",
+          declared[[v]],
+          " in the LOA, which is not a select_multiple"
+        )
+      )
+    } else if (
+      length(ck_sm_child_suffixes(v, names(dataset), sm_separator)) == 0
+    ) {
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          v,
+          "' has no '",
+          v,
+          sm_separator,
+          "...' child columns in the export, so it is not a select_multiple",
+          if (v %in% names(dataset)) {
+            " (it looks like a single select or a plain variable)"
+          } else {
+            " (and the column itself is absent)"
+          }
+        )
+      )
     }
   }
 
@@ -793,11 +874,13 @@ ck_check_count_selections <- function(count_selections,
 #' @return A list the same length as \code{wanted}, each element the child
 #'   column name(s) matching that label.
 #' @keywords internal
-ck_resolve_choices <- function(parent,
-                               wanted,
-                               data_names,
-                               sm_separator = "/",
-                               ignore_case = TRUE) {
+ck_resolve_choices <- function(
+  parent,
+  wanted,
+  data_names,
+  sm_separator = "/",
+  ignore_case = TRUE
+) {
   suffixes <- ck_sm_child_suffixes(parent, data_names, sm_separator)
 
   norm <- function(z) {
@@ -838,30 +921,37 @@ ck_resolve_choices <- function(parent,
 #' @return The normalised specification, invisibly: a named list of named
 #'   character vectors, names being the display labels. Errors otherwise.
 #' @export
-ck_check_choice_combinations <- function(combinations,
-                                         dataset,
-                                         loa = NULL,
-                                         sm_separator = "/",
-                                         ignore_case = TRUE,
-                                         exclude_choices = NULL,
-                                         max_choices = 6,
-                                         mode = c("multiple", "single"),
-                                         arg_name = "count_combinations") {
+ck_check_choice_combinations <- function(
+  combinations,
+  dataset,
+  loa = NULL,
+  sm_separator = "/",
+  ignore_case = TRUE,
+  exclude_choices = NULL,
+  max_choices = 6,
+  mode = c("multiple", "single"),
+  arg_name = "count_combinations"
+) {
   mode <- match.arg(mode)
 
   if (length(combinations) == 0) {
     return(invisible(list()))
   }
 
-  if (!is.list(combinations) ||
+  if (
+    !is.list(combinations) ||
       is.null(names(combinations)) ||
       any(is.na(names(combinations))) ||
-      any(!nzchar(names(combinations)))) {
+      any(!nzchar(names(combinations)))
+  ) {
     stop(
       paste0(
-        arg_name, " must be a named list - one element per question, ",
+        arg_name,
+        " must be a named list - one element per question, ",
         "named after the select_multiple parent. For example:\n",
-        "  ", arg_name, " = list(\n",
+        "  ",
+        arg_name,
+        " = list(\n",
         "    Q78 = c(\n",
         "      Economic = \"Economic reasons\",\n",
         "      Conflict = \"Armed conflict, generalised violence, and insecurity\"\n",
@@ -885,9 +975,12 @@ ck_check_choice_combinations <- function(combinations,
   }
 
   declared <- character(0)
-  if (!is.null(loa) && all(c("analysis_type", "analysis_var") %in% names(loa))) {
+  if (
+    !is.null(loa) && all(c("analysis_type", "analysis_var") %in% names(loa))
+  ) {
     keep <- !is.na(loa$analysis_type) &
-      tolower(loa$analysis_type) %in% c("prop_select_one", "mean", "median", "ratio")
+      tolower(loa$analysis_type) %in%
+        c("prop_select_one", "mean", "median", "ratio")
     declared <- stats::setNames(
       tolower(as.character(loa$analysis_type))[keep],
       as.character(loa$analysis_var)[keep]
@@ -904,99 +997,171 @@ ck_check_choice_combinations <- function(combinations,
 
     keep_w <- !is.na(wanted) & wanted != ""
     wanted <- wanted[keep_w]
-    if (!is.null(display)) display <- display[keep_w]
+    if (!is.null(display)) {
+      display <- display[keep_w]
+    }
 
     # An unnamed entry falls back to the full ONA label as its display name.
     if (is.null(display)) {
       display <- wanted
     } else {
-      display[is.na(display) | !nzchar(display)] <- wanted[is.na(display) | !nzchar(display)]
+      display[is.na(display) | !nzchar(display)] <- wanted[
+        is.na(display) | !nzchar(display)
+      ]
     }
 
     if (length(wanted) == 0) {
-      problems <- c(problems, paste0("'", p, "' has no choice labels to combine"))
+      problems <- c(
+        problems,
+        paste0("'", p, "' has no choice labels to combine")
+      )
       next
     }
     if (length(wanted) > max_choices) {
-      problems <- c(problems, paste0(
-        "'", p, "' lists ", length(wanted), " choices, which would give ",
-        n_rows_for(length(wanted)), " rows. The limit is ", max_choices,
-        " choices (", n_rows_for(max_choices), " rows) - raise ",
-        if (mode == "single") "max_exclusive_choices" else "max_combination_choices",
-        " only if you really want that many rows"
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "' lists ",
+          length(wanted),
+          " choices, which would give ",
+          n_rows_for(length(wanted)),
+          " rows. The limit is ",
+          max_choices,
+          " choices (",
+          n_rows_for(max_choices),
+          " rows) - raise ",
+          if (mode == "single") {
+            "max_exclusive_choices"
+          } else {
+            "max_combination_choices"
+          },
+          " only if you really want that many rows"
+        )
+      )
       next
     }
 
     suffixes <- unname(ck_sm_child_suffixes(p, names(dataset), sm_separator))
 
     if (p %in% names(declared)) {
-      problems <- c(problems, paste0(
-        "'", p, "' is declared as ", declared[[p]],
-        " in the LOA, which is not a select_multiple"
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "' is declared as ",
+          declared[[p]],
+          " in the LOA, which is not a select_multiple"
+        )
+      )
       next
     }
     if (length(suffixes) == 0) {
-      problems <- c(problems, paste0(
-        "'", p, "' has no '", p, sm_separator,
-        "...' child columns in the export, so it is not a select_multiple"
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "' has no '",
+          p,
+          sm_separator,
+          "...' child columns in the export, so it is not a select_multiple"
+        )
+      )
       next
     }
 
-    hits <- ck_resolve_choices(p, wanted, names(dataset), sm_separator, ignore_case)
+    hits <- ck_resolve_choices(
+      p,
+      wanted,
+      names(dataset),
+      sm_separator,
+      ignore_case
+    )
     missed <- wanted[vapply(hits, length, integer(1)) == 0]
 
     if (length(missed) > 0) {
       # Offer the labels that share an opening, then fall back to listing what
       # is actually there - the usual cause is a comma or an apostrophe.
-      near <- unlist(lapply(missed, function(w) {
-        stem <- substr(norm(w), 1, 10)
-        suffixes[startsWith(norm(suffixes), stem)]
-      }), use.names = FALSE)
+      near <- unlist(
+        lapply(missed, function(w) {
+          stem <- substr(norm(w), 1, 10)
+          suffixes[startsWith(norm(suffixes), stem)]
+        }),
+        use.names = FALSE
+      )
       near <- unique(near)
 
-      problems <- c(problems, paste0(
-        "'", p, "': choice label(s) not found in the export: ",
-        paste0("\"", missed, "\"", collapse = ", "), ".",
-        if (length(near) > 0) {
-          paste0(" Did you mean: ", paste0("\"", near, "\"", collapse = ", "), "?")
-        } else {
-          paste0(
-            " Available choices are: ",
-            paste0("\"", utils::head(suffixes, 20), "\"", collapse = ", "),
-            if (length(suffixes) > 20) ", ..." else ""
-          )
-        }
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "': choice label(s) not found in the export: ",
+          paste0("\"", missed, "\"", collapse = ", "),
+          ".",
+          if (length(near) > 0) {
+            paste0(
+              " Did you mean: ",
+              paste0("\"", near, "\"", collapse = ", "),
+              "?"
+            )
+          } else {
+            paste0(
+              " Available choices are: ",
+              paste0("\"", utils::head(suffixes, 20), "\"", collapse = ", "),
+              if (length(suffixes) > 20) ", ..." else ""
+            )
+          }
+        )
+      )
       next
     }
 
     clash <- wanted[norm(wanted) %in% excluded]
     if (length(clash) > 0) {
-      problems <- c(problems, paste0(
-        "'", p, "': ", paste0("\"", clash, "\"", collapse = ", "),
-        " appears in both ", arg_name, " and exclude_choices. ",
-        "exclude_choices drops every respondent who picked it, so there would ",
-        "be nobody left to report the combination for. Remove it from one of them"
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "': ",
+          paste0("\"", clash, "\"", collapse = ", "),
+          " appears in both ",
+          arg_name,
+          " and exclude_choices. ",
+          "exclude_choices drops every respondent who picked it, so there would ",
+          "be nobody left to report the combination for. Remove it from one of them"
+        )
+      )
       next
     }
 
     if (any(duplicated(norm(wanted)))) {
-      problems <- c(problems, paste0(
-        "'", p, "': the same choice is listed more than once"
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "': the same choice is listed more than once"
+        )
+      )
       next
     }
 
     if (any(duplicated(display))) {
-      problems <- c(problems, paste0(
-        "'", p, "': two choices share the same display name (",
-        paste(unique(display[duplicated(display)]), collapse = ", "),
-        "). Row labels are built from these, so they must be distinct"
-      ))
+      problems <- c(
+        problems,
+        paste0(
+          "'",
+          p,
+          "': two choices share the same display name (",
+          paste(unique(display[duplicated(display)]), collapse = ", "),
+          "). Row labels are built from these, so they must be distinct"
+        )
+      )
       next
     }
 
@@ -1005,7 +1170,11 @@ ck_check_choice_combinations <- function(combinations,
 
   if (length(problems) > 0) {
     stop(
-      paste0(arg_name, " is not usable.\n  - ", paste(problems, collapse = "\n  - ")),
+      paste0(
+        arg_name,
+        " is not usable.\n  - ",
+        paste(problems, collapse = "\n  - ")
+      ),
       call. = FALSE
     )
   }
@@ -1056,15 +1225,17 @@ ck_check_choice_combinations <- function(combinations,
 #'   order. The residual row, when present, has \code{key = NA} and takes part
 #'   in no matching.
 #' @keywords internal
-ck_combination_rows <- function(display,
-                                mode = c("multiple", "single"),
-                                joiner = " + ",
-                                only_suffix = " only",
-                                other_label = "Other",
-                                other_multiple_label = "Other multiple selection",
-                                other_single_label = "Other single selection",
-                                residual_level = NULL,
-                                order = c("descending", "ascending")) {
+ck_combination_rows <- function(
+  display,
+  mode = c("multiple", "single"),
+  joiner = " + ",
+  only_suffix = " only",
+  other_label = "Other",
+  other_multiple_label = "Other multiple selection",
+  other_single_label = "Other single selection",
+  residual_level = NULL,
+  order = c("descending", "ascending")
+) {
   mode <- match.arg(mode)
   order <- match.arg(order)
 
@@ -1091,7 +1262,11 @@ ck_combination_rows <- function(display,
     # choices were given. combn() is lexicographic, so this is deterministic.
     sets <- unlist(
       lapply(seq(k, 0), function(size) {
-        if (size == 0) list(integer(0)) else utils::combn(k, size, simplify = FALSE)
+        if (size == 0) {
+          list(integer(0))
+        } else {
+          utils::combn(k, size, simplify = FALSE)
+        }
       }),
       recursive = FALSE
     )
@@ -1111,7 +1286,12 @@ ck_combination_rows <- function(display,
     }
   }
 
-  rows <- data.frame(key = key, other = other, label = label, stringsAsFactors = FALSE)
+  rows <- data.frame(
+    key = key,
+    other = other,
+    label = label,
+    stringsAsFactors = FALSE
+  )
 
   if (order == "ascending") {
     rows <- rows[rev(seq_len(nrow(rows))), , drop = FALSE]
@@ -1119,10 +1299,16 @@ ck_combination_rows <- function(display,
 
   if (!is.null(residual_level)) {
     residual <- data.frame(
-      key = NA_real_, other = NA, label = residual_level,
+      key = NA_real_,
+      other = NA,
+      label = residual_level,
       stringsAsFactors = FALSE
     )
-    rows <- if (order == "ascending") rbind(residual, rows) else rbind(rows, residual)
+    rows <- if (order == "ascending") {
+      rbind(residual, rows)
+    } else {
+      rbind(rows, residual)
+    }
   }
 
   rownames(rows) <- NULL
@@ -1213,29 +1399,35 @@ ck_combination_rows <- function(display,
 #'   \code{n_in_block}, \code{n_other_block}, \code{n_no_selection},
 #'   \code{n_excluded_out} and \code{hidden_row}).
 #' @export
-ck_add_choice_combinations <- function(dataset,
-                                       combinations,
-                                       mode = c("multiple", "single"),
-                                       sm_separator = "/",
-                                       sm_child_style = c("auto", "label", "dummy"),
-                                       exclude_choices = NULL,
-                                       ignore_case = TRUE,
-                                       joiner = " + ",
-                                       only_suffix = " only",
-                                       other_label = "Other",
-                                       other_multiple_label = "Other multiple selection",
-                                       other_single_label = "Other single selection",
-                                       residual_label = "",
-                                       order = c("descending", "ascending"),
-                                       suffix = NULL,
-                                       sm_cache = NULL,
-                                       verbose = TRUE) {
+ck_add_choice_combinations <- function(
+  dataset,
+  combinations,
+  mode = c("multiple", "single"),
+  sm_separator = "/",
+  sm_child_style = c("auto", "label", "dummy"),
+  exclude_choices = NULL,
+  ignore_case = TRUE,
+  joiner = " + ",
+  only_suffix = " only",
+  other_label = "Other",
+  other_multiple_label = "Other multiple selection",
+  other_single_label = "Other single selection",
+  residual_label = "",
+  order = c("descending", "ascending"),
+  suffix = NULL,
+  sm_cache = NULL,
+  verbose = TRUE
+) {
   mode <- match.arg(mode)
   sm_child_style <- match.arg(sm_child_style)
   order <- match.arg(order)
 
   if (is.null(suffix)) {
-    suffix <- if (mode == "multiple") "_choice_combination" else "_exclusive_combination"
+    suffix <- if (mode == "multiple") {
+      "_choice_combination"
+    } else {
+      "_exclusive_combination"
+    }
   }
 
   empty_map <- data.frame(
@@ -1266,7 +1458,11 @@ ck_add_choice_combinations <- function(dataset,
   # An empty residual label means "keep them in the denominator but give them no
   # row": the sentinel category is dropped from the results after estimation, by
   # which point it has already been counted into n_total.
-  residual_label <- if (is.null(residual_label)) "" else as.character(residual_label)[1]
+  residual_label <- if (is.null(residual_label)) {
+    ""
+  } else {
+    as.character(residual_label)[1]
+  }
   hidden <- !nzchar(trimws(residual_label))
   residual_level <- if (hidden) ck_hidden_level() else residual_label
 
@@ -1275,17 +1471,26 @@ ck_add_choice_combinations <- function(dataset,
   for (p in names(combinations)) {
     wanted <- as.character(combinations[[p]])
     display <- names(combinations[[p]])
-    if (is.null(display)) display <- wanted
-    display[is.na(display) | !nzchar(display)] <- wanted[is.na(display) | !nzchar(display)]
+    if (is.null(display)) {
+      display <- wanted
+    }
+    display[is.na(display) | !nzchar(display)] <- wanted[
+      is.na(display) | !nzchar(display)
+    ]
 
     k <- length(wanted)
-    if (k == 0) next
+    if (k == 0) {
+      next
+    }
 
     # The full child matrix, with no exclusions applied: which choices are of
     # interest is decided below, and the base needs to know about the excluded
     # ones too.
     m <- ck_sm_selection_matrix(
-      dataset, p, sm_separator, sm_child_style,
+      dataset,
+      p,
+      sm_separator,
+      sm_child_style,
       cache = sm_cache
     )
     if (is.null(m)) {
@@ -1293,10 +1498,19 @@ ck_add_choice_combinations <- function(dataset,
       next
     }
 
-    hits <- ck_resolve_choices(p, wanted, names(dataset), sm_separator, ignore_case)
+    hits <- ck_resolve_choices(
+      p,
+      wanted,
+      names(dataset),
+      sm_separator,
+      ignore_case
+    )
     if (any(vapply(hits, length, integer(1)) == 0)) {
       ck_warn(
-        "'", p, "': ", sum(vapply(hits, length, integer(1)) == 0),
+        "'",
+        p,
+        "': ",
+        sum(vapply(hits, length, integer(1)) == 0),
         " choice label(s) matched no child column. Skipped - run ",
         "ck_check_choice_combinations() to see which."
       )
@@ -1313,7 +1527,9 @@ ck_add_choice_combinations <- function(dataset,
     } else {
       answered <- selected_any
       ck_warn(
-        "Parent column '", p, "' is not in the export, so a respondent counts as ",
+        "Parent column '",
+        p,
+        "' is not in the export, so a respondent counts as ",
         "having answered only if one of their child columns is filled. Anyone ",
         "asked who selected nothing cannot be told apart from anyone never asked."
       )
@@ -1365,8 +1581,11 @@ ck_add_choice_combinations <- function(dataset,
 
     if (length(other_cols) == 0 && mode == "multiple") {
       ck_note(
-        "'", p, "': every choice of this question is listed, so the '",
-        other_label, "' rows cannot happen and are reported as zero",
+        "'",
+        p,
+        "': every choice of this question is listed, so the '",
+        other_label,
+        "' rows cannot happen and are reported as zero",
         verbose = verbose
       )
     }
@@ -1387,7 +1606,9 @@ ck_add_choice_combinations <- function(dataset,
     if (any(duplicated(rows$label))) {
       stop(
         paste0(
-          "'", p, "': two combination rows would carry the same label (",
+          "'",
+          p,
+          "': two combination rows would carry the same label (",
           paste(unique(rows$label[duplicated(rows$label)]), collapse = "; "),
           "). Give the choices distinct short names, e.g. ",
           "c(Economic = \"...\", Conflict = \"...\"), or change joiner."
@@ -1403,7 +1624,11 @@ ck_add_choice_combinations <- function(dataset,
 
     # In the single-selection block a respondent has exactly one choice, so
     # "was anything else selected" carries no information and is not matched on.
-    respondent_other <- if (mode == "single") rep(FALSE, nrow(dataset)) else has_other
+    respondent_other <- if (mode == "single") {
+      rep(FALSE, nrow(dataset))
+    } else {
+      has_other
+    }
 
     lookup <- rows[!is.na(rows$key), , drop = FALSE]
     idx <- match(
@@ -1428,7 +1653,11 @@ ck_add_choice_combinations <- function(dataset,
       # column and a respondent ticked several of them, so the selection count
       # and the pattern disagree.
       ck_warn(
-        "'", p, "': ", unmatched, " respondent(s) selected a pattern with no ",
+        "'",
+        p,
+        "': ",
+        unmatched,
+        " respondent(s) selected a pattern with no ",
         "row - check whether two child columns carry the same choice label. ",
         "They are reported as missing."
       )
@@ -1455,12 +1684,24 @@ ck_add_choice_combinations <- function(dataset,
     )
 
     ck_note(
-      "'", p, "': ", k, " choice(s) -> ", sum(!is.na(rows$key)), " ",
+      "'",
+      p,
+      "': ",
+      k,
+      " choice(s) -> ",
+      sum(!is.na(rows$key)),
+      " ",
       if (mode == "multiple") "multiple-selection" else "single-selection",
-      " row(s) over ", sum(in_block), " respondent(s), in a base of ",
+      " row(s) over ",
+      sum(in_block),
+      " respondent(s), in a base of ",
       sum(in_base),
       if (n_no_selection > 0) {
-        paste0(" (", n_no_selection, " answered but selected nothing, outside the base)")
+        paste0(
+          " (",
+          n_no_selection,
+          " answered but selected nothing, outside the base)"
+        )
       } else {
         ""
       },
@@ -1497,17 +1738,25 @@ ck_add_choice_combinations <- function(dataset,
 #' @return A dataframe of \code{analysis_var}, \code{derived_column} and
 #'   \code{analysis_type}.
 #' @keywords internal
-ck_derived_map <- function(count_map = NULL,
-                           combination_map = NULL,
-                           exclusive_map = NULL) {
+ck_derived_map <- function(
+  count_map = NULL,
+  combination_map = NULL,
+  exclusive_map = NULL
+) {
   spec <- list(
-    list(map = count_map, column = "count_column", type = "count_select_multiple"),
     list(
-      map = combination_map, column = "combination_column",
+      map = count_map,
+      column = "count_column",
+      type = "count_select_multiple"
+    ),
+    list(
+      map = combination_map,
+      column = "combination_column",
       type = "combination_select_multiple"
     ),
     list(
-      map = exclusive_map, column = "combination_column",
+      map = exclusive_map,
+      column = "combination_column",
       type = "exclusive_combination_select_multiple"
     )
   )
@@ -1515,7 +1764,9 @@ ck_derived_map <- function(count_map = NULL,
   parts <- list()
 
   for (sp in spec) {
-    if (is.null(sp$map) || nrow(sp$map) == 0) next
+    if (is.null(sp$map) || nrow(sp$map) == 0) {
+      next
+    }
 
     parts[[length(parts) + 1]] <- data.frame(
       analysis_var = sp$map$analysis_var,
@@ -1580,22 +1831,24 @@ ck_derived_map <- function(count_map = NULL,
 #' @return A list with \code{dataset} and \code{map} (\code{analysis_var},
 #'   \code{count_column}, \code{n_choices_counted}).
 #' @export
-ck_add_selection_counts <- function(dataset,
-                                    count_selections,
-                                    sm_separator = "/",
-                                    sm_child_style = c("auto", "label", "dummy"),
-                                    exclude_choices = NULL,
-                                    ignore_case = TRUE,
-                                    mode = c("grouped", "exact"),
-                                    labels = c(
-                                      "No choice selected",
-                                      "Selected exactly 1 choice",
-                                      "Selected more than 1 choice"
-                                    ),
-                                    order = c("descending", "ascending"),
-                                    suffix = "_selection_count",
-                                    sm_cache = NULL,
-                                    verbose = TRUE) {
+ck_add_selection_counts <- function(
+  dataset,
+  count_selections,
+  sm_separator = "/",
+  sm_child_style = c("auto", "label", "dummy"),
+  exclude_choices = NULL,
+  ignore_case = TRUE,
+  mode = c("grouped", "exact"),
+  labels = c(
+    "No choice selected",
+    "Selected exactly 1 choice",
+    "Selected more than 1 choice"
+  ),
+  order = c("descending", "ascending"),
+  suffix = "_selection_count",
+  sm_cache = NULL,
+  verbose = TRUE
+) {
   sm_child_style <- match.arg(sm_child_style)
   mode <- match.arg(mode)
   order <- match.arg(order)
@@ -1612,7 +1865,10 @@ ck_add_selection_counts <- function(dataset,
   }
 
   if (mode == "grouped" && length(labels) != 3) {
-    stop("labels must have exactly three elements: none, one, more than one.", call. = FALSE)
+    stop(
+      "labels must have exactly three elements: none, one, more than one.",
+      call. = FALSE
+    )
   }
 
   vars <- unique(trimws(as.character(count_selections)))
@@ -1622,14 +1878,19 @@ ck_add_selection_counts <- function(dataset,
 
   for (v in vars) {
     m <- ck_sm_selection_matrix(
-      dataset, v, sm_separator, sm_child_style,
-      exclude_choices = exclude_choices, ignore_case = ignore_case,
+      dataset,
+      v,
+      sm_separator,
+      sm_child_style,
+      exclude_choices = exclude_choices,
+      ignore_case = ignore_case,
       cache = sm_cache
     )
 
     if (is.null(m)) {
       ck_warn(
-        "No countable child columns left for '", v,
+        "No countable child columns left for '",
+        v,
         "' after applying exclude_choices. Skipped."
       )
       next
@@ -1647,17 +1908,26 @@ ck_add_selection_counts <- function(dataset,
 
       if (any(odd)) {
         examples <- unique(parent_chr[odd])
-        all_suffixes <- unname(ck_sm_child_suffixes(v, names(dataset), sm_separator))
+        all_suffixes <- unname(ck_sm_child_suffixes(
+          v,
+          names(dataset),
+          sm_separator
+        ))
         any_label_seen <- any(vapply(
           examples,
-          function(p) any(vapply(all_suffixes, grepl, logical(1), x = p, fixed = TRUE)),
+          function(p) {
+            any(vapply(all_suffixes, grepl, logical(1), x = p, fixed = TRUE))
+          },
           logical(1),
           USE.NAMES = FALSE
         ))
 
         diagnosis <- if (!any_label_seen) {
           paste0(
-            " None of the exported '", v, sm_separator, "...' choice labels ",
+            " None of the exported '",
+            v,
+            sm_separator,
+            "...' choice labels ",
             "appear in these values, so a choice column is probably missing ",
             "from the export."
           )
@@ -1665,17 +1935,27 @@ ck_add_selection_counts <- function(dataset,
           " Their only selected choice was probably removed by exclude_choices."
         } else {
           paste0(
-            " The choice label is present in '", v,
+            " The choice label is present in '",
+            v,
             "' but its child column is blank - check the export."
           )
         }
 
         ck_warn(
-          sum(odd), " row(s) have a value in '", v,
-          "' but no child column selected; counted as \"", labels[1], "\".",
-          diagnosis, " Example value(s): ",
+          sum(odd),
+          " row(s) have a value in '",
+          v,
+          "' but no child column selected; counted as \"",
+          labels[1],
+          "\".",
+          diagnosis,
+          " Example value(s): ",
           paste0("\"", utils::head(examples, 3), "\"", collapse = ", "),
-          if (length(examples) > 3) paste0(" (and ", length(examples) - 3, " more)") else ""
+          if (length(examples) > 3) {
+            paste0(" (and ", length(examples) - 3, " more)")
+          } else {
+            ""
+          }
         )
       }
     }
@@ -1686,7 +1966,11 @@ ck_add_selection_counts <- function(dataset,
     # order, and keeps an empty category visible as a zero instead of dropping
     # the row.
     if (mode == "grouped") {
-      bucket <- ifelse(n_selected == 0, labels[1], ifelse(n_selected == 1, labels[2], labels[3]))
+      bucket <- ifelse(
+        n_selected == 0,
+        labels[1],
+        ifelse(n_selected == 1, labels[2], labels[3])
+      )
       lv <- if (order == "descending") rev(labels) else labels
       dataset[[count_col]] <- factor(bucket, levels = lv)
     } else {
@@ -1703,10 +1987,16 @@ ck_add_selection_counts <- function(dataset,
     )
 
     ck_note(
-      "'", v, "': counting selections over ", length(m$columns),
-      " choice(s); none = ", sum(n_selected == 0),
-      ", one = ", sum(n_selected == 1),
-      ", more than one = ", sum(n_selected > 1),
+      "'",
+      v,
+      "': counting selections over ",
+      length(m$columns),
+      " choice(s); none = ",
+      sum(n_selected == 0),
+      ", one = ",
+      sum(n_selected == 1),
+      ", more than one = ",
+      sum(n_selected > 1),
       verbose = verbose
     )
   }
@@ -1749,12 +2039,14 @@ ck_add_selection_counts <- function(dataset,
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return The dataframe with the child columns as numeric 0/1/NA.
 #' @export
-ck_sm_children_to_binary <- function(dataset,
-                                     parents,
-                                     sm_separator = "/",
-                                     sm_child_style = c("auto", "label", "dummy"),
-                                     sm_cache = NULL,
-                                     verbose = TRUE) {
+ck_sm_children_to_binary <- function(
+  dataset,
+  parents,
+  sm_separator = "/",
+  sm_child_style = c("auto", "label", "dummy"),
+  sm_cache = NULL,
+  verbose = TRUE
+) {
   sm_child_style <- match.arg(sm_child_style)
 
   data_names <- names(dataset)
@@ -1762,10 +2054,15 @@ ck_sm_children_to_binary <- function(dataset,
 
   for (p in parents) {
     m <- ck_sm_selection_matrix(
-      dataset, p, sm_separator, sm_child_style,
+      dataset,
+      p,
+      sm_separator,
+      sm_child_style,
       cache = sm_cache
     )
-    if (is.null(m)) next
+    if (is.null(m)) {
+      next
+    }
 
     any_selected <- rowSums(m$selected) > 0
 
@@ -1775,7 +2072,9 @@ ck_sm_children_to_binary <- function(dataset,
     } else {
       asked <- rep(TRUE, nrow(dataset))
       ck_warn(
-        "Parent column '", p, "' is not in the export, so every row is treated ",
+        "Parent column '",
+        p,
+        "' is not in the export, so every row is treated ",
         "as having been asked this select_multiple. n_total may be inflated. ",
         "Consider recreate_sm_parents = TRUE or exporting the parent column."
       )
@@ -1788,10 +2087,17 @@ ck_sm_children_to_binary <- function(dataset,
     }
 
     ck_note(
-      "'", p, "': ", length(m$columns),
+      "'",
+      p,
+      "': ",
+      length(m$columns),
       " select_multiple child column(s) converted to 0/1 (style: ",
-      paste(sort(unique(m$styles)), collapse = "+"), "); ",
-      sum(asked), " of ", length(asked), " rows in the denominator",
+      paste(sort(unique(m$styles)), collapse = "+"),
+      "); ",
+      sum(asked),
+      " of ",
+      length(asked),
+      " rows in the denominator",
       verbose = verbose
     )
   }
@@ -1819,10 +2125,12 @@ ck_sm_children_to_binary <- function(dataset,
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return \code{results_table} with select_multiple choice values repaired.
 #' @export
-ck_fix_sm_choice_values <- function(results_table,
-                                    dataset,
-                                    sm_separator = "/",
-                                    verbose = TRUE) {
+ck_fix_sm_choice_values <- function(
+  results_table,
+  dataset,
+  sm_separator = "/",
+  verbose = TRUE
+) {
   needed <- c("analysis_type", "analysis_var", "analysis_var_value")
   if (!all(needed %in% names(results_table))) {
     return(results_table)
@@ -1843,11 +2151,15 @@ ck_fix_sm_choice_values <- function(results_table,
 
   for (p in unique(parents[is_sm])) {
     suffixes <- unname(ck_sm_child_suffixes(p, names(dataset), sm_separator))
-    if (length(suffixes) == 0) next
+    if (length(suffixes) == 0) {
+      next
+    }
 
     for (r in which(is_sm & parents == p)) {
       v <- values[r]
-      if (is.na(v) || v %in% suffixes) next
+      if (is.na(v) || v %in% suffixes) {
+        next
+      }
 
       hits <- suffixes[startsWith(suffixes, v)]
 
@@ -1862,7 +2174,8 @@ ck_fix_sm_choice_values <- function(results_table,
 
   if (n_fixed > 0) {
     ck_note(
-      "repaired ", n_fixed,
+      "repaired ",
+      n_fixed,
       " truncated select_multiple choice value(s) from the child column names",
       verbose = verbose
     )
@@ -1912,12 +2225,14 @@ ck_fix_sm_choice_values <- function(results_table,
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return A list with \code{dataset} and \code{excluded} (the audit trail).
 #' @export
-ck_exclude_choices <- function(dataset,
-                               loa,
-                               exclude_choices = NULL,
-                               sm_separator = "/",
-                               ignore_case = TRUE,
-                               verbose = TRUE) {
+ck_exclude_choices <- function(
+  dataset,
+  loa,
+  exclude_choices = NULL,
+  sm_separator = "/",
+  ignore_case = TRUE,
+  verbose = TRUE
+) {
   empty_log <- data.frame(
     analysis_var = character(0),
     analysis_type = character(0),
@@ -1927,7 +2242,9 @@ ck_exclude_choices <- function(dataset,
   )
 
   exclude_choices <- trimws(as.character(exclude_choices))
-  exclude_choices <- exclude_choices[!is.na(exclude_choices) & exclude_choices != ""]
+  exclude_choices <- exclude_choices[
+    !is.na(exclude_choices) & exclude_choices != ""
+  ]
 
   if (length(exclude_choices) == 0) {
     return(list(dataset = dataset, excluded = empty_log))
@@ -1973,10 +2290,14 @@ ck_exclude_choices <- function(dataset,
   # --- select_multiple -------------------------------------------------------
   for (p in loa_vars("prop_select_multiple")) {
     suffixes <- ck_sm_child_suffixes(p, names(dataset), sm_separator)
-    if (length(suffixes) == 0) next
+    if (length(suffixes) == 0) {
+      next
+    }
 
     drop_cols <- names(suffixes)[norm(trimws(unname(suffixes))) %in% targets]
-    if (length(drop_cols) == 0) next
+    if (length(drop_cols) == 0) {
+      next
+    }
 
     # A respondent who picked an excluded choice leaves the denominator.
     picked <- rep(FALSE, nrow(dataset))
@@ -2008,12 +2329,19 @@ ck_exclude_choices <- function(dataset,
     )
   }
 
-  excluded <- if (length(log_rows) > 0) dplyr::bind_rows(log_rows) else empty_log
+  excluded <- if (length(log_rows) > 0) {
+    dplyr::bind_rows(log_rows)
+  } else {
+    empty_log
+  }
 
   if (nrow(excluded) > 0) {
     ck_note(
-      "excluded ", length(unique(excluded$choice)), " choice(s) from ",
-      length(unique(excluded$analysis_var)), " variable(s): ",
+      "excluded ",
+      length(unique(excluded$choice)),
+      " choice(s) from ",
+      length(unique(excluded$analysis_var)),
+      " variable(s): ",
       paste(unique(excluded$choice), collapse = ", "),
       verbose = verbose
     )
@@ -2034,17 +2362,25 @@ ck_exclude_choices <- function(dataset,
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return An \pkg{srvyr} \code{tbl_svy} object.
 #' @export
-ck_build_survey_design <- function(dataset,
-                                   weight_column = NULL,
-                                   strata_column = NULL,
-                                   verbose = TRUE) {
+ck_build_survey_design <- function(
+  dataset,
+  weight_column = NULL,
+  strata_column = NULL,
+  verbose = TRUE
+) {
   ck_require_pkg("srvyr")
 
   usable <- function(col, what) {
-    ok <- !is.null(col) && length(col) == 1 && !is.na(col) && col %in% names(dataset)
+    ok <- !is.null(col) &&
+      length(col) == 1 &&
+      !is.na(col) &&
+      col %in% names(dataset)
     if (!is.null(col) && !ok) {
       ck_warn(
-        what, " column '", col, "' not found in the dataset. ",
+        what,
+        " column '",
+        col,
+        "' not found in the dataset. ",
         if (identical(what, "Weight")) {
           "Running the analysis unweighted."
         } else {
@@ -2063,7 +2399,11 @@ ck_build_survey_design <- function(dataset,
 
     if (all(is.na(dataset[[weight_column]]))) {
       stop(
-        paste0("Weight column '", weight_column, "' is entirely NA after coercion."),
+        paste0(
+          "Weight column '",
+          weight_column,
+          "' is entirely NA after coercion."
+        ),
         call. = FALSE
       )
     }
@@ -2074,7 +2414,8 @@ ck_build_survey_design <- function(dataset,
 
   ck_note(
     "survey design: ",
-    if (use_weights) "weighted" else "unweighted", ", ",
+    if (use_weights) "weighted" else "unweighted",
+    ", ",
     if (use_strata) "stratified" else "no strata",
     if (!use_weights && !use_strata) " (dataset used as is)" else "",
     verbose = verbose
@@ -2090,10 +2431,16 @@ ck_build_survey_design <- function(dataset,
     ))
   }
   if (use_weights) {
-    return(srvyr::as_survey_design(dataset, weights = dplyr::all_of(weight_column)))
+    return(srvyr::as_survey_design(
+      dataset,
+      weights = dplyr::all_of(weight_column)
+    ))
   }
   if (use_strata) {
-    return(srvyr::as_survey_design(dataset, strata = dplyr::all_of(strata_column)))
+    return(srvyr::as_survey_design(
+      dataset,
+      strata = dplyr::all_of(strata_column)
+    ))
   }
   srvyr::as_survey_design(dataset)
 }
@@ -2107,9 +2454,14 @@ ck_build_survey_design <- function(dataset,
 #' @keywords internal
 ck_loa_columns <- function() {
   c(
-    "analysis_type", "analysis_var", "group_var", "level",
-    "analysis_var_numerator", "analysis_var_denominator",
-    "numerator_NA_to_0", "filter_denominator_0"
+    "analysis_type",
+    "analysis_var",
+    "group_var",
+    "level",
+    "analysis_var_numerator",
+    "analysis_var_denominator",
+    "numerator_NA_to_0",
+    "filter_denominator_0"
   )
 }
 
@@ -2192,7 +2544,9 @@ ck_var_is_available <- function(vars, dataset, sm_separator = "/") {
   has_children <- vapply(
     vars,
     function(v) {
-      if (is.na(v)) return(FALSE)
+      if (is.na(v)) {
+        return(FALSE)
+      }
       any(startsWith(data_names, paste0(v, sm_separator)))
     },
     logical(1),
@@ -2215,18 +2569,29 @@ ck_var_is_available <- function(vars, dataset, sm_separator = "/") {
 #' @keywords internal
 ck_loa_is_available <- function(loa, dataset, sm_separator = "/") {
   n <- nrow(loa)
-  if (n == 0) return(logical(0))
+  if (n == 0) {
+    return(logical(0))
+  }
 
   is_ratio <- !is.na(loa$analysis_type) & tolower(loa$analysis_type) == "ratio"
   ok <- logical(n)
 
   if (any(!is_ratio)) {
-    ok[!is_ratio] <- ck_var_is_available(loa$analysis_var[!is_ratio], dataset, sm_separator)
+    ok[!is_ratio] <- ck_var_is_available(
+      loa$analysis_var[!is_ratio],
+      dataset,
+      sm_separator
+    )
   }
 
-  if (any(is_ratio) &&
-      all(c("analysis_var_numerator", "analysis_var_denominator") %in% names(loa))) {
-    ok[is_ratio] <- loa$analysis_var_numerator[is_ratio] %in% names(dataset) &
+  if (
+    any(is_ratio) &&
+      all(
+        c("analysis_var_numerator", "analysis_var_denominator") %in% names(loa)
+      )
+  ) {
+    ok[is_ratio] <- loa$analysis_var_numerator[is_ratio] %in%
+      names(dataset) &
       loa$analysis_var_denominator[is_ratio] %in% names(dataset)
   }
 
@@ -2250,10 +2615,15 @@ ck_loa_var_key <- function(loa) {
 
   is_ratio <- !is.na(loa$analysis_type) & tolower(loa$analysis_type) == "ratio"
 
-  if (any(is_ratio) &&
-      all(c("analysis_var_numerator", "analysis_var_denominator") %in% names(loa))) {
+  if (
+    any(is_ratio) &&
+      all(
+        c("analysis_var_numerator", "analysis_var_denominator") %in% names(loa)
+      )
+  ) {
     key[is_ratio] <- paste0(
-      loa$analysis_var_numerator[is_ratio], ck_ratio_key_separator(),
+      loa$analysis_var_numerator[is_ratio],
+      ck_ratio_key_separator(),
       loa$analysis_var_denominator[is_ratio]
     )
   }
@@ -2283,13 +2653,15 @@ ck_loa_var_key <- function(loa) {
 #'   \code{create_analysis()} understands, with a \code{"level_supplied"}
 #'   attribute.
 #' @export
-ck_stack_loa <- function(loa,
-                         dataset,
-                         group_variables = c("Overall"),
-                         sm_separator = "/",
-                         overall_label = "Overall",
-                         fallback_level = 0.95,
-                         verbose = TRUE) {
+ck_stack_loa <- function(
+  loa,
+  dataset,
+  group_variables = c("Overall"),
+  sm_separator = "/",
+  overall_label = "Overall",
+  fallback_level = 0.95,
+  verbose = TRUE
+) {
   # Resolve level once, on the original LOA, so every block agrees.
   lv <- ck_level_info(loa, fallback_level = fallback_level)
   loa$level <- lv$level
@@ -2302,12 +2674,15 @@ ck_stack_loa <- function(loa,
   # engine. FALSE is the documented meaning of a blank cell - no silent
   # imputation of a missing numerator, no silent dropping of a zero denominator.
   if (nrow(loa) > 0) {
-    is_ratio_row <- !is.na(loa$analysis_type) & tolower(loa$analysis_type) == "ratio"
+    is_ratio_row <- !is.na(loa$analysis_type) &
+      tolower(loa$analysis_type) == "ratio"
 
     for (cc in c("numerator_NA_to_0", "filter_denominator_0")) {
       # A workbook with no ratio rows gains nothing from the column, so it is
       # added only where it is read.
-      if (!cc %in% names(loa) && !any(is_ratio_row)) next
+      if (!cc %in% names(loa) && !any(is_ratio_row)) {
+        next
+      }
       loa[[cc]] <- if (cc %in% names(loa)) {
         ck_loa_flag(loa[[cc]])
       } else {
@@ -2326,7 +2701,11 @@ ck_stack_loa <- function(loa,
     } else {
       block$group_var <- g
       # Never analyse the grouping variable against itself.
-      block <- block[!(!is.na(block$analysis_var) & block$analysis_var == g), , drop = FALSE]
+      block <- block[
+        !(!is.na(block$analysis_var) & block$analysis_var == g),
+        ,
+        drop = FALSE
+      ]
     }
 
     keep <- ck_loa_is_available(block, dataset, sm_separator)
@@ -2334,7 +2713,10 @@ ck_stack_loa <- function(loa,
 
     if (length(dropped) > 0) {
       ck_note(
-        "group '", g, "': ", length(dropped),
+        "group '",
+        g,
+        "': ",
+        length(dropped),
         " analysis variable(s) not found in the export and skipped: ",
         paste(utils::head(dropped, 10), collapse = ", "),
         if (length(dropped) > 10) ", ..." else "",
@@ -2352,7 +2734,10 @@ ck_stack_loa <- function(loa,
   }
 
   if (length(blocks) == 0) {
-    stop("No runnable analyses in the LOA for any of the group_variables.", call. = FALSE)
+    stop(
+      "No runnable analyses in the LOA for any of the group_variables.",
+      call. = FALSE
+    )
   }
 
   stacked <- dplyr::bind_rows(blocks)
@@ -2389,29 +2774,43 @@ ck_attach_loa_metadata <- function(results_table, loa, extra_columns = NULL) {
   meta <- loa
   meta$analysis_var <- ck_loa_var_key(meta)
   meta <- dplyr::distinct(
-    meta[, unique(c("analysis_type", "analysis_var", extra_columns)), drop = FALSE]
+    meta[,
+      unique(c("analysis_type", "analysis_var", extra_columns)),
+      drop = FALSE
+    ]
   )
 
   dup <- duplicated(meta[, c("analysis_type", "analysis_var")])
   if (any(dup)) {
     ck_warn(
-      "The LOA has conflicting ", paste(extra_columns, collapse = "/"),
+      "The LOA has conflicting ",
+      paste(extra_columns, collapse = "/"),
       " values for the same analysis_type + analysis_var. The first row wins for: ",
       paste(unique(meta$analysis_var[dup]), collapse = ", ")
     )
     meta <- meta[!dup, , drop = FALSE]
   }
 
-  out <- dplyr::left_join(results_table, meta, by = c("analysis_type", "analysis_var"))
+  out <- dplyr::left_join(
+    results_table,
+    meta,
+    by = c("analysis_type", "analysis_var")
+  )
 
   # Derived analyses - the selection counts - have an analysis_type the DAP
   # never mentions, so fall back to matching on the variable alone for any row
   # that picked up nothing. Without this a count row lands in the output with a
   # blank sector and indicator.
-  still_missing <- Reduce(`&`, lapply(extra_columns, function(cc) is.na(out[[cc]])))
+  still_missing <- Reduce(
+    `&`,
+    lapply(extra_columns, function(cc) is.na(out[[cc]]))
+  )
 
   if (any(still_missing)) {
-    var_meta <- dplyr::distinct(meta[, c("analysis_var", extra_columns), drop = FALSE])
+    var_meta <- dplyr::distinct(meta[,
+      c("analysis_var", extra_columns),
+      drop = FALSE
+    ])
     var_meta <- var_meta[!duplicated(var_meta$analysis_var), , drop = FALSE]
     hit <- match(out$analysis_var[still_missing], var_meta$analysis_var)
 
@@ -2483,7 +2882,9 @@ ck_wtab <- function(w, g, x, x_levels = NULL) {
 #' @keywords internal
 ck_gsum <- function(values, g, levels_g) {
   out <- stats::setNames(numeric(length(levels_g)), levels_g)
-  if (length(values) == 0) return(out)
+  if (length(values) == 0) {
+    return(out)
+  }
 
   agg <- rowsum(values, g, reorder = TRUE)
   hit <- intersect(rownames(agg), levels_g)
@@ -2510,11 +2911,15 @@ ck_group_sums <- function(x, g, levels_g) {
   x <- as.matrix(x)
 
   out <- matrix(
-    0, nrow = length(levels_g), ncol = ncol(x),
+    0,
+    nrow = length(levels_g),
+    ncol = ncol(x),
     dimnames = list(levels_g, colnames(x))
   )
 
-  if (nrow(x) == 0 || length(levels_g) == 0) return(out)
+  if (nrow(x) == 0 || length(levels_g) == 0) {
+    return(out)
+  }
 
   agg <- rowsum(x, g, reorder = TRUE)
   hit <- intersect(rownames(agg), levels_g)
@@ -2541,7 +2946,9 @@ ck_group_sums <- function(x, g, levels_g) {
 #' @export
 ck_weighted_median <- function(x, w) {
   ok <- !is.na(x) & !is.na(w) & w > 0
-  if (!any(ok)) return(NA_real_)
+  if (!any(ok)) {
+    return(NA_real_)
+  }
 
   x <- x[ok]
   w <- w[ok]
@@ -2564,17 +2971,25 @@ ck_weighted_median <- function(x, w) {
 #'   Character vectors of the same length.
 #' @return A character vector of analysis keys.
 #' @keywords internal
-ck_make_analysis_key <- function(analysis_type,
-                                 analysis_var,
-                                 analysis_var_value,
-                                 group_var,
-                                 group_var_value) {
+ck_make_analysis_key <- function(
+  analysis_type,
+  analysis_var,
+  analysis_var_value,
+  group_var,
+  group_var_value
+) {
   na_chr <- function(x) ifelse(is.na(x), "NA", as.character(x))
 
   paste0(
-    na_chr(analysis_type), " @/@ ",
-    na_chr(analysis_var), " %/% ", na_chr(analysis_var_value), " @/@ ",
-    na_chr(group_var), " %/% ", na_chr(group_var_value)
+    na_chr(analysis_type),
+    " @/@ ",
+    na_chr(analysis_var),
+    " %/% ",
+    na_chr(analysis_var_value),
+    " @/@ ",
+    na_chr(group_var),
+    " %/% ",
+    na_chr(group_var_value)
   )
 }
 
@@ -2588,8 +3003,18 @@ ck_make_analysis_key <- function(analysis_type,
 #' @param stat,n,n_total,n_w,n_w_total Statistic columns.
 #' @return A dataframe with the ten long-format columns.
 #' @keywords internal
-ck_res_df <- function(type, avar, avalue, gvar, gvalue,
-                      stat, n, n_total, n_w, n_w_total) {
+ck_res_df <- function(
+  type,
+  avar,
+  avalue,
+  gvar,
+  gvalue,
+  stat,
+  n,
+  n_total,
+  n_w,
+  n_w_total
+) {
   data.frame(
     analysis_type = type,
     analysis_var = avar,
@@ -2640,14 +3065,18 @@ ck_res_df <- function(type, avar, avalue, gvar, gvalue,
 #'   \code{stat}, \code{n}, \code{n_total}, \code{n_w}, \code{n_w_total} and
 #'   \code{analysis_key}.
 #' @export
-ck_fast_analysis <- function(dataset,
-                             loa,
-                             weight_column = NULL,
-                             sm_separator = "/",
-                             keep_missing_groups = TRUE,
-                             survey_shape = FALSE,
-                             verbose = TRUE) {
-  if (nrow(loa) == 0) return(NULL)
+ck_fast_analysis <- function(
+  dataset,
+  loa,
+  weight_column = NULL,
+  sm_separator = "/",
+  keep_missing_groups = TRUE,
+  survey_shape = FALSE,
+  verbose = TRUE
+) {
+  if (nrow(loa) == 0) {
+    return(NULL)
+  }
 
   n_rows <- nrow(dataset)
 
@@ -2668,7 +3097,9 @@ ck_fast_analysis <- function(dataset,
 
   get_group <- function(gv) {
     tag <- if (is.na(gv)) "__overall__" else gv
-    if (!is.null(group_cache[[tag]])) return(group_cache[[tag]])
+    if (!is.null(group_cache[[tag]])) {
+      return(group_cache[[tag]])
+    }
 
     if (is.na(gv)) {
       gvec <- rep(overall_key, n_rows)
@@ -2722,7 +3153,8 @@ ck_fast_analysis <- function(dataset,
         n_tot <- rowSums(tab$n)
 
         res <- ck_res_df(
-          type, avar,
+          type,
+          avar,
           avalue = rep(x_lv, each = length(g_lv)),
           gvar,
           gvalue = rep(g_lv, times = length(x_lv)),
@@ -2741,7 +3173,8 @@ ck_fast_analysis <- function(dataset,
             order(
               match(res$group_var_value, survey_order(g_lv)),
               match(res$analysis_var_value, sort(x_lv, method = "radix"))
-            ), ,
+            ),
+            ,
             drop = FALSE
           ]
         }
@@ -2761,7 +3194,9 @@ ck_fast_analysis <- function(dataset,
       for (j in seq_along(suffixes)) {
         xc <- suppressWarnings(as.numeric(dataset[[names(suffixes)[j]]]))
         ok <- keep_row & !is.na(xc)
-        if (!any(ok) && is.null(all_groups)) next
+        if (!any(ok) && is.null(all_groups)) {
+          next
+        }
 
         g_ok <- gvec[ok]
         g_lv <- if (is.null(all_groups)) sort(unique(g_ok)) else all_groups
@@ -2769,12 +3204,22 @@ ck_fast_analysis <- function(dataset,
         s <- ck_group_sums(
           # rep(), not a bare 1: with nobody in the denominator a recycled
           # scalar would leave a one-row matrix where a zero-row one is meant.
-          cbind(w = w[ok], n = rep(1, sum(ok)), wx = w[ok] * xc[ok], nx = xc[ok]),
-          g_ok, g_lv
+          cbind(
+            w = w[ok],
+            n = rep(1, sum(ok)),
+            wx = w[ok] * xc[ok],
+            nx = xc[ok]
+          ),
+          g_ok,
+          g_lv
         )
 
         block <- ck_res_df(
-          type, avar, unname(suffixes[j]), gvar, g_lv,
+          type,
+          avar,
+          unname(suffixes[j]),
+          gvar,
+          g_lv,
           stat = s[, "wx"] / s[, "w"],
           n = s[, "nx"],
           n_total = s[, "n"],
@@ -2821,7 +3266,8 @@ ck_fast_analysis <- function(dataset,
 
         s <- ck_group_sums(
           cbind(w = w[ok], n = rep(1, sum(ok)), wx = w[ok] * x[ok]),
-          g_ok, g_lv
+          g_ok,
+          g_lv
         )
 
         stat <- if (type == "mean") {
@@ -2830,14 +3276,20 @@ ck_fast_analysis <- function(dataset,
           idx <- split(which(ok), g_ok)[g_lv]
           vapply(
             idx,
-            function(ii) if (is.null(ii)) NA_real_ else ck_weighted_median(x[ii], w[ii]),
+            function(ii) {
+              if (is.null(ii)) NA_real_ else ck_weighted_median(x[ii], w[ii])
+            },
             numeric(1),
             USE.NAMES = FALSE
           )
         }
 
         res <- ck_res_df(
-          type, avar, NA_character_, gvar, g_lv,
+          type,
+          avar,
+          NA_character_,
+          gvar,
+          g_lv,
           stat = stat,
           n = s[, "n"],
           n_total = s[, "n"],
@@ -2874,12 +3326,16 @@ ck_fast_analysis <- function(dataset,
 
         s <- ck_group_sums(
           cbind(wn = w[ok] * num[ok], wd = w[ok] * den[ok], n = 1),
-          g_ok, g_lv
+          g_ok,
+          g_lv
         )
 
         res <- ck_res_df(
-          type, paste0(num_var, ck_ratio_key_separator(), den_var),
-          NA_character_, gvar, g_lv,
+          type,
+          paste0(num_var, ck_ratio_key_separator(), den_var),
+          NA_character_,
+          gvar,
+          g_lv,
           stat = s[, "wn"] / s[, "wd"],
           n = s[, "n"],
           n_total = s[, "n"],
@@ -2893,22 +3349,34 @@ ck_fast_analysis <- function(dataset,
   }
 
   out <- out[!vapply(out, is.null, logical(1))]
-  if (length(out) == 0) return(NULL)
+  if (length(out) == 0) {
+    return(NULL)
+  }
 
   results <- dplyr::bind_rows(out)
 
   # Map the internal sentinels back: overall -> NA group, missing -> NA value.
   results$group_var[results$group_var_value == overall_key] <- NA_character_
-  results$group_var_value[results$group_var_value == overall_key] <- NA_character_
-  results$group_var_value[results$group_var_value == missing_key] <- NA_character_
+  results$group_var_value[
+    results$group_var_value == overall_key
+  ] <- NA_character_
+  results$group_var_value[
+    results$group_var_value == missing_key
+  ] <- NA_character_
 
   results$analysis_key <- ck_make_analysis_key(
-    results$analysis_type, results$analysis_var, results$analysis_var_value,
-    results$group_var, results$group_var_value
+    results$analysis_type,
+    results$analysis_var,
+    results$analysis_var_value,
+    results$group_var,
+    results$group_var_value
   )
 
   ck_note(
-    "fast engine: ", nrow(loa), " analyses -> ", nrow(results),
+    "fast engine: ",
+    nrow(loa),
+    " analyses -> ",
+    nrow(results),
     " result rows (point estimates only, no confidence intervals)",
     verbose = verbose
   )
@@ -2937,16 +3405,23 @@ ck_fast_analysis <- function(dataset,
 #' @return A logical vector, \code{TRUE} for each row to tabulate in the survey
 #'   engine's layout.
 #' @keywords internal
-ck_level_is_redundant <- function(analysis_type,
-                                  supplied,
-                                  value_columns,
-                                  engine = "auto") {
+ck_level_is_redundant <- function(
+  analysis_type,
+  supplied,
+  value_columns,
+  engine = "auto"
+) {
   n <- length(analysis_type)
-  if (!identical(engine, "auto")) return(rep(FALSE, n))
-  if (any(c("stat_low", "stat_upp") %in% value_columns)) return(rep(FALSE, n))
+  if (!identical(engine, "auto")) {
+    return(rep(FALSE, n))
+  }
+  if (any(c("stat_low", "stat_upp") %in% value_columns)) {
+    return(rep(FALSE, n))
+  }
 
   type <- tolower(as.character(analysis_type))
-  as.logical(supplied) & !is.na(type) &
+  as.logical(supplied) &
+    !is.na(type) &
     type %in% c("prop_select_one", "prop_select_multiple", "mean")
 }
 
@@ -2965,7 +3440,9 @@ ck_level_is_redundant <- function(analysis_type,
 #' @return One long results table.
 #' @keywords internal
 ck_merge_level_rows <- function(rerouted, survey, stacked_loa) {
-  if (is.null(rerouted) || nrow(rerouted) == 0) return(survey)
+  if (is.null(rerouted) || nrow(rerouted) == 0) {
+    return(survey)
+  }
 
   both <- dplyr::bind_rows(
     ck_harmonise_results(rerouted),
@@ -2979,7 +3456,8 @@ ck_merge_level_rows <- function(rerouted, survey, stacked_loa) {
   position <- match(
     row_key(both$analysis_type, both$analysis_var, both$group_var),
     row_key(
-      stacked_loa$analysis_type, ck_loa_var_key(stacked_loa),
+      stacked_loa$analysis_type,
+      ck_loa_var_key(stacked_loa),
       stacked_loa$group_var
     )
   )
@@ -3001,13 +3479,27 @@ ck_merge_level_rows <- function(rerouted, survey, stacked_loa) {
 #' @return \code{x} with predictable column types.
 #' @keywords internal
 ck_harmonise_results <- function(x) {
-  if (is.null(x) || nrow(x) == 0) return(x)
+  if (is.null(x) || nrow(x) == 0) {
+    return(x)
+  }
 
   chr_cols <- c(
-    "analysis_type", "analysis_var", "analysis_var_value",
-    "group_var", "group_var_value", "analysis_key"
+    "analysis_type",
+    "analysis_var",
+    "analysis_var_value",
+    "group_var",
+    "group_var_value",
+    "analysis_key"
   )
-  num_cols <- c("stat", "stat_low", "stat_upp", "n", "n_total", "n_w", "n_w_total")
+  num_cols <- c(
+    "stat",
+    "stat_low",
+    "stat_upp",
+    "n",
+    "n_total",
+    "n_w",
+    "n_w_total"
+  )
 
   for (cc in intersect(chr_cols, names(x))) {
     x[[cc]] <- as.character(x[[cc]])
@@ -3035,10 +3527,12 @@ ck_harmonise_results <- function(x) {
 #' @param verbose Logical. Default \code{TRUE}.
 #' @return A list with \code{dataset} and \code{dropped}.
 #' @export
-ck_drop_small_groups <- function(dataset,
-                                 group_variables,
-                                 min_group_n = NULL,
-                                 verbose = TRUE) {
+ck_drop_small_groups <- function(
+  dataset,
+  group_variables,
+  min_group_n = NULL,
+  verbose = TRUE
+) {
   empty <- data.frame(
     group_variable = character(0),
     group_value = character(0),
@@ -3053,14 +3547,18 @@ ck_drop_small_groups <- function(dataset,
   logs <- list()
 
   for (gv in setdiff(group_variables, "Overall")) {
-    if (!gv %in% names(dataset)) next
+    if (!gv %in% names(dataset)) {
+      next
+    }
 
     values <- trimws(as.character(dataset[[gv]]))
     values[values == "" | values == "NA"] <- NA_character_
 
     counts <- table(values, useNA = "no")
     small <- names(counts)[counts < min_group_n]
-    if (length(small) == 0) next
+    if (length(small) == 0) {
+      next
+    }
 
     logs[[length(logs) + 1]] <- data.frame(
       group_variable = gv,
@@ -3073,8 +3571,15 @@ ck_drop_small_groups <- function(dataset,
     dataset[[gv]] <- values
 
     ck_note(
-      "'", gv, "': ", length(small), " level(s) below n=", min_group_n,
-      " set aside (", sum(counts[small]), " respondents)",
+      "'",
+      gv,
+      "': ",
+      length(small),
+      " level(s) below n=",
+      min_group_n,
+      " set aside (",
+      sum(counts[small]),
+      " respondents)",
       verbose = verbose
     )
   }
@@ -3117,11 +3622,13 @@ ck_drop_small_groups <- function(dataset,
 #' @return A wide dataframe: one row per analysis_type / analysis_var /
 #'   analysis_var_value, one column per value column x group value.
 #' @export
-ck_pivot_variable_x_group <- function(results_table,
-                                      value_columns = c("stat", "n", "n_total"),
-                                      overall_label = "Overall",
-                                      missing_group_label = "Missing",
-                                      use_group_prefix = TRUE) {
+ck_pivot_variable_x_group <- function(
+  results_table,
+  value_columns = c("stat", "n", "n_total"),
+  overall_label = "Overall",
+  missing_group_label = "Missing",
+  use_group_prefix = TRUE
+) {
   required <- c("analysis_type", "analysis_var", "analysis_var_value")
   if (!all(required %in% names(results_table))) {
     stop(
@@ -3132,7 +3639,10 @@ ck_pivot_variable_x_group <- function(results_table,
 
   value_columns <- intersect(value_columns, names(results_table))
   if (length(value_columns) == 0) {
-    stop("None of the value_columns are present in results_table.", call. = FALSE)
+    stop(
+      "None of the value_columns are present in results_table.",
+      call. = FALSE
+    )
   }
 
   if ("group_var" %in% names(results_table)) {
@@ -3148,13 +3658,21 @@ ck_pivot_variable_x_group <- function(results_table,
   # A blank group_var means the ungrouped analysis. A blank group_var_value with
   # a real group_var means the respondent is missing on the grouping variable -
   # a distinct group, not the overall column.
-  group_tag <- ifelse(blank(group_var_value), missing_group_label, group_var_value)
+  group_tag <- ifelse(
+    blank(group_var_value),
+    missing_group_label,
+    group_var_value
+  )
 
   slim <- results_table[, c(required, value_columns), drop = FALSE]
   slim$column_group <- ifelse(
     blank(group_var),
     overall_label,
-    if (isTRUE(use_group_prefix)) paste0(group_var, "_", group_tag) else group_tag
+    if (isTRUE(use_group_prefix)) {
+      paste0(group_var, "_", group_tag)
+    } else {
+      group_tag
+    }
   )
 
   # Guard against list-columns: duplicated LOA rows would otherwise make
@@ -3162,7 +3680,8 @@ ck_pivot_variable_x_group <- function(results_table,
   dup_key <- duplicated(slim[, c(required, "column_group"), drop = FALSE])
   if (any(dup_key)) {
     ck_warn(
-      sum(dup_key), " duplicated analysis row(s) found (same analysis_type, ",
+      sum(dup_key),
+      " duplicated analysis row(s) found (same analysis_type, ",
       "analysis_var, analysis_var_value and group). The first occurrence is ",
       "kept. Check the LOA for repeated entries."
     )
@@ -3206,21 +3725,27 @@ ck_pivot_variable_x_group <- function(results_table,
 #'   block, in the order the blocks should appear.
 #' @return \code{wide_table} with the derived blocks repositioned.
 #' @export
-ck_order_count_blocks <- function(wide_table,
-                                  count_map,
-                                  derived_types = c(
-                                    "count_select_multiple",
-                                    "combination_select_multiple",
-                                    "exclusive_combination_select_multiple"
-                                  )) {
-  if (is.null(count_map) || nrow(count_map) == 0) return(wide_table)
+ck_order_count_blocks <- function(
+  wide_table,
+  count_map,
+  derived_types = c(
+    "count_select_multiple",
+    "combination_select_multiple",
+    "exclusive_combination_select_multiple"
+  )
+) {
+  if (is.null(count_map) || nrow(count_map) == 0) {
+    return(wide_table)
+  }
   if (!all(c("analysis_type", "analysis_var") %in% names(wide_table))) {
     return(wide_table)
   }
 
   type_chr <- as.character(wide_table$analysis_type)
   is_derived <- !is.na(type_chr) & type_chr %in% derived_types
-  if (!any(is_derived)) return(wide_table)
+  if (!any(is_derived)) {
+    return(wide_table)
+  }
 
   pos <- seq_len(nrow(wide_table))
   anchor <- as.numeric(pos)
@@ -3228,7 +3753,9 @@ ck_order_count_blocks <- function(wide_table,
 
   for (v in unique(wide_table$analysis_var[is_derived])) {
     parent <- which(!is_derived & wide_table$analysis_var == v)
-    if (length(parent) == 0) next
+    if (length(parent) == 0) {
+      next
+    }
 
     block <- which(is_derived & wide_table$analysis_var == v)
     anchor[block] <- max(pos[parent])
@@ -3265,17 +3792,23 @@ ck_order_count_blocks <- function(wide_table,
 #' @return \code{wide_table} with the separator rows inserted and a
 #'   \code{row_type} column added.
 #' @export
-ck_insert_count_separators <- function(wide_table,
-                                       count_map,
-                                       heading = "Select multiple count",
-                                       spacer = TRUE,
-                                       derived_types = c(
-                                         "count_select_multiple",
-                                         "combination_select_multiple",
-                                         "exclusive_combination_select_multiple"
-                                       )) {
-  if (is.null(count_map) || nrow(count_map) == 0) return(wide_table)
-  if (!"analysis_type" %in% names(wide_table)) return(wide_table)
+ck_insert_count_separators <- function(
+  wide_table,
+  count_map,
+  heading = "Select multiple count",
+  spacer = TRUE,
+  derived_types = c(
+    "count_select_multiple",
+    "combination_select_multiple",
+    "exclusive_combination_select_multiple"
+  )
+) {
+  if (is.null(count_map) || nrow(count_map) == 0) {
+    return(wide_table)
+  }
+  if (!"analysis_type" %in% names(wide_table)) {
+    return(wide_table)
+  }
 
   if (!"row_type" %in% names(wide_table)) {
     wide_table$row_type <- "data"
@@ -3283,14 +3816,20 @@ ck_insert_count_separators <- function(wide_table,
 
   type_chr <- as.character(wide_table$analysis_type)
   is_derived <- !is.na(type_chr) & type_chr %in% derived_types
-  if (!any(is_derived)) return(wide_table)
+  if (!any(is_derived)) {
+    return(wide_table)
+  }
 
   # A length-1 setting applies to every block; a named one is looked up by the
   # block's analysis_type.
   setting <- function(x, type, default) {
-    if (length(x) == 0) return(default)
+    if (length(x) == 0) {
+      return(default)
+    }
     if (!is.null(names(x))) {
-      if (type %in% names(x)) return(unname(x[[type]]))
+      if (type %in% names(x)) {
+        return(unname(x[[type]]))
+      }
       return(default)
     }
     unname(x[[1]])
@@ -3299,7 +3838,11 @@ ck_insert_count_separators <- function(wide_table,
   # A run is one contiguous stretch of the same derived type for the same
   # question, so a counts block and a combinations block sitting next to each
   # other each get their own break instead of sharing one heading.
-  run_id <- paste(type_chr, as.character(wide_table$analysis_var), sep = " @/@ ")
+  run_id <- paste(
+    type_chr,
+    as.character(wide_table$analysis_var),
+    sep = " @/@ "
+  )
   starts <- which(is_derived & c(TRUE, run_id[-1] != utils::head(run_id, -1)))
 
   # An all-NA row taken from the table itself, so every column keeps its type.
@@ -3318,7 +3861,10 @@ ck_insert_count_separators <- function(wide_table,
     if (!is.null(text)) {
       # Written into both label columns, so the heading shows up whichever one
       # the export uses as its row label.
-      for (cc in intersect(c("analysis_var_value", "label_analysis_var"), names(r))) {
+      for (cc in intersect(
+        c("analysis_var_value", "label_analysis_var"),
+        names(r)
+      )) {
         r[[cc]] <- text
       }
     }
@@ -3332,7 +3878,9 @@ ck_insert_count_separators <- function(wide_table,
     head_s <- as.character(setting(heading, type_chr[s], ""))
     spacer_s <- isTRUE(setting(spacer, type_chr[s], TRUE))
 
-    if (!spacer_s && !nzchar(head_s)) next
+    if (!spacer_s && !nzchar(head_s)) {
+      next
+    }
 
     if (s > prev) {
       pieces[[length(pieces) + 1]] <- wide_table[prev:(s - 1), , drop = FALSE]
@@ -3346,7 +3894,11 @@ ck_insert_count_separators <- function(wide_table,
     prev <- s
   }
 
-  pieces[[length(pieces) + 1]] <- wide_table[prev:nrow(wide_table), , drop = FALSE]
+  pieces[[length(pieces) + 1]] <- wide_table[
+    prev:nrow(wide_table),
+    ,
+    drop = FALSE
+  ]
 
   out <- dplyr::bind_rows(pieces)
   rownames(out) <- NULL
@@ -3368,21 +3920,29 @@ ck_insert_count_separators <- function(wide_table,
 #' @param sm_separator Select_multiple separator.
 #' @return A character vector of column names to keep.
 #' @export
-ck_design_columns <- function(dataset,
-                              loa,
-                              group_variables = NULL,
-                              weight_column = NULL,
-                              strata_column = NULL,
-                              sm_separator = "/") {
+ck_design_columns <- function(
+  dataset,
+  loa,
+  group_variables = NULL,
+  weight_column = NULL,
+  strata_column = NULL,
+  sm_separator = "/"
+) {
   wanted <- c(
-    loa$analysis_var, loa$analysis_var_numerator, loa$analysis_var_denominator,
-    loa$group_var, setdiff(group_variables, "Overall"),
-    weight_column, strata_column
+    loa$analysis_var,
+    loa$analysis_var_numerator,
+    loa$analysis_var_denominator,
+    loa$group_var,
+    setdiff(group_variables, "Overall"),
+    weight_column,
+    strata_column
   )
   wanted <- unique(wanted[!is.na(wanted)])
 
   children <- unlist(
-    lapply(wanted, function(v) names(ck_sm_child_suffixes(v, names(dataset), sm_separator))),
+    lapply(wanted, function(v) {
+      names(ck_sm_child_suffixes(v, names(dataset), sm_separator))
+    }),
     use.names = FALSE
   )
 
@@ -3589,9 +4149,15 @@ ck_design_columns <- function(dataset,
 #'   unaffected, \code{exclude_choices} still removes respondents from the
 #'   base, and a variable that is also a grouping variable is left as it is.
 #'   See \code{\link{ck_full_sample_base}}. Default \code{FALSE}.
+#'
+#'   Normally set row by row instead: a \code{full_sample_base} column in
+#'   \code{loa} turns it on for the rows that say \code{TRUE}. This argument
+#'   only decides the rows that leave that cell blank (and every row, when
+#'   \code{loa} has no such column). See \code{\link{ck_full_sample_rows}}.
 #' @param full_sample_label Row label for respondents with no answer, in
-#'   select_one and select_multiple questions, when
-#'   \code{full_sample_base = TRUE}. Default
+#'   select_one and select_multiple questions using the full-sample base.
+#'   A \code{full_sample_label} column in \code{loa} sets it row by row; this
+#'   is the label for a row that leaves it blank. Default
 #'   \code{"Not asked / no response"}.
 #'
 #' @return A list with \code{combined_results} (the wide table),
@@ -3604,73 +4170,71 @@ ck_design_columns <- function(dataset,
 #' @importFrom dplyr all_of bind_rows distinct left_join relocate
 #' @importFrom tidyr pivot_wider
 #' @importFrom stringr str_squish str_detect str_remove
-run_group_analysis_pipeline <- function(dataset,
-                                        loa,
-                                        group_variables = c("Overall"),
-                                        skip_label_row = TRUE,
-                                        label_row = NULL,
-                                        weight_column = NULL,
-                                        strata_column = NULL,
-                                        value_columns = c("stat", "n", "n_total"),
-                                        extra_columns = NULL,
-                                        exclude_choices = NULL,
-                                        exclude_ignore_case = TRUE,
-                                        count_selections = NULL,
-                                        count_selections_mode = c("grouped", "exact"),
-                                        count_selections_labels = c(
-                                          "No choice selected",
-                                          "Selected exactly 1 choice",
-                                          "Selected more than 1 choice"
-                                        ),
-                                        count_selections_order = c("descending", "ascending"),
-                                        count_selections_heading = "Select multiple count",
-                                        count_selections_spacer = TRUE,
-                                        count_selections_title_suffix = "",
-                                        count_combinations = NULL,
-                                        count_combinations_ignore_case = TRUE,
-                                        count_combinations_joiner = " + ",
-                                        count_combinations_only_suffix = " only",
-                                        count_combinations_other_label = "Other",
-                                        count_combinations_other_multiple_label =
-                                          "Other multiple selection",
-                                        count_combinations_single_label = "",
-                                        count_combinations_order = c("descending", "ascending"),
-                                        count_combinations_heading =
-                                          "Choice combinations (of those who selected more than one choice)",
-                                        count_combinations_spacer = TRUE,
-                                        count_combinations_title_suffix = "",
-                                        count_exclusive_combinations = NULL,
-                                        count_exclusive_combinations_only_suffix = " only",
-                                        count_exclusive_combinations_other_label =
-                                          "Other single selection",
-                                        count_exclusive_combinations_multiple_label = "",
-                                        count_exclusive_combinations_heading =
-                                          "Single choices (of those who selected only one choice)",
-                                        count_exclusive_combinations_spacer = TRUE,
-                                        count_exclusive_combinations_title_suffix = "",
-                                        max_combination_choices = 6,
-                                        max_exclusive_choices = 20,
-                                        fallback_level = 0.95,
-                                        engine = c("auto", "fast", "survey"),
-                                        min_group_n = NULL,
-                                        slim_design = TRUE,
-                                        keep_missing_groups = TRUE,
-                                        sm_separator = "/",
-                                        prepare_sm = TRUE,
-                                        sm_child_style = c("auto", "label", "dummy"),
-                                        blank_to_na = TRUE,
-                                        label_choices = TRUE,
-                                        add_analysis_type_label = TRUE,
-                                        analysis_type_labels = NULL,
-                                        recreate_sm_parents = FALSE,
-                                        drop_empty_prop_rows = TRUE,
-                                        summary_value_label = NA_character_,
-                                        missing_group_label = "Missing",
-                                        use_group_prefix = TRUE,
-                                        lonely_psu = "adjust",
-                                        verbose = TRUE,
-                                        full_sample_base = FALSE,
-                                        full_sample_label = "Not asked / no response") {
+run_group_analysis_pipeline <- function(
+  dataset,
+  loa,
+  group_variables = c("Overall"),
+  skip_label_row = TRUE,
+  label_row = NULL,
+  weight_column = NULL,
+  strata_column = NULL,
+  value_columns = c("stat", "n", "n_total"),
+  extra_columns = NULL,
+  exclude_choices = NULL,
+  exclude_ignore_case = TRUE,
+  count_selections = NULL,
+  count_selections_mode = c("grouped", "exact"),
+  count_selections_labels = c(
+    "No choice selected",
+    "Selected exactly 1 choice",
+    "Selected more than 1 choice"
+  ),
+  count_selections_order = c("descending", "ascending"),
+  count_selections_heading = "Select multiple count",
+  count_selections_spacer = TRUE,
+  count_selections_title_suffix = "",
+  count_combinations = NULL,
+  count_combinations_ignore_case = TRUE,
+  count_combinations_joiner = " + ",
+  count_combinations_only_suffix = " only",
+  count_combinations_other_label = "Other",
+  count_combinations_other_multiple_label = "Other multiple selection",
+  count_combinations_single_label = "",
+  count_combinations_order = c("descending", "ascending"),
+  count_combinations_heading = "Choice combinations (of those who selected more than one choice)",
+  count_combinations_spacer = TRUE,
+  count_combinations_title_suffix = "",
+  count_exclusive_combinations = NULL,
+  count_exclusive_combinations_only_suffix = " only",
+  count_exclusive_combinations_other_label = "Other single selection",
+  count_exclusive_combinations_multiple_label = "",
+  count_exclusive_combinations_heading = "Single choices (of those who selected only one choice)",
+  count_exclusive_combinations_spacer = TRUE,
+  count_exclusive_combinations_title_suffix = "",
+  max_combination_choices = 6,
+  max_exclusive_choices = 20,
+  fallback_level = 0.95,
+  engine = c("auto", "fast", "survey"),
+  min_group_n = NULL,
+  slim_design = TRUE,
+  keep_missing_groups = TRUE,
+  sm_separator = "/",
+  prepare_sm = TRUE,
+  sm_child_style = c("auto", "label", "dummy"),
+  blank_to_na = TRUE,
+  label_choices = TRUE,
+  add_analysis_type_label = TRUE,
+  analysis_type_labels = NULL,
+  recreate_sm_parents = FALSE,
+  drop_empty_prop_rows = TRUE,
+  summary_value_label = NA_character_,
+  missing_group_label = "Missing",
+  use_group_prefix = TRUE,
+  lonely_psu = "adjust",
+  verbose = TRUE,
+  full_sample_base = FALSE,
+  full_sample_label = "Not asked / no response"
+) {
   # --- 0. Contract ----------------------------------------------------------
   sm_child_style <- match.arg(sm_child_style)
   engine <- match.arg(engine)
@@ -3684,8 +4248,12 @@ run_group_analysis_pipeline <- function(dataset,
   # time, rather than reasoning from someone else's.
   stage <- ck_stage_timer(verbose)
 
-  if (!is.data.frame(dataset)) stop("dataset must be a dataframe.", call. = FALSE)
-  if (!is.data.frame(loa)) stop("loa must be a dataframe.", call. = FALSE)
+  if (!is.data.frame(dataset)) {
+    stop("dataset must be a dataframe.", call. = FALSE)
+  }
+  if (!is.data.frame(loa)) {
+    stop("loa must be a dataframe.", call. = FALSE)
+  }
 
   dup_names <- unique(names(dataset)[duplicated(names(dataset))])
   if (length(dup_names) > 0) {
@@ -3704,12 +4272,19 @@ run_group_analysis_pipeline <- function(dataset,
     loa$group_var <- NA_character_
   }
 
-  known_types <- c("prop_select_one", "prop_select_multiple", "mean", "median", "ratio")
+  known_types <- c(
+    "prop_select_one",
+    "prop_select_multiple",
+    "mean",
+    "median",
+    "ratio"
+  )
   bad_types <- setdiff(unique(stats::na.omit(loa$analysis_type)), known_types)
   if (length(bad_types) > 0) {
     stop(
       paste0(
-        "Unsupported analysis_type value(s): ", paste(bad_types, collapse = ", "),
+        "Unsupported analysis_type value(s): ",
+        paste(bad_types, collapse = ", "),
         ". create_analysis() silently drops these. Allowed: ",
         paste(known_types, collapse = ", ")
       ),
@@ -3723,7 +4298,12 @@ run_group_analysis_pipeline <- function(dataset,
 
   # Fail on a non-select_multiple before doing any work, so the message is the
   # first thing the user sees.
-  count_selections <- ck_check_count_selections(count_selections, dataset, loa, sm_separator)
+  count_selections <- ck_check_count_selections(
+    count_selections,
+    dataset,
+    loa,
+    sm_separator
+  )
 
   count_combinations <- ck_check_choice_combinations(
     combinations = count_combinations,
@@ -3766,18 +4346,28 @@ run_group_analysis_pipeline <- function(dataset,
   dataset <- split$dataset
 
   if (isTRUE(skip_label_row)) {
-    ck_note("ONA label row set aside and excluded from the analysis", verbose = verbose)
+    ck_note(
+      "ONA label row set aside and excluded from the analysis",
+      verbose = verbose
+    )
   }
 
-  if (is.null(label_row)) label_row <- split$label_row
+  if (is.null(label_row)) {
+    label_row <- split$label_row
+  }
 
   label_lookup <- ck_build_label_lookup(label_row)
   if (length(label_lookup) == 0) {
-    ck_warn("No label row available. Machine (XML) names will be used in the outputs.")
+    ck_warn(
+      "No label row available. Machine (XML) names will be used in the outputs."
+    )
   }
 
   if (nrow(dataset) == 0) {
-    stop("The dataset has no rows left after removing the label row.", call. = FALSE)
+    stop(
+      "The dataset has no rows left after removing the label row.",
+      call. = FALSE
+    )
   }
 
   # --- 2. Clean up the export ----------------------------------------------
@@ -3797,14 +4387,20 @@ run_group_analysis_pipeline <- function(dataset,
 
     cleaned <- unique(c(
       ck_design_columns(
-        dataset, loa, group_variables,
-        weight_column, strata_column, sm_separator
+        dataset,
+        loa,
+        group_variables,
+        weight_column,
+        strata_column,
+        sm_separator
       ),
       intersect(feature_parents, names(dataset)),
       unlist(
         lapply(
           feature_parents,
-          function(v) names(ck_sm_child_suffixes(v, names(dataset), sm_separator))
+          function(v) {
+            names(ck_sm_child_suffixes(v, names(dataset), sm_separator))
+          }
         ),
         use.names = FALSE
       ),
@@ -3814,10 +4410,16 @@ run_group_analysis_pipeline <- function(dataset,
     # Nothing resolved - a LOA that names no column this export has. Falling
     # back to everything keeps the old behaviour rather than silently cleaning
     # nothing.
-    if (length(cleaned) == 0) cleaned <- names(dataset)
+    if (length(cleaned) == 0) {
+      cleaned <- names(dataset)
+    }
 
     ck_note(
-      "blanks cleaned in ", length(cleaned), " of ", ncol(dataset), " column(s)",
+      "blanks cleaned in ",
+      length(cleaned),
+      " of ",
+      ncol(dataset),
+      " column(s)",
       verbose = verbose
     )
     dataset <- ck_blank_to_na(dataset, cleaned)
@@ -3834,7 +4436,8 @@ run_group_analysis_pipeline <- function(dataset,
     # is missing, so nothing fails silently.
     ck_require_pkg("cleaningtools", "impact-initiatives/cleaningtools")
     recreate_parent_column <- utils::getFromNamespace(
-      "recreate_parent_column", "cleaningtools"
+      "recreate_parent_column",
+      "cleaningtools"
     )
 
     ck_note("recreating select_multiple parent columns", verbose = verbose)
@@ -3853,10 +4456,15 @@ run_group_analysis_pipeline <- function(dataset,
   # sits on would still be analysed as a proportion, leaving no sign of why the
   # question came back empty.
   a_type <- tolower(as.character(loa$analysis_type))
-  numeric_vars <- loa$analysis_var[!is.na(a_type) & a_type %in% c("mean", "median")]
+  numeric_vars <- loa$analysis_var[
+    !is.na(a_type) & a_type %in% c("mean", "median")
+  ]
 
   is_ratio_row <- !is.na(a_type) & a_type == "ratio"
-  for (cc in intersect(c("analysis_var_numerator", "analysis_var_denominator"), names(loa))) {
+  for (cc in intersect(
+    c("analysis_var_numerator", "analysis_var_denominator"),
+    names(loa)
+  )) {
     numeric_vars <- c(numeric_vars, loa[[cc]][is_ratio_row])
   }
 
@@ -3942,10 +4550,14 @@ run_group_analysis_pipeline <- function(dataset,
   # saying why. Name the missing half rather than letting a reader assume the
   # rows are the whole story.
   lone <- unique(c(
-    setdiff(combos$map$analysis_var[combos$map$hidden_row != ""],
-            exclusive$map$analysis_var),
-    setdiff(exclusive$map$analysis_var[exclusive$map$hidden_row != ""],
-            combos$map$analysis_var)
+    setdiff(
+      combos$map$analysis_var[combos$map$hidden_row != ""],
+      exclusive$map$analysis_var
+    ),
+    setdiff(
+      exclusive$map$analysis_var[exclusive$map$hidden_row != ""],
+      combos$map$analysis_var
+    )
   ))
   if (length(lone) > 0) {
     ck_warn(
@@ -3966,7 +4578,8 @@ run_group_analysis_pipeline <- function(dataset,
     dataset <- ck_sm_children_to_binary(
       dataset,
       parents = loa$analysis_var[
-        !is.na(loa$analysis_type) & tolower(loa$analysis_type) == "prop_select_multiple"
+        !is.na(loa$analysis_type) &
+          tolower(loa$analysis_type) == "prop_select_multiple"
       ],
       sm_separator = sm_separator,
       sm_child_style = sm_child_style,
@@ -3978,17 +4591,48 @@ run_group_analysis_pipeline <- function(dataset,
   # Full-sample base: blanks join the denominator. After the children are 0/1
   # (so "not asked" is a clean NA to fill) and before the exclusions (so a
   # choice excluded on purpose still leaves the base).
-  full_sample <- list(dataset = dataset, filled = NULL, filled_vars = character(0))
-  if (isTRUE(full_sample_base)) {
+  # Row by row: the loa's full_sample_base column picks the rows, the
+  # argument only fills in blank cells.
+  full_sample <- list(
+    dataset = dataset,
+    filled = NULL,
+    filled_vars = character(0),
+    filled_labels = character(0)
+  )
+  fs <- ck_full_sample_rows(loa, full_sample_base, full_sample_label)
+  if (any(fs$rows)) {
     full_sample <- ck_full_sample_base(
       dataset = dataset,
-      loa = loa,
-      group_variables = group_variables,
-      label = full_sample_label,
+      loa = loa[fs$rows, , drop = FALSE],
+      # Every row's group_var, not only the chosen rows': a grouping
+      # variable is never filled.
+      group_variables = unique(c(
+        group_variables,
+        if ("group_var" %in% names(loa)) loa$group_var
+      )),
+      label = fs$label[fs$rows],
       sm_separator = sm_separator,
       verbose = verbose
     )
     dataset <- full_sample$dataset
+
+    # A variable is filled in the dataset, not per row, so another row of the
+    # same question that did not ask for the full-sample base gets it too.
+    chosen <- unique(loa$analysis_var[fs$rows])
+    prop <- tolower(trimws(as.character(loa$analysis_type))) %in%
+      c("prop_select_one", "prop_select_multiple")
+    also <- unique(loa$analysis_var[
+      prop & !fs$rows & loa$analysis_var %in% chosen
+    ])
+    also <- also[!is.na(also)]
+    if (length(also) > 0) {
+      ck_warn(
+        "full_sample_base: ",
+        paste(also, collapse = ", "),
+        " is on in one row and off in another; the full-sample base applies ",
+        "to every row of it."
+      )
+    }
   }
 
   # Excluded choices leave the denominator, so this must happen before the
@@ -4003,7 +4647,10 @@ run_group_analysis_pipeline <- function(dataset,
   )
   dataset <- exclusion$dataset
 
-  missing_groups <- setdiff(group_variables[group_variables != "Overall"], names(dataset))
+  missing_groups <- setdiff(
+    group_variables[group_variables != "Overall"],
+    names(dataset)
+  )
   if (length(missing_groups) > 0) {
     ck_warn(
       "Grouping variable(s) not in the dataset and skipped: ",
@@ -4012,7 +4659,10 @@ run_group_analysis_pipeline <- function(dataset,
     group_variables <- setdiff(group_variables, missing_groups)
   }
   if (length(group_variables) == 0) {
-    stop("None of the group_variables are present in the dataset.", call. = FALSE)
+    stop(
+      "None of the group_variables are present in the dataset.",
+      call. = FALSE
+    )
   }
 
   small <- ck_drop_small_groups(
@@ -4058,7 +4708,10 @@ run_group_analysis_pipeline <- function(dataset,
 
   level_info <- ck_level_info(analysis_loa, fallback_level = fallback_level)
 
-  if (!any(level_info$supplied) && any(c("stat_low", "stat_upp") %in% value_columns)) {
+  if (
+    !any(level_info$supplied) &&
+      any(c("stat_low", "stat_upp") %in% value_columns)
+  ) {
     ck_warn(
       "value_columns asks for stat_low / stat_upp but the LOA level column is ",
       "empty for every row, so no confidence interval was requested. Put 0.95 ",
@@ -4069,14 +4722,19 @@ run_group_analysis_pipeline <- function(dataset,
   # Route each analysis to an engine. A row that asked for no confidence
   # interval has nothing for the survey package to do.
   supplied <- attr(stacked_loa, "level_supplied")
-  if (is.null(supplied)) supplied <- rep(TRUE, nrow(stacked_loa))
+  if (is.null(supplied)) {
+    supplied <- rep(TRUE, nrow(stacked_loa))
+  }
 
   # A level buys stat_low and stat_upp and nothing else. When value_columns
   # does not carry either, the interval would be computed and thrown away, so
   # under "auto" those rows are tabulated instead - laid out as the survey
   # engine lays them out, so the workbook is the one it always was.
   rerouted <- ck_level_is_redundant(
-    stacked_loa$analysis_type, supplied, value_columns, engine
+    stacked_loa$analysis_type,
+    supplied,
+    value_columns,
+    engine
   )
 
   use_fast <- switch(
@@ -4087,15 +4745,22 @@ run_group_analysis_pipeline <- function(dataset,
   )
 
   ck_note(
-    "estimating ", nrow(stacked_loa), " analyses across ",
-    length(group_variables), " grouping variable(s) - ",
-    sum(use_fast), " by fast tabulation, ", sum(!use_fast), " by survey",
+    "estimating ",
+    nrow(stacked_loa),
+    " analyses across ",
+    length(group_variables),
+    " grouping variable(s) - ",
+    sum(use_fast),
+    " by fast tabulation, ",
+    sum(!use_fast),
+    " by survey",
     verbose = verbose
   )
 
   if (any(rerouted)) {
     ck_note(
-      sum(rerouted), " of those have a level but value_columns asks for no ",
+      sum(rerouted),
+      " of those have a level but value_columns asks for no ",
       "confidence interval, so they are tabulated rather than sent to survey; ",
       "the results are the same. Add stat_low / stat_upp to value_columns to ",
       "get the interval",
@@ -4135,7 +4800,8 @@ run_group_analysis_pipeline <- function(dataset,
   if (any(use_fast)) {
     if (!is.null(strata_column) && engine == "fast") {
       ck_note(
-        "strata affect the variance only, so '", strata_column,
+        "strata affect the variance only, so '",
+        strata_column,
         "' does not change these point estimates",
         verbose = verbose
       )
@@ -4151,13 +4817,20 @@ run_group_analysis_pipeline <- function(dataset,
     design_data <- dataset
     if (isTRUE(slim_design)) {
       keep_cols <- ck_design_columns(
-        dataset, survey_loa, group_variables,
-        weight_column, strata_column, sm_separator
+        dataset,
+        survey_loa,
+        group_variables,
+        weight_column,
+        strata_column,
+        sm_separator
       )
       if (length(keep_cols) > 0 && length(keep_cols) < ncol(dataset)) {
         ck_note(
-          "survey design slimmed from ", ncol(dataset), " to ",
-          length(keep_cols), " columns",
+          "survey design slimmed from ",
+          ncol(dataset),
+          " to ",
+          length(keep_cols),
+          " columns",
           verbose = verbose
         )
         design_data <- dataset[, keep_cols, drop = FALSE]
@@ -4178,7 +4851,9 @@ run_group_analysis_pipeline <- function(dataset,
     )[["results_table"]]
 
     parts[[length(parts) + 1]] <- ck_merge_level_rows(
-      rerouted_part, survey_part, stacked_loa
+      rerouted_part,
+      survey_part,
+      stacked_loa
     )
   } else if (!is.null(rerouted_part)) {
     parts[[length(parts) + 1]] <- rerouted_part
@@ -4209,12 +4884,19 @@ run_group_analysis_pipeline <- function(dataset,
   # them their own analysis_type so they cannot be mistaken for a response
   # distribution.
   if (nrow(derived) > 0) {
-    hit <- match(as.character(results_long$analysis_var), derived$derived_column)
+    hit <- match(
+      as.character(results_long$analysis_var),
+      derived$derived_column
+    )
     is_derived <- !is.na(hit)
 
     if (any(is_derived)) {
-      results_long$analysis_type[is_derived] <- derived$analysis_type[hit[is_derived]]
-      results_long$analysis_var[is_derived] <- derived$analysis_var[hit[is_derived]]
+      results_long$analysis_type[is_derived] <- derived$analysis_type[hit[
+        is_derived
+      ]]
+      results_long$analysis_var[is_derived] <- derived$analysis_var[hit[
+        is_derived
+      ]]
 
       if ("analysis_key" %in% names(results_long)) {
         results_long$analysis_key[is_derived] <- ck_make_analysis_key(
@@ -4228,8 +4910,10 @@ run_group_analysis_pipeline <- function(dataset,
 
       for (tp in unique(derived$analysis_type)) {
         ck_note(
-          "derived rows: ", sum(results_long$analysis_type == tp),
-          " reported as ", tp,
+          "derived rows: ",
+          sum(results_long$analysis_type == tp),
+          " reported as ",
+          tp,
           verbose = verbose
         )
       }
@@ -4247,7 +4931,8 @@ run_group_analysis_pipeline <- function(dataset,
 
   if (any(drop_hidden)) {
     ck_note(
-      "dropped ", sum(drop_hidden),
+      "dropped ",
+      sum(drop_hidden),
       " placeholder row(s) holding the other combination block's respondents; ",
       "they remain in n_total",
       verbose = verbose
@@ -4256,9 +4941,11 @@ run_group_analysis_pipeline <- function(dataset,
   }
 
   # --- 3b-ii. Full-sample base: the no-response row goes last -------------
-  if (isTRUE(full_sample_base)) {
+  if (length(full_sample$filled_vars) > 0) {
     results_long <- ck_no_response_last(
-      results_long, full_sample$filled_vars, trimws(full_sample_label)
+      results_long,
+      full_sample$filled_vars,
+      full_sample$filled_labels
     )
   }
 
@@ -4267,7 +4954,10 @@ run_group_analysis_pipeline <- function(dataset,
 
   if (length(ci_cols) > 0) {
     if (!any(level_info$supplied)) {
-      results_long <- results_long[, setdiff(names(results_long), ci_cols), drop = FALSE]
+      results_long <- results_long[,
+        setdiff(names(results_long), ci_cols),
+        drop = FALSE
+      ]
       ck_note(
         "no level supplied in the LOA, so no confidence intervals are reported",
         verbose = verbose
@@ -4279,15 +4969,19 @@ run_group_analysis_pipeline <- function(dataset,
         sep = " @/@ "
       ))
       blank_ci <- paste(
-        results_long$analysis_type, results_long$analysis_var, sep = " @/@ "
-      ) %in% no_level_keys
+        results_long$analysis_type,
+        results_long$analysis_var,
+        sep = " @/@ "
+      ) %in%
+        no_level_keys
 
       if (any(blank_ci)) {
         for (cc in ci_cols) {
           results_long[[cc]][blank_ci] <- NA_real_
         }
         ck_note(
-          "cleared the confidence interval on ", sum(blank_ci),
+          "cleared the confidence interval on ",
+          sum(blank_ci),
           " row(s) whose LOA level cell was empty",
           verbose = verbose
         )
@@ -4303,7 +4997,9 @@ run_group_analysis_pipeline <- function(dataset,
 
     if (any(drop_rows)) {
       ck_note(
-        "dropped ", sum(drop_rows), " proportion row(s) with no response category",
+        "dropped ",
+        sum(drop_rows),
+        " proportion row(s) with no response category",
         verbose = verbose
       )
       results_long <- results_long[!drop_rows, , drop = FALSE]
@@ -4335,13 +5031,21 @@ run_group_analysis_pipeline <- function(dataset,
 
   if (isTRUE(add_analysis_type_label)) {
     type_labels <- analysis_type_labels
-    if (is.null(type_labels)) type_labels <- ck_analysis_type_labels()
+    if (is.null(type_labels)) {
+      type_labels <- ck_analysis_type_labels()
+    }
 
     wide <- dplyr::left_join(wide, type_labels, by = "analysis_type")
     wide$label_analysis_type <- ifelse(
-      is.na(wide$label_analysis_type), wide$analysis_type, wide$label_analysis_type
+      is.na(wide$label_analysis_type),
+      wide$analysis_type,
+      wide$label_analysis_type
     )
-    wide <- dplyr::relocate(wide, "label_analysis_type", .after = "analysis_type")
+    wide <- dplyr::relocate(
+      wide,
+      "label_analysis_type",
+      .after = "analysis_type"
+    )
   }
 
   wide <- ck_attach_loa_metadata(wide, loa, extra_columns)
@@ -4355,12 +5059,15 @@ run_group_analysis_pipeline <- function(dataset,
     )
 
     for (tp in names(title_suffix)) {
-      if (!nzchar(title_suffix[[tp]])) next
+      if (!nzchar(title_suffix[[tp]])) {
+        next
+      }
 
       rows <- !is.na(wide$analysis_type) & wide$analysis_type == tp
       if (any(rows)) {
         wide$label_analysis_var[rows] <- paste0(
-          wide$label_analysis_var[rows], title_suffix[[tp]]
+          wide$label_analysis_var[rows],
+          title_suffix[[tp]]
         )
       }
     }
@@ -4371,8 +5078,11 @@ run_group_analysis_pipeline <- function(dataset,
   # --- 7. Column map -------------------------------------------------------
   id_cols <- c(
     intersect(extra_columns, names(wide)),
-    "analysis_type", "label_analysis_type",
-    "analysis_var", "label_analysis_var", "analysis_var_value",
+    "analysis_type",
+    "label_analysis_type",
+    "analysis_var",
+    "label_analysis_var",
+    "analysis_var_value",
     "row_type"
   )
   stat_cols <- setdiff(names(wide), id_cols)
@@ -4418,7 +5128,14 @@ run_group_analysis_pipeline <- function(dataset,
 
   stage("reshape and label")
 
-  ck_note("ANALYSIS DONE: ", nrow(wide), " rows, ", ncol(wide), " columns", verbose = verbose)
+  ck_note(
+    "ANALYSIS DONE: ",
+    nrow(wide),
+    " rows, ",
+    ncol(wide),
+    " columns",
+    verbose = verbose
+  )
 
   list(
     combined_results = wide,

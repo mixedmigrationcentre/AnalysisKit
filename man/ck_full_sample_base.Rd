@@ -21,7 +21,9 @@ ck_full_sample_base(
 \item{group_variables}{Grouping variables; these are never filled.}
 
 \item{label}{Row label for respondents with no answer, in select_one and
-select_multiple questions. Default \code{"Not asked / no response"}.}
+select_multiple questions: one for every row, or one per row of \code{loa}
+(the first row naming a variable decides its label). Default
+\code{"Not asked / no response"}.}
 
 \item{sm_separator}{Separator between parent and choice. Default \code{"/"}.}
 
@@ -29,8 +31,9 @@ select_multiple questions. Default \code{"Not asked / no response"}.}
 }
 \value{
 A list with \code{dataset}, \code{filled} (one row per variable:
-\code{analysis_var}, \code{analysis_type}, \code{n_filled}) and
-\code{filled_vars} (the variables that were filled).
+\code{analysis_var}, \code{analysis_type}, \code{n_filled},
+\code{label}), \code{filled_vars} (the variables that were filled) and
+\code{filled_labels} (their labels, in the same order).
 }
 \description{
 By default a respondent with no answer to a question - typically because

@@ -57,16 +57,15 @@ ak_problems_display(checks$problems)
 # checks$spec is the workbook, already read and validated, so there is nothing
 # to build here. This stops without doing any work if anything is must-fix.
 
-# >>> NEW: full sample base ------------------------------------------------ >>>
-# FALSE  each question is out of those who ANSWERED it: if only the 600 of
+# >>> NEW: full sample base, per question ---------------------------------- >>>
+# Set in the analysis_variables sheet, column full_sample_base, row by row:
+# blank  the question is out of those who ANSWERED it: if only the 600 of
 #        1,000 who said "Yes" were asked the follow-up, its n is 600.
 # TRUE   out of the FULL sample (or group), with a "Not asked / no response"
-#        row last in every select_one and select_multiple, overall and per
-#        group; in a select_multiple a blank counts as "not selected" for every
-#        choice. Means, medians and ratios are unchanged.
-# Overrides full_sample_base in the settings sheet; delete it to use the sheet.
-checks$spec$settings$full_sample_base <- FALSE
-# <<< NEW: full sample base ------------------------------------------------ <<<
+#        row last (full_sample_label renames it). Proportions only.
+# The same from here, for one question:
+#   checks$spec$loa$full_sample_base[checks$spec$loa$analysis_var == "Q78"] <- TRUE
+# <<< NEW: full sample base, per question ---------------------------------- <<<
 
 # >>> NEW: route analysis -------------------------------------------------- >>>
 # Each block set to TRUE gets a sheet of its own; no analysis rows needed.
@@ -125,8 +124,8 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 # exclude_choices CHANGES THE DENOMINATOR. Someone who picked "Don't know"
 #   leaves the base for that question entirely - also with full_sample_base.
 #
-# [NEW] full_sample_base = TRUE PUTS SKIPPED RESPONDENTS BACK IN THE BASE. A
-#   question that is also a grouping variable is left out of it. Rename the
+# [NEW] full_sample_base = TRUE ON A ROW PUTS SKIPPED RESPONDENTS BACK IN THAT
+#   QUESTION'S BASE. A grouping variable is left out of it. Rename the
 #   row with full_sample_label. Say in the publication which base you used.
 #
 # [NEW] READ WITH loa = ? read_analysis_dataset(path, loa = loa) reads only the

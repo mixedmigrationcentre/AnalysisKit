@@ -165,12 +165,16 @@ test_that("the settings allow-list covers the pipeline's signature exactly", {
     "exclude_choices"
   )
   not_settable <- c("label_row", "analysis_type_labels", "verbose")
+  # Set row by row through the analysis_variables columns of the same names;
+  # the arguments only fill in blank cells.
+  per_row <- c("full_sample_base", "full_sample_label")
 
   # Export-only settings are read by ak_export_results(), and route settings
   # by run_route_analysis(); neither reaches the pipeline.
   covered <- unique(c(
     from_sheets,
     not_settable,
+    per_row,
     setdiff(
       loa_settings_schema()$arg,
       c(loa_export_settings(), loa_route_settings())
