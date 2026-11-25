@@ -302,14 +302,16 @@ unaffected, \code{exclude_choices} still removes respondents from the
 base, and a variable that is also a grouping variable is left as it is.
 See \code{\link{ck_full_sample_base}}. Default \code{FALSE}.
 
-Normally set row by row instead: a \code{full_sample_base} column in
-\code{loa} turns it on for the rows that say \code{TRUE}. This argument
+Normally set row by row instead: a \code{sample_base} column in
+\code{loa} (formerly \code{full_sample_base}) turns it on for the rows
+that say \code{TRUE}. This argument
 only decides the rows that leave that cell blank (and every row, when
 \code{loa} has no such column). See \code{\link{ck_full_sample_rows}}.}
 
 \item{full_sample_label}{Row label for respondents with no answer, in
 select_one and select_multiple questions using the full-sample base.
-A \code{full_sample_label} column in \code{loa} sets it row by row; this
+An \code{na_label} column in \code{loa} (formerly
+\code{full_sample_label}) sets it row by row; this
 is the label for a row that leaves it blank. Default
 \code{"Not asked / no response"}.}
 }

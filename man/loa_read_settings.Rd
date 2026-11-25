@@ -4,10 +4,14 @@
 \alias{loa_read_settings}
 \title{Read Every Setting a Workbook Supplies}
 \usage{
-loa_read_settings(sheets)
+loa_read_settings(sheets, header_rows = NULL)
 }
 \arguments{
 \item{sheets}{The workbook's named list of sheets.}
+
+\item{header_rows}{Optional named integer vector: rows above the first data
+row of each sheet (see \code{\link[=loa_header_rows]{loa_header_rows()}}), so problems name the row seen
+in Excel.}
 }
 \value{
 A list with \code{settings} and \code{problems}, as \code{\link[=loa_parse_settings]{loa_parse_settings()}}.

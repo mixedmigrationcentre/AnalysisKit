@@ -303,7 +303,10 @@ test_that("the workbook sets it per row; the settings sheet no longer does", {
   sheets$analysis_variables$full_sample_label <- c("Skipped", NA, NA)
   spec <- build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
   expect_false(loa_has_errors(spec$problems))
-  expect_identical(spec$loa$full_sample_label[1], "Skipped")
+  # The former column names read as the current ones.
+  expect_identical(spec$loa$na_label[1], "Skipped")
+  expect_identical(spec$loa$sample_base[1], "TRUE")
+  expect_false(any(c("full_sample_base", "full_sample_label") %in% names(spec$loa)))
 
   # Moved, so the old keys explain where they went.
   parsed <- loa_parse_settings(data.frame(
@@ -313,7 +316,52 @@ test_that("the workbook sets it per row; the settings sheet no longer does", {
   ))
   expect_equal(sum(parsed$problems$severity == "error"), 2L)
   expect_match(parsed$problems$message, "column of the analysis_variables")
+  expect_match(parsed$problems$message[1], "sample_base column")
+  expect_match(parsed$problems$message[2], "na_label column")
   expect_false("full_sample_base" %in% loa_settings_schema()$setting)
+
+  # The current column names are not settings either.
+  parsed <- loa_parse_settings(data.frame(
+    setting = c("sample_base", "na_label"),
+    value = c("TRUE", "Skipped"),
+    stringsAsFactors = FALSE
+  ))
+  expect_equal(sum(parsed$problems$severity == "error"), 2L)
+})
+
+test_that("sample_base and na_label set the base per row", {
+  sheets <- fixture_sheets()
+  sheets$analysis_variables$sample_base <- c("TRUE", NA, NA)
+  sheets$analysis_variables$na_label <- c("Skipped", NA, NA)
+  spec <- build_analysis_spec(fixture_workbook(sheets), fixture_dataset())
+  expect_false(loa_has_errors(spec$problems))
+  fs <- ck_full_sample_rows(spec$loa)
+  expect_equal(fs$rows, c(TRUE, FALSE, FALSE))
+  expect_equal(fs$label[1], "Skipped")
+})
+
+test_that("a sheet with both the former and the current column name is fatal", {
+  sheets <- fixture_sheets()
+  sheets$analysis_variables$full_sample_base <- c("TRUE", NA, NA)
+  sheets$analysis_variables$sample_base <- c("FALSE", NA, NA)
+  problems <- validate_loa(fixture_workbook(sheets))
+  hit <- problems[grepl("former name", problems$message), ]
+  expect_equal(nrow(hit), 1L)
+  expect_equal(hit$severity, "error")
+  expect_match(hit$message, "full_sample_base.*sample_base")
+})
+
+test_that("the pipeline reads the current and the former column names", {
+  loa <- skip_loa()
+  loa$sample_base <- c(NA, "TRUE", NA, NA)
+  loa$na_label <- c(NA, "Skipped", NA, NA)
+  res <- run_skip(loa = loa)
+  expect_true("Skipped" %in% rows_for(res, "Q2")$analysis_var_value)
+
+  loa <- skip_loa()
+  loa$full_sample_base <- c(NA, "TRUE", NA, NA)
+  res <- run_skip(loa = loa)
+  expect_true("Not asked / no response" %in% rows_for(res, "Q2")$analysis_var_value)
 })
 
 test_that("the validator checks the full_sample columns", {
@@ -344,22 +392,21 @@ test_that("the validator checks the full_sample columns", {
 })
 
 
-test_that("the shipped template has the columns blank, explained in a header", {
+test_that("the shipped template has the columns blank, explained in row 2", {
   template <- system.file("extdata", "loa_template.xlsx", package = "analysiskit")
   skip_if(!nzchar(template), "not testing an installed package")
   wb <- read_loa_workbook(template)
   an <- wb$sheets$analysis_variables
-  expect_true(all(c("full_sample_base", "full_sample_label") %in% names(an)))
-  expect_true(all(is.na(an$full_sample_base)))
-  expect_true(all(is.na(an$full_sample_label)))
-
-  # The description column explains both in its header and stays empty.
-  desc <- grep("^description", names(an), value = TRUE)
-  expect_length(desc, 1L)
-  expect_match(desc, "full_sample_base.*full_sample_label")
-  expect_true(all(is.na(an[[desc]])))
+  expect_equal(
+    names(an),
+    c("analysis_type", "analysis_var", "section", "sample_base", "na_label")
+  )
+  expect_true(all(is.na(an$sample_base)))
+  expect_true(all(is.na(an$na_label)))
+  expect_equal(wb$header_rows[["analysis_variables"]], 2L)
 
   expect_false(any(
-    c("full_sample_base", "full_sample_label") %in% wb$sheets$settings$setting
+    c("sample_base", "na_label", "full_sample_base") %in%
+      wb$sheets$settings$setting
   ))
 })

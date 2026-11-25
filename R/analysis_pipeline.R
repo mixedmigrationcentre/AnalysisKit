@@ -4150,13 +4150,15 @@ ck_design_columns <- function(
 #'   base, and a variable that is also a grouping variable is left as it is.
 #'   See \code{\link{ck_full_sample_base}}. Default \code{FALSE}.
 #'
-#'   Normally set row by row instead: a \code{full_sample_base} column in
-#'   \code{loa} turns it on for the rows that say \code{TRUE}. This argument
+#'   Normally set row by row instead: a \code{sample_base} column in
+#'   \code{loa} (formerly \code{full_sample_base}) turns it on for the rows
+#'   that say \code{TRUE}. This argument
 #'   only decides the rows that leave that cell blank (and every row, when
 #'   \code{loa} has no such column). See \code{\link{ck_full_sample_rows}}.
 #' @param full_sample_label Row label for respondents with no answer, in
 #'   select_one and select_multiple questions using the full-sample base.
-#'   A \code{full_sample_label} column in \code{loa} sets it row by row; this
+#'   An \code{na_label} column in \code{loa} (formerly
+#'   \code{full_sample_label}) sets it row by row; this
 #'   is the label for a row that leaves it blank. Default
 #'   \code{"Not asked / no response"}.
 #'
@@ -4591,7 +4593,7 @@ run_group_analysis_pipeline <- function(
   # Full-sample base: blanks join the denominator. After the children are 0/1
   # (so "not asked" is a clean NA to fill) and before the exclusions (so a
   # choice excluded on purpose still leaves the base).
-  # Row by row: the loa's full_sample_base column picks the rows, the
+  # Row by row: the loa's sample_base column picks the rows, the
   # argument only fills in blank cells.
   full_sample <- list(
     dataset = dataset,
@@ -4627,7 +4629,7 @@ run_group_analysis_pipeline <- function(
     also <- also[!is.na(also)]
     if (length(also) > 0) {
       ck_warn(
-        "full_sample_base: ",
+        "sample_base: ",
         paste(also, collapse = ", "),
         " is on in one row and off in another; the full-sample base applies ",
         "to every row of it."

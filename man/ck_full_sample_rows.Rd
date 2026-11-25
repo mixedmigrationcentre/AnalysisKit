@@ -23,11 +23,12 @@ A list with \code{rows} (logical, one per \code{loa} row) and \code{label}
 (character, one per \code{loa} row).
 }
 \description{
-The \code{full_sample_base} and \code{full_sample_label} columns of the list of
-analyses decide it row by row. A blank \code{full_sample_base} cell takes the
-pipeline argument \code{full_sample_base} (\code{FALSE} unless a caller set it), and a
-blank \code{full_sample_label} cell takes \code{full_sample_label}. Only
-\code{prop_select_one} and \code{prop_select_multiple} rows are affected; a mean,
-median or ratio is left as it is whatever the cell says.
+The \code{sample_base} and \code{na_label} columns of the list of analyses decide it
+row by row (their former names, \code{full_sample_base} and \code{full_sample_label},
+are read too). A blank \code{sample_base} cell takes the pipeline argument
+\code{full_sample_base} (\code{FALSE} unless a caller set it), and a blank \code{na_label}
+cell takes \code{full_sample_label}. Only \code{prop_select_one} and
+\code{prop_select_multiple} rows are affected; a mean, median or ratio is left as
+it is whatever the cell says.
 }
 \keyword{internal}

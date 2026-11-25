@@ -57,7 +57,8 @@ ck_full_sample_base <- function(
       any(label == "")
   ) {
     stop(
-      "full_sample_label must be a non-empty piece of text, ",
+      "The label for those not asked (the na_label column, or the ",
+      "full_sample_label argument) must be a non-empty piece of text, ",
       "for example \"Not asked / no response\".",
       call. = FALSE
     )
@@ -96,7 +97,7 @@ ck_full_sample_base <- function(
 
   if (length(skipped) > 0) {
     ck_warn(
-      "full_sample_base: ",
+      "sample_base: ",
       paste(skipped, collapse = ", "),
       " is also a grouping variable, so its blanks were left as they are and ",
       "it is still reported out of those who answered."
@@ -172,12 +173,12 @@ ck_full_sample_base <- function(
       na_col <- paste0(p, sm_separator, label)
       if (na_col %in% names(dataset)) {
         ck_warn(
-          "full_sample_base: '",
+          "sample_base: '",
           p,
           "' already has a choice called '",
           label,
           "', so no separate not-asked row was added for it. Set ",
-          "full_sample_label to a different text."
+          "na_label to a different text."
         )
       } else {
         dataset[[na_col]] <- as.numeric(not_asked)
@@ -219,12 +220,13 @@ ck_full_sample_base <- function(
 
 #' Which Analysis Rows Use the Full-Sample Base, and With What Label
 #'
-#' The `full_sample_base` and `full_sample_label` columns of the list of
-#' analyses decide it row by row. A blank `full_sample_base` cell takes the
-#' pipeline argument `full_sample_base` (`FALSE` unless a caller set it), and a
-#' blank `full_sample_label` cell takes `full_sample_label`. Only
-#' `prop_select_one` and `prop_select_multiple` rows are affected; a mean,
-#' median or ratio is left as it is whatever the cell says.
+#' The `sample_base` and `na_label` columns of the list of analyses decide it
+#' row by row (their former names, `full_sample_base` and `full_sample_label`,
+#' are read too). A blank `sample_base` cell takes the pipeline argument
+#' `full_sample_base` (`FALSE` unless a caller set it), and a blank `na_label`
+#' cell takes `full_sample_label`. Only `prop_select_one` and
+#' `prop_select_multiple` rows are affected; a mean, median or ratio is left as
+#' it is whatever the cell says.
 #'
 #' @param loa The list of analyses.
 #' @param full_sample_base Logical. The value for a row that leaves the cell
@@ -240,18 +242,21 @@ ck_full_sample_rows <- function(
 ) {
   n <- nrow(loa)
   default <- isTRUE(full_sample_base)
+  base_col <- intersect(c("sample_base", "full_sample_base"), names(loa))[1]
+  label_col <- intersect(c("na_label", "full_sample_label"), names(loa))[1]
 
   rows <- rep(default, n)
-  if ("full_sample_base" %in% names(loa)) {
-    raw <- toupper(trimws(as.character(loa$full_sample_base)))
+  if (!is.na(base_col)) {
+    raw <- toupper(trimws(as.character(loa[[base_col]])))
     blank <- is.na(raw) | raw == "" | raw == "NA"
     yes <- raw %in% c("TRUE", "T", "YES", "Y", "1")
     no <- raw %in% c("FALSE", "F", "NO", "N", "0")
     bad <- !blank & !yes & !no
     if (any(bad)) {
       stop(
-        "full_sample_base must be TRUE, FALSE or blank. Found '",
-        paste(unique(loa$full_sample_base[bad]), collapse = "', '"),
+        base_col,
+        " must be TRUE, FALSE or blank. Found '",
+        paste(unique(loa[[base_col]][bad]), collapse = "', '"),
         "' in row(s) ",
         paste(which(bad), collapse = ", "),
         " of the list of analyses.",
@@ -263,8 +268,8 @@ ck_full_sample_rows <- function(
   }
 
   label <- rep(trimws(as.character(full_sample_label))[1], n)
-  if ("full_sample_label" %in% names(loa)) {
-    cell <- trimws(as.character(loa$full_sample_label))
+  if (!is.na(label_col)) {
+    cell <- trimws(as.character(loa[[label_col]]))
     given <- !is.na(cell) & cell != "" & cell != "NA"
     label[given] <- cell[given]
   }

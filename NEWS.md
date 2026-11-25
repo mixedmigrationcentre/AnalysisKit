@@ -1,3 +1,33 @@
+# analysiskit (development version)
+
+## List of Analysis template
+
+* **A clearer template.** `loa_template.xlsx` has been rebuilt:
+
+  * The `readme` sheet is organised by sheet, in the order the sheets
+    appear, with what to put in each column. The yellow placeholder shading
+    and the `exclude_choices` notes are gone.
+  * Row 2 of `analysis_variables`, `disaggregation_variables` and `settings`
+    describes each column, in italics. The reader recognises it and skips it,
+    so it can be left in place or deleted; problems still name the row as
+    seen in Excel.
+  * `settings` has a `description` column saying what each setting does.
+  * Drop-down lists for `analysis_type`, `sample_base` and
+    `disaggregation_variables/include`, covering the first 1,000 rows.
+
+* **Renamed columns.** In `analysis_variables`, `full_sample_base` is now
+  `sample_base`, `full_sample_label` is now `na_label`, and the template's
+  `sector` column is now `section` (with `extra_columns = section`). Workbooks
+  that use the former names still read exactly as before; a sheet with both
+  the former and the current name of a column is a fatal error. The results
+  workbook is split into one sheet per `section` (or `sector`, in an older
+  workbook).
+
+* **`ak_write_loa()`** writes a List of Analysis workbook in the template's
+  layout, and is what builds the template (`dev/build_loa_template.R`).
+  `loa_column_descriptions()` and `loa_setting_descriptions()` return the
+  help text it writes.
+
 # analysiskit 2026.11.1
 
 ## New features

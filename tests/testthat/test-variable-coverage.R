@@ -39,7 +39,7 @@ test_that("a missing analysis variable warns and names the consequence", {
     sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one", analysis_var = "Q999",
-      level = NA_real_, sector = "Other", stringsAsFactors = FALSE
+      level = NA_real_, section = "Other", stringsAsFactors = FALSE
     )
   )
 
@@ -165,7 +165,7 @@ test_that("one missing variable among many does not trigger the whole-file error
     sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one", analysis_var = "Q999",
-      level = NA_real_, sector = "Other", stringsAsFactors = FALSE
+      level = NA_real_, section = "Other", stringsAsFactors = FALSE
     )
   )
 
@@ -184,7 +184,7 @@ test_that("the coverage summary lists each variable once, missing first", {
     sheets$analysis_variables,
     data.frame(
       analysis_type = "prop_select_one", analysis_var = "Q999",
-      level = NA_real_, sector = "Other", stringsAsFactors = FALSE
+      level = NA_real_, section = "Other", stringsAsFactors = FALSE
     )
   )
 

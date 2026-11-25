@@ -42,6 +42,51 @@ reader cannot tell which one is meant.
 **`exclude_choices` is not in the template.** The sheet is still read; add it (with the
 columns in §6) only when a run needs choices taken out of the denominator.
 
+**The template** (`inst/extdata/loa_template.xlsx`) has the sheets `readme`,
+`analysis_variables`, `disaggregation_variables`, `route_analysis` and `settings`, in that
+order. It is written by `ak_write_loa()` from `dev/build_loa_template.R`; never edit the
+`.xlsx` by hand. A setup saved from the app is written by the same function, so the two
+share one layout:
+
+- `readme`: one section per sheet, in sheet order, saying what the sheet is for and what
+  goes in each column.
+- **A description row.** Row 2 of `analysis_variables`, `disaggregation_variables` and
+  `settings` describes each column, in italics (see §1.1).
+- **A `description` column** in `settings` and `route_analysis`, saying what each setting
+  does. Any column other than `setting` and `value` is ignored by the reader.
+- **Drop-down lists** for `analysis_variables/analysis_type` (the five types),
+  `analysis_variables/sample_base`, `numerator_NA_to_0`, `filter_denominator_0` and every
+  `include` column (`TRUE`, `FALSE`), over the first 1,000 data rows. A list is one rule
+  over a range, so the rows it covers do not change the file size.
+
+### 1.1 The description row
+
+The row directly under the header is a **description row** when every non-blank cell in it
+is the description of its own column, as returned by `loa_column_descriptions()`
+(compared ignoring case and runs of whitespace), and at least one cell is filled. The
+reader skips it, reading the data from the row after, so `readxl` still guesses the column
+types from data alone and `level` stays numeric. Only `analysis_variables`,
+`disaggregation_variables` and `settings` have one.
+
+A row in which any cell holds something else is data. So a description row that someone
+has typed over is read, and validated, like any other row: its leftover description text
+fails a check loudly rather than the row being dropped silently. Deleting the row is fine.
+
+Problems name the row as seen in Excel: with a description row the first data row is
+row 3. `read_loa_workbook()` records this per sheet in `header_rows` (1 or 2).
+
+### 1.2 Former column names
+
+| Sheet | Former name | Current name |
+|---|---|---|
+| `analysis_variables` | `full_sample_base` | `sample_base` |
+| `analysis_variables` | `full_sample_label` | `na_label` |
+
+A former name is read as the current one, so an older workbook runs unchanged. A sheet
+with both names of one column is a fatal error. The template's metadata column was also
+renamed, from `sector` to `section`; it is a free column (carried by `extra_columns`), so
+an older workbook that still says `sector` keeps working without any aliasing.
+
 An unrecognised sheet name is a fatal error, not a silent skip — a typo in a sheet name would
 otherwise look exactly like "I chose not to configure that".
 
@@ -71,10 +116,13 @@ The existing LoA table, unchanged. This is the sheet the current pipeline alread
 | `analysis_var_denominator` | required when `analysis_type` is `ratio`, ignored on every other row |
 | `numerator_NA_to_0` | ratio only. Blank or absent = `FALSE` |
 | `filter_denominator_0` | ratio only. Blank or absent = `FALSE` |
-| `full_sample_base` | proportions only. `TRUE` counts respondents with no answer (for example, skipped by skip logic) in this question's denominator, so it is out of the full sample or full group. A blank select_one is reported as its own row, `full_sample_label`, so the question adds to 100%. In a select_multiple a blank counts as "not selected" for every choice, and the not-asked share is added as a `full_sample_label` row of its own, last, overall and in every disaggregation. Blank or absent = `FALSE`: out of those who answered. No effect on means, medians and ratios (a warning says so). `exclude_choices` still removes respondents from the base. A variable that is also a grouping variable is left as it is. The base belongs to the variable, so a question listed in two rows uses it in both if either says `TRUE` (a warning says so) |
-| `full_sample_label` | the row label for those not asked, on a `full_sample_base` row. Blank = `Not asked / no response` |
-| `description` | in the template, the header explains `full_sample_base` and `full_sample_label` and the rows are empty. A free column like any other: ignored by the reader |
-| *(any other column)* | metadata such as `sector` or `indicator`, carried to the output by naming it in `settings/extra_columns` |
+| `section` | metadata: the heading the results are grouped under. In the template, and carried to the output by `settings/extra_columns = section`; the results workbook then has one sheet per section. Formerly `sector`, which still works the same way |
+| `sample_base` | proportions only. `TRUE` counts respondents with no answer (for example, skipped by skip logic) in this question's denominator, so it is out of the full sample or full group. A blank select_one is reported as its own row, `na_label`, so the question adds to 100%. In a select_multiple a blank counts as "not selected" for every choice, and the not-asked share is added as an `na_label` row of its own, last, overall and in every disaggregation. Blank or absent = `FALSE`: out of those who answered. No effect on means, medians and ratios (a warning says so). `exclude_choices` still removes respondents from the base. A variable that is also a grouping variable is left as it is. The base belongs to the variable, so a question listed in two rows uses it in both if either says `TRUE` (a warning says so). Formerly `full_sample_base` |
+| `na_label` | the row label for those not asked, on a `sample_base` row. Blank = `Not asked / no response`. Formerly `full_sample_label` |
+| `description` | a note for whoever reads the workbook. Ignored by the reader |
+| *(any other column)* | metadata such as `indicator`, carried to the output by naming it in `settings/extra_columns` |
+
+Row 2 of the template's sheet is the description row (§1.1).
 
 > **`level` is the one cell that decides how long a run takes.** A row with a
 > level is estimated by the survey package, which re-subsets the data once per
@@ -163,7 +211,7 @@ outright, because `create_analysis()` would otherwise drop them silently).
 ## 3. Sheet `disaggregation_variables`
 
 Declares the disaggregations, and renames the raw dataset columns into names that read
-properly in the output.
+properly in the output. Row 2 of the template's sheet is the description row (§1.1).
 
 | Column | Required | Notes |
 |---|---|---|
@@ -406,7 +454,9 @@ typo in an apostrophe or a comma.
 
 ## 7. Sheet `settings`
 
-Two columns, `setting` and `value`. One row per setting. Order is irrelevant.
+Two columns, `setting` and `value`. One row per setting. Order is irrelevant. The
+template adds a `description` column (from `loa_setting_descriptions()`) and a description
+row (§1.1); the reader ignores both.
 
 **Unknown keys are fatal.** A misspelled key that was silently ignored would look
 identical to a setting that had been applied, which is the failure mode this sheet exists
@@ -450,16 +500,17 @@ fixed set.
 |---|---|---|---|
 | `exclude_ignore_case` | lgl | `TRUE` | applies to the `exclude_choices` sheet |
 
-`full_sample_base` and `full_sample_label` are no longer settings: they are columns of
-`analysis_variables` (§2), so each question chooses its own base. Either key in this sheet
-is a fatal error that says where it went.
+`sample_base` and `na_label` (and their former names, `full_sample_base` and
+`full_sample_label`) are not settings: they are columns of `analysis_variables` (§2), so
+each question chooses its own base. Any of the four keys in this sheet is a fatal error
+that says where it went.
 
 **Output shape**
 
 | setting | type | default | notes |
 |---|---|---|---|
 | `value_columns` | chr[] | `stat,n,n_total` | add `n_w,n_w_total` when weighting; `stat_low,stat_upp` for intervals |
-| `extra_columns` | chr[] | *(none)* | `analysis_variables`-sheet columns to carry into the output, e.g. `sector` |
+| `extra_columns` | chr[] | *(none)* | `analysis_variables`-sheet columns to carry into the output, e.g. `section` |
 | `missing_group_label` | chr | `Missing` | column label for respondents missing on a grouping variable |
 | `use_group_prefix` | lgl | `TRUE` | **leave `TRUE`.** `FALSE` gives `stat_<value>`, which collides when two grouping variables share a value |
 | `summary_value_label` | chr | *(none)* | written into `analysis_var_value` for mean/median/ratio rows |
@@ -605,7 +656,7 @@ Neither `validate_loa()` nor `build_analysis_spec()` ever stops — only
 
 | Function | Responsibility |
 |---|---|
-| `read_loa_workbook(path)` | read every recognised sheet; no interpretation |
+| `read_loa_workbook(path)` | read every recognised sheet; no interpretation beyond skipping a description row (§1.1) and reading former column names as current ones (§1.2) |
 | `validate_loa(workbook, dataset)` | every check in this document; returns `problems` |
 | `loa_parse_settings(sheet)` | coerce and allow-list the `settings` sheet |
 | `build_analysis_spec(workbook, dataset)` | apply the rename map and assemble `analysis_spec` |
@@ -614,6 +665,8 @@ Neither `validate_loa()` nor `build_analysis_spec()` ever stops — only
 | `analysis_spec_args(dataset, spec)` | build the pipeline argument list, without running it |
 | `run_analysis_spec(dataset, spec, pipeline)` | `do.call()` — the only place the two meet |
 | `loa_has_errors(problems)` | is the run blocked |
+| `ak_write_loa(sheets, path)` | write sheets as a workbook in the template's layout (`R/write_loa.R`) |
+| `loa_column_descriptions()`, `loa_setting_descriptions()` | the description row and `description` column text (`R/loa_layout.R`) |
 
 All pure and testable without a Shiny session. `run_analysis_spec()` takes the pipeline
 as an argument so the assembly can be tested without the analysis code loaded, and
@@ -736,7 +789,7 @@ hard-coded, and reproduce the example output with the default workbook:
 | `layout` | `blocks` | house style |
 | `value_columns` | `stat` | `settings/value_columns`, minus the count columns |
 | `total_columns` | `n`, `n_total` | the count columns of `settings/value_columns` |
-| `split_by` | `sector` | that column when the table has one, else the first carried metadata column, else `none` |
+| `split_by` | `section` | that column when the table has one, else `sector` (its former name), else the first carried metadata column, else `none` |
 
 Splitting one list guarantees `length(c(value_columns, total_columns))` matches the number
 of columns the pipeline wrote per group block; get that wrong and the formatter cuts the
@@ -780,7 +833,7 @@ setting that was applied.
 `row_type` column at the end of the wide table and inserts spacer and heading rows above
 each derived block. Handed to the formatter unchanged, the trailing `row_type` is read as
 a statistic column and dropped with a warning, and the marker rows — which carry no
-`sector` — are split onto a sheet of their own called "not specified".
+`section` — are split onto a sheet of their own called "not specified".
 `ak_prepare_for_export()` handles both: in the blocks layout, where every question already
 gets its own titled table, the markers are redundant and are removed; in the matrix layout
 they are kept and `row_type` is moved in among the identifier columns.
