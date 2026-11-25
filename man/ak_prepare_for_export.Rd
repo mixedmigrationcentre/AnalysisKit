@@ -27,7 +27,7 @@ the table. Left alone:
 \item the formatter reads everything after the first \code{stat_} column as a
 statistic, so a trailing \code{row_type} is reported as an unrecognised
 column and dropped with a warning;
-\item the marker rows carry no \code{sector}, so splitting sheets by sector
+\item the marker rows carry no \code{section}, so splitting sheets by section
 sends them all to a sheet of their own called "not specified".
 }
 

@@ -164,6 +164,21 @@ loa_as_workbook <- function(workbook) {
     }
     wb$sheets <- stats::setNames(wb$sheets[!repeated], normalised[!repeated])
   }
+  # Former column names (full_sample_base, full_sample_label) read as their
+  # current ones; a sheet with both is reported by validate_loa().
+  for (nm in names(loa_column_aliases())) {
+    if (is.null(wb$sheets[[nm]])) {
+      next
+    }
+    renamed <- loa_apply_column_aliases(wb$sheets[[nm]], nm)
+    wb$sheets[[nm]] <- renamed$df
+    if (length(renamed$clashes) > 0) {
+      wb$column_clashes <- unique(c(
+        wb$column_clashes,
+        paste0(nm, ": ", renamed$clashes)
+      ))
+    }
+  }
   wb
 }
 
@@ -492,16 +507,17 @@ read_loa_workbook <- function(path, filename = NULL) {
   repeated <- known & duplicated(normalised)
 
   sheets <- list()
+  header_rows <- integer(0)
+  column_clashes <- character(0)
   for (i in which(known & !repeated)) {
+    nm <- normalised[i]
     # Configuration sheets are read as text; the analysis table is not, so that
     # `level` arrives numeric.
-    col_types <- if (normalised[i] == "analysis_variables") NULL else "text"
+    col_types <- if (nm == "analysis_variables") NULL else "text"
 
-    df <- as.data.frame(
-      readxl::read_excel(path, sheet = sheet_names[i], col_types = col_types),
-      check.names = FALSE,
-      stringsAsFactors = FALSE
-    )
+    df <- loa_read_sheet(path, sheet_names[i], nm, col_types)
+    header_rows[[nm]] <- attr(df, "header_rows")
+    attr(df, "header_rows") <- NULL
 
     # Excel leaves trailing blank rows behind constantly; they are not data.
     if (nrow(df) > 0) {
@@ -509,7 +525,12 @@ read_loa_workbook <- function(path, filename = NULL) {
     }
     rownames(df) <- NULL
 
-    sheets[[normalised[i]]] <- df
+    renamed <- loa_apply_column_aliases(df, nm)
+    if (length(renamed$clashes) > 0) {
+      column_clashes <- c(column_clashes, paste0(nm, ": ", renamed$clashes))
+    }
+
+    sheets[[nm]] <- renamed$df
   }
 
   list(
@@ -521,8 +542,72 @@ read_loa_workbook <- function(path, filename = NULL) {
     ignored_sheets = sheet_names[ignored],
     duplicate_sheets = sheet_names[
       known & normalised %in% normalised[repeated]
-    ]
+    ],
+    header_rows = header_rows,
+    column_clashes = column_clashes
   )
+}
+
+
+#' Read One Sheet, Skipping Its Description Row
+#'
+#' The template has a row describing each column directly under the header of
+#' some sheets (see [loa_column_descriptions()]). It is not data, so when the
+#' first row under the header is that row, the data is read from the row
+#' after it. Reading from there, rather than dropping the row afterwards, keeps
+#' \pkg{readxl}'s column types: a text row would otherwise turn the numeric
+#' `level` column into text.
+#'
+#' @param path Workbook path.
+#' @param sheet Sheet name as written in the workbook.
+#' @param normalised The sheet's normalised name.
+#' @param col_types Passed to [readxl::read_excel()].
+#' @return A data frame with attribute `header_rows`: 1, or 2 when a
+#'   description row was skipped.
+#' @keywords internal
+loa_read_sheet <- function(path, sheet, normalised, col_types) {
+  read <- function(...) {
+    as.data.frame(
+      readxl::read_excel(path, sheet = sheet, ...),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  probe <- if (normalised %in% names(loa_column_descriptions())) {
+    read(col_types = "text", n_max = 1)
+  } else {
+    NULL
+  }
+
+  if (is.null(probe) || !loa_is_description_row(normalised, probe)) {
+    df <- read(col_types = col_types)
+    attr(df, "header_rows") <- 1L
+    return(df)
+  }
+
+  header <- names(probe)
+  df <- suppressMessages(read(
+    col_types = col_types,
+    col_names = FALSE,
+    range = readxl::cell_limits(c(3L, 1L), c(NA_integer_, length(header))),
+    .name_repair = "minimal"
+  ))
+  if (ncol(df) == 0L) {
+    # Nothing under the description row: the header alone.
+    df <- as.data.frame(
+      stats::setNames(
+        replicate(length(header), character(0), simplify = FALSE),
+        header
+      ),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+  } else {
+    names(df) <- header
+  }
+  attr(df, "header_rows") <- 2L
+  df
 }
 
 
@@ -537,11 +622,23 @@ read_loa_workbook <- function(path, filename = NULL) {
 #' so the two never overlap.
 #'
 #' @param sheets The workbook's named list of sheets.
+#' @param header_rows Optional named integer vector: rows above the first data
+#'   row of each sheet (see [loa_header_rows()]), so problems name the row seen
+#'   in Excel.
 #' @return A list with `settings` and `problems`, as [loa_parse_settings()].
 #' @keywords internal
-loa_read_settings <- function(sheets) {
-  main <- loa_parse_settings(sheets$settings, "settings")
-  route <- loa_parse_settings(sheets$route_analysis, "route_analysis")
+loa_read_settings <- function(sheets, header_rows = NULL) {
+  hr <- list(header_rows = header_rows)
+  main <- loa_parse_settings(
+    sheets$settings,
+    "settings",
+    first_row = loa_header_rows(hr, "settings") + 1L
+  )
+  route <- loa_parse_settings(
+    sheets$route_analysis,
+    "route_analysis",
+    first_row = loa_header_rows(hr, "route_analysis") + 1L
+  )
   list(
     settings = c(main$settings, route$settings),
     problems = rbind(main$problems, route$problems)
@@ -558,10 +655,13 @@ loa_read_settings <- function(sheets) {
 #'
 #' @param sheet The sheet's data frame, or `NULL`.
 #' @param sheet_name `"settings"` or `"route_analysis"`.
+#' @param first_row The workbook row of the sheet's first setting: 2 under a
+#'   plain header, 3 when the sheet has a description row. Used only to number
+#'   problems.
 #' @return A list with `settings` (named list, pipeline argument names) and
 #'   `problems`.
 #' @export
-loa_parse_settings <- function(sheet, sheet_name = "settings") {
+loa_parse_settings <- function(sheet, sheet_name = "settings", first_row = 2L) {
   out <- list(settings = list(), problems = loa_no_problems())
 
   if (is.null(sheet) || nrow(sheet) == 0) {
@@ -599,7 +699,7 @@ loa_parse_settings <- function(sheet, sheet_name = "settings") {
   labels <- stats::setNames(rep(NA_character_, 3), c("none", "one", "many"))
 
   for (i in seq_along(key)) {
-    excel_row <- i + 1L
+    excel_row <- i + as.integer(first_row) - 1L
     k <- key[i]
 
     if (is.na(k)) {
@@ -639,17 +739,24 @@ loa_parse_settings <- function(sheet, sheet_name = "settings") {
     }
     # Former settings that are now columns of the analysis_variables sheet,
     # so each question can choose for itself.
-    if (k %in% c("full_sample_base", "full_sample_label")) {
+    column_keys <- c(
+      full_sample_base = "sample_base",
+      full_sample_label = "na_label",
+      sample_base = "sample_base",
+      na_label = "na_label"
+    )
+    if (k %in% names(column_keys)) {
       add(
         excel_row,
         "error",
         paste0(
           "'",
           k,
-          "' is no longer a setting: it is a column of the ",
-          "analysis_variables sheet, so each question can use the full-sample ",
-          "base or not. Delete this row and set the column on the rows that ",
-          "need it."
+          "' is not a setting: it is the ",
+          column_keys[[k]],
+          " column of the analysis_variables sheet, so each question can use ",
+          "the full-sample base or not. Delete this row and set the column on ",
+          "the rows that need it."
         )
       )
       next
@@ -1094,7 +1201,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
   # --- analysis_variables --------------------------------------------------------------
   a <- sheets$analysis_variables
   if (!is.null(a) && nrow(a) > 0) {
-    rows <- seq_len(nrow(a)) + 1L
+    rows <- seq_len(nrow(a)) + loa_header_rows(wb, "analysis_variables")
 
     is_ratio <- if ("analysis_type" %in% names(a)) {
       tolower(loa_trim(a$analysis_type)) %in% "ratio"
@@ -1132,7 +1239,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(ga$raw_data_name)
     v[!inc] <- NA_character_
-    ref(v, "group_var", "disaggregation_variables", seq_len(nrow(ga)) + 1L)
+    ref(v, "group_var", "disaggregation_variables", seq_len(nrow(ga)) + loa_header_rows(wb, "disaggregation_variables"))
   }
 
   # --- count_selections ------------------------------------------------------
@@ -1146,7 +1253,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(cs$analysis_var)
     v[!inc] <- NA_character_
-    ref(v, "count_selections", "count_selections", seq_len(nrow(cs)) + 1L)
+    ref(v, "count_selections", "count_selections", seq_len(nrow(cs)) + loa_header_rows(wb, "count_selections"))
   }
 
   # --- count_combinations ----------------------------------------------------
@@ -1160,7 +1267,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
     inc[is.na(inc)] <- TRUE
     v <- loa_trim(cc$analysis_var)
     v[!inc] <- NA_character_
-    ref(v, "count_combinations", "count_combinations", seq_len(nrow(cc)) + 1L)
+    ref(v, "count_combinations", "count_combinations", seq_len(nrow(cc)) + loa_header_rows(wb, "count_combinations"))
   }
 
   xc <- sheets$count_exclusive_combinations
@@ -1177,7 +1284,7 @@ loa_variable_coverage <- function(workbook, dataset, sm_separator = NULL) {
       v,
       "count_exclusive_combinations",
       "count_exclusive_combinations",
-      seq_len(nrow(xc)) + 1L
+      seq_len(nrow(xc)) + loa_header_rows(wb, "count_exclusive_combinations")
     )
   }
 
@@ -1410,6 +1517,10 @@ validate_loa <- function(workbook, dataset = NULL) {
   wb <- loa_as_workbook(workbook)
   sheets <- wb$sheets
 
+  # The workbook row of a sheet's i-th data row: the header, plus the
+  # description row when the sheet has one.
+  row_in <- function(sheet, i) i + loa_header_rows(wb, sheet)
+
   found <- list()
   add <- function(x) if (nrow(x) > 0) found[[length(found) + 1]] <<- x
   problem <- function(sheet, row, severity, message) {
@@ -1449,6 +1560,33 @@ validate_loa <- function(workbook, dataset = NULL) {
     )
   }
 
+  for (clash in wb$column_clashes %||% character(0)) {
+    sheet <- sub(":.*$", "", clash)
+    pair <- trimws(strsplit(sub("^[^:]*:", "", clash), "/", fixed = TRUE)[[1]])
+    problem(
+      sheet,
+      NA,
+      "error",
+      paste0(
+        "The ",
+        sheet,
+        " sheet has both a '",
+        pair[1],
+        "' and a '",
+        pair[2],
+        "' column. ",
+        pair[1],
+        " is the former name of ",
+        pair[2],
+        ", so the two would be read as one column. Keep ",
+        pair[2],
+        " and delete ",
+        pair[1],
+        "."
+      )
+    )
+  }
+
   if (identical(wb$format, "CSV")) {
     problem(
       "workbook",
@@ -1474,7 +1612,7 @@ validate_loa <- function(workbook, dataset = NULL) {
   }
 
   # --- 1. Settings first: later checks need sm_separator ---------------------
-  parsed <- loa_read_settings(sheets)
+  parsed <- loa_read_settings(sheets, wb$header_rows)
   add(parsed$problems)
 
   sm_separator <- parsed$settings$sm_separator %||% "/"
@@ -1509,7 +1647,7 @@ validate_loa <- function(workbook, dataset = NULL) {
     a_var <- loa_trim(analysis$analysis_var)
 
     for (i in seq_len(nrow(analysis))) {
-      excel_row <- i + 1L
+      excel_row <- row_in("analysis_variables", i)
 
       if (is.na(a_type[i])) {
         problem(
@@ -1657,7 +1795,7 @@ validate_loa <- function(workbook, dataset = NULL) {
       for (i in which(dup)) {
         problem(
           "analysis_variables",
-          i + 1L,
+          row_in("analysis_variables", i),
           "warning",
           paste0(
             "This analysis repeats an earlier row (",
@@ -1670,19 +1808,20 @@ validate_loa <- function(workbook, dataset = NULL) {
       }
     }
 
-    # full_sample_base / full_sample_label: per row, blank means FALSE and
+    # sample_base / na_label (the former full_sample_base and
+    # full_sample_label are renamed on reading): per row, blank means FALSE and
     # the default label.
-    if ("full_sample_base" %in% names(analysis)) {
-      raw <- loa_trim(as.character(analysis$full_sample_base))
+    if ("sample_base" %in% names(analysis)) {
+      raw <- loa_trim(as.character(analysis$sample_base))
       fs <- loa_as_logical(raw)
       prop <- tolower(a_type) %in% c("prop_select_one", "prop_select_multiple")
       for (i in which(!is.na(raw) & is.na(fs))) {
         problem(
           "analysis_variables",
-          i + 1L,
+          row_in("analysis_variables", i),
           "error",
           paste0(
-            "full_sample_base must be TRUE, FALSE or blank. Found '",
+            "sample_base must be TRUE, FALSE or blank. Found '",
             raw[i],
             "'."
           )
@@ -1691,10 +1830,10 @@ validate_loa <- function(workbook, dataset = NULL) {
       for (i in which(fs %in% TRUE & !prop)) {
         problem(
           "analysis_variables",
-          i + 1L,
+          row_in("analysis_variables", i),
           "warning",
           paste0(
-            "full_sample_base is TRUE on a ",
+            "sample_base is TRUE on a ",
             a_type[i],
             " row, where it has no effect: only proportions ",
             "(prop_select_one, prop_select_multiple) count blanks in the base."
@@ -1707,31 +1846,31 @@ validate_loa <- function(workbook, dataset = NULL) {
       for (i in mixed) {
         problem(
           "analysis_variables",
-          i + 1L,
+          row_in("analysis_variables", i),
           "warning",
           paste0(
             a_var[i],
             " uses the full-sample base in another row, so it is counted out ",
-            "of the full sample here too. Set full_sample_base the same on ",
+            "of the full sample here too. Set sample_base the same on ",
             "every row of it."
           )
         )
       }
     }
-    if ("full_sample_label" %in% names(analysis)) {
-      label <- loa_trim(as.character(analysis$full_sample_label))
-      fs_on <- if ("full_sample_base" %in% names(analysis)) {
-        loa_as_logical(analysis$full_sample_base) %in% TRUE
+    if ("na_label" %in% names(analysis)) {
+      label <- loa_trim(as.character(analysis$na_label))
+      fs_on <- if ("sample_base" %in% names(analysis)) {
+        loa_as_logical(analysis$sample_base) %in% TRUE
       } else {
         rep(FALSE, nrow(analysis))
       }
       for (i in which(!is.na(label) & !fs_on)) {
         problem(
           "analysis_variables",
-          i + 1L,
+          row_in("analysis_variables", i),
           "warning",
           paste0(
-            "full_sample_label is set but full_sample_base is not TRUE on ",
+            "na_label is set but sample_base is not TRUE on ",
             "this row, so the label is not used."
           )
         )
@@ -1769,7 +1908,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         for (i in which(!is.na(loa_trim(ga$include)) & is.na(inc))) {
           problem(
             "disaggregation_variables",
-            i + 1L,
+            row_in("disaggregation_variables", i),
             "error",
             paste0(
               "include must be TRUE or FALSE. Found '",
@@ -1784,7 +1923,7 @@ validate_loa <- function(workbook, dataset = NULL) {
       }
 
       for (i in seq_len(nrow(ga))) {
-        excel_row <- i + 1L
+        excel_row <- row_in("disaggregation_variables", i)
         if (!inc[i]) {
           next
         }
@@ -1919,13 +2058,13 @@ validate_loa <- function(workbook, dataset = NULL) {
           next
         }
         if (is.na(v[i])) {
-          problem("count_selections", i + 1L, "error", "analysis_var is empty.")
+          problem("count_selections", row_in("count_selections", i), "error", "analysis_var is empty.")
         } else if (
           i > 1 && v[i] %in% v[seq_len(i - 1L)][inc[seq_len(i - 1L)]]
         ) {
           problem(
             "count_selections",
-            i + 1L,
+            row_in("count_selections", i),
             "warning",
             paste0(
               "'",
@@ -1967,7 +2106,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         if (is.na(v[i])) {
           problem(
             "count_combinations",
-            i + 1L,
+            row_in("count_combinations", i),
             "error",
             "analysis_var is empty."
           )
@@ -1975,7 +2114,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         if (is.na(label[i])) {
           problem(
             "count_combinations",
-            i + 1L,
+            row_in("count_combinations", i),
             "error",
             "choice_label is empty."
           )
@@ -2015,7 +2154,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         if (is.na(v[i])) {
           problem(
             "count_exclusive_combinations",
-            i + 1L,
+            row_in("count_exclusive_combinations", i),
             "error",
             "analysis_var is empty."
           )
@@ -2023,7 +2162,7 @@ validate_loa <- function(workbook, dataset = NULL) {
         if (is.na(label[i])) {
           problem(
             "count_exclusive_combinations",
-            i + 1L,
+            row_in("count_exclusive_combinations", i),
             "error",
             "choice_label is empty."
           )
@@ -2056,7 +2195,7 @@ validate_loa <- function(workbook, dataset = NULL) {
 
       for (i in seq_len(nrow(ec))) {
         if (inc[i] && is.na(v[i])) {
-          problem("exclude_choices", i + 1L, "error", "choice_label is empty.")
+          problem("exclude_choices", row_in("exclude_choices", i), "error", "choice_label is empty.")
         }
       }
     }
@@ -2275,7 +2414,7 @@ build_analysis_spec <- function(workbook, dataset = NULL) {
   sheets <- wb$sheets
 
   problems <- validate_loa(wb, dataset)
-  parsed <- loa_read_settings(sheets)
+  parsed <- loa_read_settings(sheets, wb$header_rows)
   sm_separator <- parsed$settings$sm_separator %||% "/"
 
   rename_map <- loa_rename_map(

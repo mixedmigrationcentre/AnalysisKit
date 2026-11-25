@@ -58,13 +58,13 @@ ak_problems_display(checks$problems)
 # to build here. This stops without doing any work if anything is must-fix.
 
 # >>> NEW: full sample base, per question ---------------------------------- >>>
-# Set in the analysis_variables sheet, column full_sample_base, row by row:
+# Set in the analysis_variables sheet, column sample_base, row by row:
 # blank  the question is out of those who ANSWERED it: if only the 600 of
 #        1,000 who said "Yes" were asked the follow-up, its n is 600.
 # TRUE   out of the FULL sample (or group), with a "Not asked / no response"
-#        row last (full_sample_label renames it). Proportions only.
+#        row last (the na_label column renames it). Proportions only.
 # The same from here, for one question:
-#   checks$spec$loa$full_sample_base[checks$spec$loa$analysis_var == "Q78"] <- TRUE
+#   checks$spec$loa$sample_base[checks$spec$loa$analysis_var == "Q78"] <- TRUE
 # <<< NEW: full sample base, per question ---------------------------------- <<<
 
 # >>> NEW: route analysis -------------------------------------------------- >>>
@@ -122,11 +122,11 @@ results$combined_results[1:5, 1:6] # a corner of the wide table
 #   unless value_columns in the settings sheet lists stat_low / stat_upp.
 #
 # exclude_choices CHANGES THE DENOMINATOR. Someone who picked "Don't know"
-#   leaves the base for that question entirely - also with full_sample_base.
+#   leaves the base for that question entirely - also with sample_base.
 #
-# [NEW] full_sample_base = TRUE ON A ROW PUTS SKIPPED RESPONDENTS BACK IN THAT
+# [NEW] sample_base = TRUE ON A ROW PUTS SKIPPED RESPONDENTS BACK IN THAT
 #   QUESTION'S BASE. A grouping variable is left out of it. Rename the
-#   row with full_sample_label. Say in the publication which base you used.
+#   row with na_label. Say in the publication which base you used.
 #
 # [NEW] READ WITH loa = ? read_analysis_dataset(path, loa = loa) reads only the
 #   columns the workbook uses, so turn route blocks on in route_analysis.

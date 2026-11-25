@@ -267,7 +267,7 @@ test_that("an analysis variable absent from the dataset warns rather than blocks
       analysis_type = "prop_select_one",
       analysis_var = "Q999",
       level = NA_real_,
-      sector = "Other",
+      section = "Other",
       stringsAsFactors = FALSE
     )
   )
@@ -805,7 +805,7 @@ test_that("the assembled call renames the dataset and passes only what was set",
   expect_equal(args$group_variables[1], "Overall")
   expect_equal(args$count_selections, "Q78")
   expect_equal(args$value_columns, c("stat", "n", "n_total"))
-  expect_equal(args$extra_columns, "sector")
+  expect_equal(args$extra_columns, "section")
   expect_equal(args$sm_separator, "/")
 
   # Unset arguments must not appear at all, or the pipeline default is lost.
@@ -862,7 +862,7 @@ test_that("a warning-only workbook still runs", {
       analysis_type = "prop_select_one",
       analysis_var = "Q999",
       level = NA_real_,
-      sector = "Other",
+      section = "Other",
       stringsAsFactors = FALSE
     )
   )

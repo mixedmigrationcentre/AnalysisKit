@@ -4,12 +4,16 @@
 \alias{loa_parse_settings}
 \title{Parse and Type-Check a Settings Sheet}
 \usage{
-loa_parse_settings(sheet, sheet_name = "settings")
+loa_parse_settings(sheet, sheet_name = "settings", first_row = 2L)
 }
 \arguments{
 \item{sheet}{The sheet's data frame, or \code{NULL}.}
 
 \item{sheet_name}{\code{"settings"} or \code{"route_analysis"}.}
+
+\item{first_row}{The workbook row of the sheet's first setting: 2 under a
+plain header, 3 when the sheet has a description row. Used only to number
+problems.}
 }
 \value{
 A list with \code{settings} (named list, pipeline argument names) and

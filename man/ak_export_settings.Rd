@@ -18,7 +18,7 @@ A named list of arguments for \code{format_my_xlsx_variable_x_group()}.
 Derived from the run rather than hard-coded, so the split stays correct when
 the workbook asks for different \code{value_columns}. With the defaults this
 reproduces the settings behind \verb{4Mi_results_QN6.xlsx}: the blocks layout, one
-sheet per sector, \code{stat} as the statistic and \code{n} / \code{n_total} as the counts.
+sheet per section, \code{stat} as the statistic and \code{n} / \code{n_total} as the counts.
 }
 \details{
 \code{length(c(value_columns, total_columns))} must equal the number of columns

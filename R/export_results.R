@@ -29,7 +29,7 @@ ak_count_columns <- function() {
 #' Derived from the run rather than hard-coded, so the split stays correct when
 #' the workbook asks for different `value_columns`. With the defaults this
 #' reproduces the settings behind `4Mi_results_QN6.xlsx`: the blocks layout, one
-#' sheet per sector, `stat` as the statistic and `n` / `n_total` as the counts.
+#' sheet per section, `stat` as the statistic and `n` / `n_total` as the counts.
 #'
 #' `length(c(value_columns, total_columns))` must equal the number of columns
 #' the pipeline wrote per group block, or the formatter cuts the blocks in the
@@ -56,16 +56,19 @@ ak_export_settings <- function(results, spec) {
     )
   }
 
-  # One sheet per sector, as in the example output. Splitting on a column the
+  # One sheet per section, as in the example output. Splitting on a column the
   # table does not have aborts the export, so the choice is made from what is
-  # actually there: sector by preference, otherwise the first metadata column
-  # the workbook carried through, otherwise a single sheet.
+  # actually there: section by preference (sector, its former name, next),
+  # otherwise the first metadata column the workbook carried through,
+  # otherwise a single sheet.
   wide_names <- names(results$combined_results)
   carried <- intersect(
     spec$settings$extra_columns %||% character(0),
     wide_names
   )
-  split_by <- if ("sector" %in% wide_names) {
+  split_by <- if ("section" %in% wide_names) {
+    "section"
+  } else if ("sector" %in% wide_names) {
     "sector"
   } else if (length(carried) > 0) {
     carried[1]
@@ -102,7 +105,7 @@ ak_export_settings <- function(results, spec) {
 #'   \item the formatter reads everything after the first `stat_` column as a
 #'     statistic, so a trailing `row_type` is reported as an unrecognised
 #'     column and dropped with a warning;
-#'   \item the marker rows carry no `sector`, so splitting sheets by sector
+#'   \item the marker rows carry no `section`, so splitting sheets by section
 #'     sends them all to a sheet of their own called "not specified".
 #' }
 #'

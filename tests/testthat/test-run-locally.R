@@ -42,7 +42,7 @@ run_loa_sheets <- function(...) {
     analysis_variables = data.frame(
       analysis_type = c("prop_select_one", "prop_select_multiple", "mean"),
       analysis_var = c("Q27", "Q78", "Q29"),
-      sector = c("Demographics", "Drivers", "Demographics"),
+      section = c("Demographics", "Drivers", "Demographics"),
       stringsAsFactors = FALSE
     ),
     disaggregation_variables = data.frame(
@@ -52,7 +52,7 @@ run_loa_sheets <- function(...) {
     ),
     settings = data.frame(
       setting = c("value_columns", "extra_columns", "engine"),
-      value = c("stat,n,n_total", "sector", "fast"),
+      value = c("stat,n,n_total", "section", "fast"),
       stringsAsFactors = FALSE
     )
   )

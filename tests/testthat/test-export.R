@@ -98,12 +98,25 @@ test_that("a workbook asking only for counts is refused with a usable message", 
   )
 })
 
-test_that("sheets are split by sector, and only when the table has one", {
+test_that("sheets are split by section, and only when the table has one", {
   spec <- build_analysis_spec(fixture_workbook(), fixture_dataset())
 
   expect_equal(
+    ak_export_settings(fake_results(extra = "section"), spec)$split_by,
+    "section"
+  )
+  # sector, the former name, still splits a workbook made before the rename,
+  # and section wins when a table somehow has both.
+  expect_equal(
     ak_export_settings(fake_results(extra = "sector"), spec)$split_by,
     "sector"
+  )
+  expect_equal(
+    ak_export_settings(
+      fake_results(extra = c("sector", "section")),
+      spec
+    )$split_by,
+    "section"
   )
   # Splitting on a column the table does not have aborts the whole export, so
   # the absence has to fall back rather than be assumed.
