@@ -45,7 +45,7 @@ so the two never overlap.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">loa_read_settings</span><span class="op">(</span><span class="va">sheets</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">loa_read_settings</span><span class="op">(</span><span class="va">sheets</span>, header_rows <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -54,6 +54,12 @@ so the two never overlap.</p>
 
 <dl><dt id="arg-sheets">sheets<a class="anchor" aria-label="anchor" href="#arg-sheets"></a></dt>
 <dd><p>The workbook's named list of sheets.</p></dd>
+
+
+<dt id="arg-header-rows">header_rows<a class="anchor" aria-label="anchor" href="#arg-header-rows"></a></dt>
+<dd><p>Optional named integer vector: rows above the first data
+row of each sheet (see <code><a href="loa_header_rows.html">loa_header_rows()</a></code>), so problems name the row seen
+in Excel.</p></dd>
 
 </dl></div>
     <div class="section level2">

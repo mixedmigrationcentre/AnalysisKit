@@ -8,7 +8,7 @@ overlap.
 ## Usage
 
 ``` r
-loa_read_settings(sheets)
+loa_read_settings(sheets, header_rows = NULL)
 ```
 
 ## Arguments
@@ -16,6 +16,13 @@ loa_read_settings(sheets)
 - sheets:
 
   The workbook's named list of sheets.
+
+- header_rows:
+
+  Optional named integer vector: rows above the first data row of each
+  sheet (see
+  [`loa_header_rows()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_header_rows.md)),
+  so problems name the row seen in Excel.
 
 ## Value
 

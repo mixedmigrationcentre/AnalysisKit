@@ -9,7 +9,7 @@ sheet or the `route_analysis` sheet; each accepts only its own keys (the
 ## Usage
 
 ``` r
-loa_parse_settings(sheet, sheet_name = "settings")
+loa_parse_settings(sheet, sheet_name = "settings", first_row = 2L)
 ```
 
 ## Arguments
@@ -21,6 +21,11 @@ loa_parse_settings(sheet, sheet_name = "settings")
 - sheet_name:
 
   `"settings"` or `"route_analysis"`.
+
+- first_row:
+
+  The workbook row of the sheet's first setting: 2 under a plain header,
+  3 when the sheet has a description row. Used only to number problems.
 
 ## Value
 

@@ -3,7 +3,7 @@
 Derived from the run rather than hard-coded, so the split stays correct
 when the workbook asks for different `value_columns`. With the defaults
 this reproduces the settings behind `4Mi_results_QN6.xlsx`: the blocks
-layout, one sheet per sector, `stat` as the statistic and `n` /
+layout, one sheet per section, `stat` as the statistic and `n` /
 `n_total` as the counts.
 
 ## Usage

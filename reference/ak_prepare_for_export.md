@@ -33,8 +33,8 @@ adds a blank spacer and a heading above each derived block, marked in a
   statistic, so a trailing `row_type` is reported as an unrecognised
   column and dropped with a warning;
 
-- the marker rows carry no `sector`, so splitting sheets by sector sends
-  them all to a sheet of their own called "not specified".
+- the marker rows carry no `section`, so splitting sheets by section
+  sends them all to a sheet of their own called "not specified".
 
 The spacer and heading exist to separate a derived block from the choice
 rows above it in the **matrix** layout, where everything is one

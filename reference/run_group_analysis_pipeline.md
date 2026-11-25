@@ -405,18 +405,18 @@ run_group_analysis_pipeline(
   [`ck_full_sample_base`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_full_sample_base.md).
   Default `FALSE`.
 
-  Normally set row by row instead: a `full_sample_base` column in `loa`
-  turns it on for the rows that say `TRUE`. This argument only decides
-  the rows that leave that cell blank (and every row, when `loa` has no
-  such column). See
+  Normally set row by row instead: a `sample_base` column in `loa`
+  (formerly `full_sample_base`) turns it on for the rows that say
+  `TRUE`. This argument only decides the rows that leave that cell blank
+  (and every row, when `loa` has no such column). See
   [`ck_full_sample_rows`](https://mixedmigrationcentre.github.io/analysiskit/reference/ck_full_sample_rows.md).
 
 - full_sample_label:
 
   Row label for respondents with no answer, in select_one and
-  select_multiple questions using the full-sample base. A
-  `full_sample_label` column in `loa` sets it row by row; this is the
-  label for a row that leaves it blank. Default
+  select_multiple questions using the full-sample base. An `na_label`
+  column in `loa` (formerly `full_sample_label`) sets it row by row;
+  this is the label for a row that leaves it blank. Default
   `"Not asked / no response"`.
 
 ## Value

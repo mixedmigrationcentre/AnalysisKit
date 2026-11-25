@@ -33,6 +33,22 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="analysiskit-development-version">analysiskit (development version)<a class="anchor" aria-label="anchor" href="#analysiskit-development-version"></a></h2>
+<div class="section level3">
+<h3 id="list-of-analysis-template-development-version">List of Analysis template<a class="anchor" aria-label="anchor" href="#list-of-analysis-template-development-version"></a></h3>
+<ul><li>
+<p><strong>A clearer template.</strong> <code>loa_template.xlsx</code> has been rebuilt:</p>
+<ul><li>The <code>readme</code> sheet is organised by sheet, in the order the sheets appear, with what to put in each column. The yellow placeholder shading and the <code>exclude_choices</code> notes are gone.</li>
+<li>Row 2 of <code>analysis_variables</code>, <code>disaggregation_variables</code> and <code>settings</code> describes each column, in italics. The reader recognises it and skips it, so it can be left in place or deleted; problems still name the row as seen in Excel.</li>
+<li>
+<code>settings</code> has a <code>description</code> column saying what each setting does.</li>
+<li>Drop-down lists for <code>analysis_type</code>, <code>sample_base</code> and <code>disaggregation_variables/include</code>, covering the first 1,000 rows.</li>
+</ul></li>
+<li><p><strong>Renamed columns.</strong> In <code>analysis_variables</code>, <code>full_sample_base</code> is now <code>sample_base</code>, <code>full_sample_label</code> is now <code>na_label</code>, and the template’s <code>sector</code> column is now <code>section</code> (with <code>extra_columns = section</code>). Workbooks that use the former names still read exactly as before; a sheet with both the former and the current name of a column is a fatal error. The results workbook is split into one sheet per <code>section</code> (or <code>sector</code>, in an older workbook).</p></li>
+<li><p><strong><code><a href="../reference/ak_write_loa.html">ak_write_loa()</a></code></strong> writes a List of Analysis workbook in the template’s layout, and is what builds the template (<code>dev/build_loa_template.R</code>). <code><a href="../reference/loa_column_descriptions.html">loa_column_descriptions()</a></code> and <code><a href="../reference/loa_setting_descriptions.html">loa_setting_descriptions()</a></code> return the help text it writes.</p></li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2026.11.1" id="analysiskit-2026111">analysiskit 2026.11.1<a class="anchor" aria-label="anchor" href="#analysiskit-2026111"></a></h2>
 <div class="section level3">
 <h3 id="new-features-2026-11-1">New features<a class="anchor" aria-label="anchor" href="#new-features-2026-11-1"></a></h3>

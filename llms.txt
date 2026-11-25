@@ -115,6 +115,9 @@ them up when the package is reinstalled.
 - [`ak_steps()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_steps.md)
   : The Steps of the Workflow
 
+- [`ak_write_loa()`](https://mixedmigrationcentre.github.io/analysiskit/reference/ak_write_loa.md)
+  : Write a List of Analysis Workbook
+
 - [`analysis_spec_args()`](https://mixedmigrationcentre.github.io/analysiskit/reference/analysis_spec_args.md)
   : Assemble the Pipeline Call for a Specification
 
@@ -222,6 +225,9 @@ them up when the package is reinstalled.
 - [`format_my_xlsx_variable_x_group()`](https://mixedmigrationcentre.github.io/analysiskit/reference/format_my_xlsx_variable_x_group.md)
   : Format XLSX Variable by Group Using MMC Branding
 
+- [`loa_column_descriptions()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_column_descriptions.md)
+  : What Each Column Is For, as Written in the Description Row
+
 - [`loa_coverage_severity()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_coverage_severity.md)
   : How Bad Is a Missing Variable, by Where It Was Named
 
@@ -244,6 +250,9 @@ them up when the package is reinstalled.
 
 - [`loa_parse_settings()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_parse_settings.md)
   : Parse and Type-Check a Settings Sheet
+
+- [`loa_setting_descriptions()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_setting_descriptions.md)
+  : What Each Setting Does
 
 - [`loa_settings_schema()`](https://mixedmigrationcentre.github.io/analysiskit/reference/loa_settings_schema.md)
   : The Settings Allow-List

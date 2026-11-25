@@ -460,8 +460,9 @@ every column. Means, medians and ratios are
 unaffected, <code>exclude_choices</code> still removes respondents from the
 base, and a variable that is also a grouping variable is left as it is.
 See <code><a href="ck_full_sample_base.html">ck_full_sample_base</a></code>. Default <code>FALSE</code>.</p>
-<p>Normally set row by row instead: a <code>full_sample_base</code> column in
-<code>loa</code> turns it on for the rows that say <code>TRUE</code>. This argument
+<p>Normally set row by row instead: a <code>sample_base</code> column in
+<code>loa</code> (formerly <code>full_sample_base</code>) turns it on for the rows
+that say <code>TRUE</code>. This argument
 only decides the rows that leave that cell blank (and every row, when
 <code>loa</code> has no such column). See <code><a href="ck_full_sample_rows.html">ck_full_sample_rows</a></code>.</p></dd>
 
@@ -469,7 +470,8 @@ only decides the rows that leave that cell blank (and every row, when
 <dt id="arg-full-sample-label">full_sample_label<a class="anchor" aria-label="anchor" href="#arg-full-sample-label"></a></dt>
 <dd><p>Row label for respondents with no answer, in
 select_one and select_multiple questions using the full-sample base.
-A <code>full_sample_label</code> column in <code>loa</code> sets it row by row; this
+An <code>na_label</code> column in <code>loa</code> (formerly
+<code>full_sample_label</code>) sets it row by row; this
 is the label for a row that leaves it blank. Default
 <code>"Not asked / no response"</code>.</p></dd>
 
